@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "Contapop.Application.AppHost/Contapop.Application.AppHost.csproj"
+  }
+}
