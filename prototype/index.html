@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contapop — Freelance Accounting</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect width=%2224%22 height=%2224%22 rx=%226%22 fill=%22%232f6f5e%22/><path d=%22M7 12h10M7 8h6M7 16h4%22 stroke=%22white%22 stroke-width=%222%22 stroke-linecap=%22round%22/></svg>">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<div id="app" class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-mark">C</span>
+      <span class="brand-name">Contapop</span>
+    </div>
+    <div class="sidebar-project-select">
+      <select id="project-select-mobile"></select>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-tenant" id="sidebar-tenant"></div>
+    </div>
+  </aside>
+
+  <!-- Mobile overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn only-mobile" id="menu-toggle" aria-label="Toggle menu">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div class="topbar-title">
+        <h1 id="page-title">Home</h1>
+        <p id="page-subtitle" class="muted"></p>
+      </div>
+      <div class="topbar-spacer"></div>
+      <div class="project-select">
+        <select id="project-select"></select>
+      </div>
+      <div class="topbar-search">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="search" id="global-search" placeholder="Search everything…" autocomplete="off">
+      </div>
+      <button class="icon-btn" id="notif-btn" aria-label="Notifications">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+        <span class="badge-dot" id="notif-dot" hidden></span>
+      </button>
+      <div class="user-menu">
+        <button class="avatar-btn" id="user-menu-btn"></button>
+      </div>
+    </header>
+
+    <div class="notif-panel" id="notif-panel" hidden></div>
+    <div class="user-panel" id="user-panel" hidden></div>
+
+    <main class="content" id="content" tabindex="-1"></main>
+  </div>
+</div>
+
+<div id="drawer-root"></div>
+<div id="modal-root"></div>
+<div id="toast-root" class="toast-root"></div>
+
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/state.js"></script>
+<script src="js/screens/home.js"></script>
+<script src="js/screens/overview.js"></script>
+<script src="js/screens/expenses.js"></script>
+<script src="js/screens/revenues.js"></script>
+<script src="js/screens/invoices.js"></script>
+<script src="js/screens/payments.js"></script>
+<script src="js/screens/transactions.js"></script>
+<script src="js/screens/reports.js"></script>
+<script src="js/screens/plans.js"></script>
+<script src="js/screens/settings.js"></script>
+<script src="js/screens/user.js"></script>
+<script src="js/router.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
