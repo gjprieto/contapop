@@ -1,184 +1,25 @@
-import { useState, useEffect } from 'react';
-import aspireLogo from '/Aspire.png';
-import './App.css';
+import { useEffect, useState, type ReactNode } from 'react';
+import './styles.css';
 
-interface WeatherForecast {
-  date: string;
-  temperatureC: number;
-  temperatureF: number;
-  summary: string;
-}
-
-function App() {
-  const [weatherData, setWeatherData] = useState<WeatherForecast[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [useCelsius, setUseCelsius] = useState(false);
-
-  const fetchWeatherForecast = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch('/api/weatherforecast');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data: WeatherForecast[] = await response.json();
-      setWeatherData(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch weather data');
-      console.error('Error fetching weather forecast:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchWeatherForecast();
-  }, []);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(undefined, { 
-      weekday: 'short', 
-      month: 'short', 
-      day: 'numeric' 
-    });
-  };
-
-  return (
-    <div className="app-container">
-      <header className="app-header">
-        <a 
-          href="https://aspire.dev" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          aria-label="Visit Aspire website (opens in new tab)"
-          className="logo-link"
-        >
-          <img src={aspireLogo} className="logo" alt="Aspire logo" />
-        </a>
-        <h1 className="app-title">Aspire Starter</h1>
-        <p className="app-subtitle">Modern distributed application development</p>
-      </header>
-
-      <main className="main-content">
-        <section className="weather-section" aria-labelledby="weather-heading">
-          <div className="card">
-            <div className="section-header">
-              <h2 id="weather-heading" className="section-title">Weather Forecast</h2>
-              <div className="header-actions">
-                <fieldset className="toggle-switch" aria-label="Temperature unit selection">
-                  <legend className="visually-hidden">Temperature unit</legend>
-                  <button 
-                    className={`toggle-option ${!useCelsius ? 'active' : ''}`}
-                    onClick={() => setUseCelsius(false)}
-                    aria-pressed={!useCelsius}
-                    type="button"
-                  >
-                    <span aria-hidden="true">°F</span>
-                    <span className="visually-hidden">Fahrenheit</span>
-                  </button>
-                  <button 
-                    className={`toggle-option ${useCelsius ? 'active' : ''}`}
-                    onClick={() => setUseCelsius(true)}
-                    aria-pressed={useCelsius}
-                    type="button"
-                  >
-                    <span aria-hidden="true">°C</span>
-                    <span className="visually-hidden">Celsius</span>
-                  </button>
-                </fieldset>
-                <button 
-                  className="refresh-button"
-                  onClick={fetchWeatherForecast} 
-                  disabled={loading}
-                  aria-label={loading ? 'Loading weather forecast' : 'Refresh weather forecast'}
-                  type="button"
-                >
-                  <svg 
-                    className={`refresh-icon ${loading ? 'spinning' : ''}`}
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-                  </svg>
-                  <span>{loading ? 'Loading...' : 'Refresh'}</span>
-                </button>
-              </div>
-            </div>
-            
-            {error && (
-              <div className="error-message" role="alert" aria-live="polite">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="12"/>
-                  <line x1="12" y1="16" x2="12.01" y2="16"/>
-                </svg>
-                <span>{error}</span>
-              </div>
-            )}
-            
-            {loading && weatherData.length === 0 && (
-              <div className="loading-skeleton" role="status" aria-live="polite" aria-label="Loading weather data">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="skeleton-row" aria-hidden="true" />
-                ))}
-                <span className="visually-hidden">Loading weather forecast data...</span>
-              </div>
-            )}
-            
-            {weatherData.length > 0 && (
-              <div className="weather-grid">
-                {weatherData.map((forecast, index) => (
-                  <article key={index} className="weather-card" aria-label={`Weather for ${formatDate(forecast.date)}`}>
-                    <h3 className="weather-date">
-                      <time dateTime={forecast.date}>{formatDate(forecast.date)}</time>
-                    </h3>
-                    <p className="weather-summary">{forecast.summary}</p>
-                    <div className="weather-temps" aria-label={`Temperature: ${useCelsius ? forecast.temperatureC : forecast.temperatureF} degrees ${useCelsius ? 'Celsius' : 'Fahrenheit'}`}>
-                      <div className="temp-group">
-                        <span className="temp-value" aria-hidden="true">
-                          {useCelsius ? forecast.temperatureC : forecast.temperatureF}°
-                        </span>
-                        <span className="temp-unit" aria-hidden="true">{useCelsius ? 'Celsius' : 'Fahrenheit'}</span>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      </main>
-
-      <footer className="app-footer">
-        <nav aria-label="Footer navigation">
-          <a href="https://aspire.dev" target="_blank" rel="noopener noreferrer">
-            Learn more about Aspire<span className="visually-hidden"> (opens in new tab)</span>
-          </a>
-          <a 
-            href="https://github.com/microsoft/aspire" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="github-link"
-            aria-label="View Aspire on GitHub (opens in new tab)"
-          >
-            <img src="/github.svg" alt="" width="24" height="24" aria-hidden="true" />
-            <span className="visually-hidden">GitHub</span>
-          </a>
-        </nav>
-      </footer>
-    </div>
-  );
-}
-
+type Status = 'paid' | 'pending' | 'overdue' | 'received' | 'completed' | 'partial' | 'draft' | 'active';
+type Item = { id: string; description: string; category: string; amount: number; date: string; status: Status; projectId?: string; recurring?: boolean; client?: string; method?: string; type?: 'income' | 'expense' };
+const projects = [{ id: 'p1', name: 'Website Redesign - Acme Retail', client: 'Acme Retail' }, { id: 'p2', name: 'Brand Identity - Luma Wellness', client: 'Luma Wellness' }, { id: 'p3', name: 'Retainer - Nord Consulting', client: 'Nord Consulting' }, { id: 'p4', name: 'Mobile App - Fenwick Logistics', client: 'Fenwick Logistics' }];
+const expenses: Item[] = [{ id: 'exp1', description: 'Figma subscription', category: 'Software & Tools', amount: 15, date: '2026-09-02', status: 'paid', projectId: 'p1' }, { id: 'exp2', description: 'Backend dev support', category: 'Subcontractors', amount: 840, date: '2026-08-28', status: 'paid', projectId: 'p2' }, { id: 'exp3', description: 'Google Ads credit', category: 'Marketing', amount: 220, date: '2026-08-25', status: 'pending', projectId: 'p1' }, { id: 'exp4', description: 'Accountant monthly fee', category: 'Professional Services', amount: 180, date: '2026-08-15', status: 'paid' }];
+const revenues: Item[] = [{ id: 'rev1', description: 'Retainer - Nord Consulting', category: 'Retainer', amount: 2200, date: '2026-09-01', status: 'received', projectId: 'p3' }, { id: 'rev2', description: 'Design Services - Luma Wellness', category: 'Design Services', amount: 3200, date: '2026-08-27', status: 'received', projectId: 'p2' }, { id: 'rev3', description: 'Web Development - Acme Retail', category: 'Web Development', amount: 4200, date: '2026-08-20', status: 'pending', projectId: 'p1' }];
+const invoices: Item[] = [{ id: 'inv1', description: 'INV-2026-1078', client: 'Acme Retail', category: 'Service', amount: 4200, date: '2026-09-03', status: 'pending', projectId: 'p1' }, { id: 'inv2', description: 'INV-2026-1071', client: 'Fenwick Logistics', category: 'Service', amount: 2340, date: '2026-08-01', status: 'overdue', projectId: 'p4' }, { id: 'inv3', description: 'INV-2026-1069', client: 'Nord Consulting', category: 'Service', amount: 2200, date: '2026-08-01', status: 'paid', projectId: 'p3' }];
+const money = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR' }).format(value);
+const date = (value: string) => new Date(`${value}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const projectName = (id?: string) => projects.find((project) => project.id === id)?.name ?? 'General';
+function Badge({ status, children }: { status: string; children?: ReactNode }) { return <span className={`badge badge-${status}`}>{children ?? status}</span>; }
+function Card({ children, className = '' }: { children: ReactNode; className?: string }) { return <section className={`card ${className}`}>{children}</section>; }
+function Stat({ label, value, delta, tone = 'green' }: { label: string; value: string; delta: string; tone?: string }) { return <Card className="stat"><span className={`stat-icon ${tone}`}>●</span><span className="muted">{label}</span><strong>{value}</strong><small className={tone}>{delta}</small></Card>; }
+function App() { const [route, setRoute] = useState('home'); const [theme, setTheme] = useState<'light' | 'dark'>('light'); const [project, setProject] = useState('all'); const [mobileNav, setMobileNav] = useState(false); const [search, setSearch] = useState(''); const [toast, setToast] = useState(''); useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]); useEffect(() => { if (!toast) return; const timer = setTimeout(() => setToast(''), 3200); return () => clearTimeout(timer); }, [toast]); const navigate = (next: string) => { setRoute(next); setMobileNav(false); }; const titles: Record<string, [string, string]> = { home: ['Home', 'Your financial snapshot at a glance'], overview: ['Financial Overview', 'Monitor revenue, expenses and budget health'], expenses: ['Expenses', 'All outgoing costs across your projects'], revenues: ['Revenues', 'All income across your projects'], invoices: ['Invoices', 'Incoming and outgoing billing documents'], payments: ['Payments', 'Payments recorded against invoices'], transactions: ['Transactions', 'All bank account activity in one place'], reports: ['Reports', 'Financial reports and analysis'], plans: ['Plans', 'Financial forecasts and strategies'], settings: ['Settings', 'Manage your account, preferences and security'], user: ['My Profile', 'Your personal information and activity'] }; const [title, subtitle] = titles[route] ?? titles.home; const items = route === 'expenses' ? expenses : route === 'revenues' ? revenues : invoices; return <div className={`app ${mobileNav ? 'nav-open' : ''}`}><aside className="sidebar"><div className="brand"><b>C</b><strong>Contapop</strong></div><select className="mobile-project" value={project} onChange={(e) => setProject(e.target.value)}><option value="all">All Projects</option>{projects.map((p) => <option key={p.id}>{p.name}</option>)}</select><nav>{[['home', 'Home', '⌂'], ['overview', 'Financial Overview', '◫'], ['Money', '', ''], ['expenses', 'Expenses', '↘'], ['revenues', 'Revenues', '↗'], ['invoices', 'Invoices', '▤'], ['payments', 'Payments', '◉'], ['transactions', 'Transactions', '⇄'], ['Plan & analyze', '', ''], ['reports', 'Reports', '▥'], ['plans', 'Plans', '◇'], ['Account', '', ''], ['settings', 'Settings', '⚙'], ['user', 'My Profile', '◌']].map(([key, label, icon]) => label ? <button key={key} className={route === key ? 'active' : ''} onClick={() => navigate(key)}><span>{icon}</span>{label}</button> : <small key={key}>{key}</small>)}</nav><div className="tenant"><b>A</b><span><strong>Alex Rivera Freelance Studio</strong><small>Owner · Pro plan</small></span></div></aside>{mobileNav && <button className="overlay" onClick={() => setMobileNav(false)} />}<main className="main"><header className="topbar"><button className="menu" onClick={() => setMobileNav(true)}>☰</button><div><h1>{title}</h1><p>{subtitle}</p></div><div className="spacer"/><select value={project} onChange={(e) => setProject(e.target.value)}><option value="all">All Projects</option>{projects.map((p) => <option key={p.id}>{p.name}</option>)}</select><label className="global-search">⌕<input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search everything..." /></label><button className="top-icon">♧<i/></button><button className="avatar">AR</button></header><div className="content">{route === 'home' && <Home onNavigate={navigate}/>} {route === 'overview' && <Overview/>} {['expenses', 'revenues', 'invoices'].includes(route) && <List entity={route} items={items.filter((item) => `${item.description} ${item.client ?? ''}`.toLowerCase().includes(search.toLowerCase()))} onToast={setToast}/>} {route === 'transactions' && <List entity="transactions" items={[...expenses.filter((item) => item.status === 'paid'), ...revenues.filter((item) => item.status === 'received')]} onToast={setToast}/>} {route === 'payments' && <Payments/>} {route === 'reports' && <Reports onToast={setToast}/>} {route === 'plans' && <Plans onToast={setToast}/>} {route === 'settings' && <Settings theme={theme} setTheme={setTheme} onToast={setToast}/>} {route === 'user' && <Profile onToast={setToast}/>}</div></main>{toast && <div className="toast"><i/>{toast}</div>}</div>; }
+function Home({ onNavigate }: { onNavigate: (route: string) => void }) { return <><section className="welcome"><div><p>Good morning, Alex</p><h2>Keep your freelance finances in focus.</h2><span>September 2026 · All projects</span></div><div><small>Net this month</small><strong>{money(2165)}</strong><small>{money(6540)} outstanding</small></div></section><div className="stat-grid"><Stat label="Revenue received" value={money(5400)} delta="↑ 12.4% from August"/><Stat label="Expenses paid" value={money(1035)} delta="↓ 8.1% from August" tone="red"/><Stat label="Net profit" value={money(4365)} delta="↑ 18.2% from August" tone="blue"/><Stat label="Budget used" value="62%" delta="On track this month" tone="amber"/></div><div className="two-col"><Card><header><h3>Recent activity</h3><button onClick={() => onNavigate('transactions')}>View transactions</button></header>{['Alex Rivera created invoice INV-2026-1078 for Acme Retail', 'Marta Solis reconciled 6 transactions on Business Checking', 'Alex Rivera logged an expense: Figma subscription (€15.00)', 'Payment of €2,200 received against retainer invoice'].map((text, i) => <div className="timeline" key={text}><i/><span><strong>{text}</strong><small>{i + 1}d ago</small></span></div>)}</Card><Card><header><h3>Needs your attention</h3></header><div className="alert"><b>Overdue invoice</b><span>Fenwick Logistics · {money(2340)}</span><button onClick={() => onNavigate('invoices')}>Review</button></div><div className="alert"><b>Marketing budget</b><span>88% used this month</span><button onClick={() => onNavigate('overview')}>View</button></div></Card></div></>; }
+function Overview() { return <><div className="page-actions"><span>2026 year to date</span><button>Export summary</button></div><div className="stat-grid"><Stat label="Total revenue" value={money(23140)} delta="↑ 14.6% vs. 2025"/><Stat label="Total expenses" value={money(7815)} delta="↓ 3.2% vs. 2025" tone="red"/><Stat label="Net profit" value={money(15325)} delta="↑ 22.1% vs. 2025" tone="blue"/></div><div className="two-col"><Card><header><h3>Revenue vs. expenses</h3><small>Jan - Sep 2026</small></header><div className="bars">{['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'].map((month, index) => <div key={month}><span>{month}</span><i style={{height: `${35 + index * 6}%`}}/><b style={{height: `${20 + index * 4}%`}}/></div>)}</div><p className="legend"><i/> Revenue <b/> Expenses</p></Card><Card><header><h3>Expenses by category</h3></header><div className="donut">{money(7815)}<small>Total expenses</small></div>{['Subcontractors', 'Software & Tools', 'Marketing', 'Professional Services'].map((name, index) => <div className="progress" key={name}><span>{name}</span><i><b style={{width: `${72 - index * 14}%`}}/></i><strong>{72 - index * 14}%</strong></div>)}</Card></div></>; }
+function List({ entity, items, onToast }: { entity: string; items: Item[]; onToast: (text: string) => void }) { return <><div className="toolbar"><input placeholder={`Search ${entity}...`}/><select><option>All statuses</option><option>Paid</option><option>Pending</option></select><button className="primary" onClick={() => onToast(`New ${entity.slice(0, -1)} form is a prototype action.`)}>+ New {entity.slice(0, -1)}</button></div><small className="count">{items.length} results</small><Card className="table-card"><table><thead><tr><th>Description / project</th><th>Category</th><th>Amount</th><th>Date</th><th>Status</th><th/></tr></thead><tbody>{items.map((item) => <tr key={item.id}><td><strong>{item.description}</strong><small>{item.client ?? projectName(item.projectId)}</small></td><td>{item.category}</td><td className="amount">{money(item.amount)}</td><td>{date(item.date)}</td><td><Badge status={item.status}/></td><td className="row-actions"><button onClick={() => onToast('Edit is a prototype action.')}>Edit</button><button onClick={() => onToast('Record details opened.')}>View</button></td></tr>)}</tbody></table></Card></>; }
+function Payments() { return <List entity="payments" items={invoices.filter((item) => item.status === 'paid')} onToast={() => {}}/>; }
+function Reports({ onToast }: { onToast: (text: string) => void }) { const reports = [['August 2026 Profit & Loss', 'Profit & Loss', 'Aug 2026'], ['Q2 2026 Cash Flow Summary', 'Cash Flow', 'Q2 2026'], ['Acme Retail - Project Financials', 'Project Financials', 'Project']]; return <><div className="page-actions"><span>Saved and generated reports</span><button className="primary" onClick={() => onToast('Report generation started (demo only).')}>+ Generate report</button></div><Card className="table-card"><table><thead><tr><th>Report</th><th>Type</th><th>Period</th><th>Generated</th></tr></thead><tbody>{reports.map(([name, type, period]) => <tr key={name}><td><strong>{name}</strong><small>All projects</small></td><td><Badge status="active">{type}</Badge></td><td>{period}</td><td>Sep 2, 2026</td></tr>)}</tbody></table></Card></>; }
+function Plans({ onToast }: { onToast: (text: string) => void }) { return <><div className="page-actions"><span>Financial forecasts and strategies</span><button className="primary" onClick={() => onToast('New plan form opened (prototype demo).')}>+ New plan</button></div><div className="plan-grid">{[['Q4 2026 Growth Plan', 'active', 6800], ['Luma Wellness - Rebrand Budget', 'active', 5400], ['Annual Tax Reserve Plan', 'draft', -2900]].map(([name, status, net]) => <Card key={String(name)}><Badge status={String(status)}/><h3>{name}</h3><p className="muted">Forecast planned revenues and expenses for your workspace.</p><strong className={Number(net) >= 0 ? 'income' : 'expense'}>{money(Number(net))} planned net</strong><button onClick={() => onToast(`${name} opened.`)}>View plan</button></Card>)}</div></>; }
+function Settings({ theme, setTheme, onToast }: { theme: string; setTheme: (theme: 'light' | 'dark') => void; onToast: (text: string) => void }) { return <div className="two-col"><Card className="settings"><h3>Appearance</h3><p>Choose how Contapop looks for you.</p><div><button className={theme === 'light' ? 'selected' : ''} onClick={() => setTheme('light')}>Light</button><button className={theme === 'dark' ? 'selected' : ''} onClick={() => setTheme('dark')}>Dark</button></div>{['Email notifications', 'Overdue invoice alerts', 'Budget alerts'].map((label) => <label className="toggle-row" key={label}>{label}<input type="checkbox" defaultChecked/></label>)}</Card><Card><header><h3>Account information</h3></header><label>Full name<input defaultValue="Alex Rivera"/></label><label>Email<input defaultValue="admin@alicazum.com"/></label><label>Phone<input defaultValue="+34 611 220 934"/></label><button className="primary" onClick={() => onToast('Account information saved.')}>Save changes</button></Card></div>; }
+function Profile({ onToast }: { onToast: (text: string) => void }) { return <div className="profile"><Card className="profile-head"><div className="big-avatar">AR</div><h2>Alex Rivera</h2><Badge status="active">Owner</Badge><p>Alex Rivera Freelance Studio</p></Card><Card><header><h3>Personal information</h3></header><label>Full name<input defaultValue="Alex Rivera"/></label><label>Email address<input defaultValue="admin@alicazum.com"/></label><button className="primary" onClick={() => onToast('Profile saved.')}>Save profile</button></Card></div>; }
 export default App;
