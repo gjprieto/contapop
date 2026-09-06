@@ -1112,8 +1112,8 @@ No commands or queries of its own — every endpoint here composes calls to the 
 
 | Endpoint | Route | Composes |
 |---|---|---|
-| Login | `POST /experience/v1/auth/login` | Terminates against Identity & Tenancy's ASP.NET Core Identity store; sets the session cookie. |
-| Logout | `POST /experience/v1/auth/logout` | Clears the session cookie. |
+| Login | `POST /experience/v1/auth/login` | Validates credentials through Identity & Tenancy's internal `POST /api/v1/auth/validate-credentials` endpoint, then sets the Experience API's session cookie. |
+| Logout | `POST /experience/v1/auth/logout` | Clears the Experience API session cookie. |
 
 **Screen endpoints** — one read endpoint per MVP screen, plus write endpoints that mostly forward 1:1 to the owning service's command (same request/response shape as documented above unless noted as composed):
 
@@ -1150,4 +1150,4 @@ Every other write action named in a service section above (creating an invoice, 
 8. **`ListUnreconciledTransactions`'s Experience-API-level composition** (item 3 above) is specified at the shape level here, but the exact mechanism for the Experience API to know a service's already-reconciled transaction IDs (a dedicated lightweight query on Billing/Bookkeeping, vs. deriving it from `ListPayments`/`ListExpenses`/`ListRevenues`'s existing `reconciledTransactionId` field) isn't chosen — the latter is simplest and needs no new endpoint, but flagging this as a decision point for whoever implements Task 2.6/3.7/4.6's composition logic.
 9. `GetFinancialOverview`'s and `GetPlanVsActual`'s exact trend-bucketing (monthly? weekly?) and category-grouping rules aren't pinned down — reasonable defaults are shown above (monthly trend, flat category list) but should be confirmed against the actual Financial Overview/Plans screen designs once those exist, per Task 5.1/4.1's spec-check step.
 10. The `skippedRows` shape on `ImportTransactionsFromFile`'s error response, and the equivalent for a malformed CSV, are illustrative — the exact validation-error vocabulary should be finalized during Task 2.5.
-11. **How Identity & Tenancy's own `POST /api/v1/auth/login` (added 2026-09-06 for Task 1.5) relates to the Experience API's `POST /experience/v1/auth/login`** isn't decided: whether Task 1.6 has the Experience API simply forward/reuse the cookie this endpoint sets, or has the Experience API call a credential-check-only variant of this endpoint and terminate its own separate cookie there (matching the letter of "terminated at the Experience API" in `services.md`'s Authentication & Authorization section more strictly). Either is workable for a single collocated-network MVP; pin this down when Task 1.6 is actually implemented, before it matters for a split deployment.
+11. ~~How Identity & Tenancy's own `POST /api/v1/auth/login` relates to the Experience API's `POST /experience/v1/auth/login`~~ — resolved in Task 1.6: the Experience API owns the browser session cookie. It validates credentials through Identity & Tenancy's internal `POST /api/v1/auth/validate-credentials` endpoint, which returns only the authenticated tenant/user/role claims; the browser never receives or forwards Identity's cookie.

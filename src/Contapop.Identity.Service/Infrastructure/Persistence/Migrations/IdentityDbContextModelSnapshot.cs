@@ -120,6 +120,11 @@ namespace Contapop.Identity.Service.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("notifications_enabled");
 
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid")
                         .HasColumnName("tenant_id");

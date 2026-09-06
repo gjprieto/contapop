@@ -8,7 +8,9 @@ using Contapop.Identity.Service.Infrastructure.Persistence.Interceptors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,8 +31,25 @@ builder.Services.AddIdentityCore<IdentityCredential>(options =>
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<IdentityDbContext>();
 builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
-    .AddCookie(IdentityConstants.ApplicationScheme);
-builder.Services.AddAuthorization();
+    .AddCookie(IdentityConstants.ApplicationScheme)
+    .AddJwtBearer("InternalJwt", options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                builder.Configuration["InternalJwt:SigningKey"] ?? throw new InvalidOperationException("Internal JWT signing key is not configured."))),
+        };
+    });
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy("account-owner", policy =>
+    {
+        policy.AddAuthenticationSchemes("InternalJwt");
+        policy.RequireRole("account-owner");
+    }));
 builder.Services.AddScoped<IPasswordHasher<IdentityCredential>, PasswordHasher<IdentityCredential>>();
 builder.Services.AddSingleton<IClock, Contapop.Identity.Service.Infrastructure.Time.SystemClock>();
 builder.Services.AddScoped<ProvisionTenantCommandHandler>();
@@ -79,6 +98,57 @@ app.MapPost("/api/v1/auth/login", async (
 .AllowAnonymous()
 .WithName("Login")
 .Produces(StatusCodes.Status204NoContent)
+.Produces(StatusCodes.Status401Unauthorized);
+
+app.MapPost("/api/v1/auth/validate-credentials", async (
+    LoginRequest request,
+    UserManager<IdentityCredential> userManager) =>
+{
+    var credential = await userManager.FindByEmailAsync(request.Email.Trim());
+    if (credential is null || !await userManager.CheckPasswordAsync(credential, request.Password))
+    {
+        return Results.Unauthorized();
+    }
+
+    return Results.Ok(new AuthenticatedUserResponse(credential.TenantId, credential.DomainUserId, "account-owner"));
+})
+.AllowAnonymous()
+.WithName("ValidateCredentials")
+.Produces<AuthenticatedUserResponse>()
+.Produces(StatusCodes.Status401Unauthorized);
+
+app.MapGet("/api/v1/users/me", async (
+    HttpContext httpContext,
+    IdentityDbContext database,
+    CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(httpContext.User.FindFirstValue("tenant_id"), out var tenantId)
+        || !Guid.TryParse(httpContext.User.FindFirstValue("user_id"), out var userId))
+    {
+        return Results.Unauthorized();
+    }
+
+    var user = await database.DomainUsers.AsNoTracking()
+        .SingleOrDefaultAsync(candidate => candidate.Id == userId && candidate.TenantId == tenantId, cancellationToken);
+    if (user is null)
+    {
+        return Results.Unauthorized();
+    }
+
+    var projectId = await database.Projects.AsNoTracking()
+        .Where(project => project.TenantId == tenantId && project.Status == "active")
+        .Select(project => (Guid?)project.Id)
+        .SingleOrDefaultAsync(cancellationToken);
+    if (projectId is null)
+    {
+        return Results.Problem(statusCode: StatusCodes.Status409Conflict, title: "No active project exists for this tenant.");
+    }
+
+    return Results.Ok(new CurrentUserResponse(user.Id, user.TenantId, projectId.Value, user.Name, user.Email, user.Theme, user.Language, user.NotificationsEnabled, user.Version));
+})
+.RequireAuthorization("account-owner")
+.WithName("GetCurrentUser")
+.Produces<CurrentUserResponse>()
 .Produces(StatusCodes.Status401Unauthorized);
 
 app.MapPost("/api/v1/tenants", async (
@@ -143,3 +213,6 @@ app.MapPost("/api/v1/users/me/change-password", async (
 app.Run();
 
 public partial class Program;
+
+public sealed record AuthenticatedUserResponse(Guid TenantId, Guid UserId, string Role);
+public sealed record CurrentUserResponse(Guid UserId, Guid TenantId, Guid ProjectId, string Name, string Email, string Theme, string Language, bool NotificationsEnabled, int Version);

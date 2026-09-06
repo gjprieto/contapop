@@ -36,6 +36,7 @@ A User represents an individual who interacts with the system. Users are associa
 - `theme`: UI theme preference (e.g. `light`, `dark`).
 - `language`: Preferred language/locale (e.g. `es`, `en`).
 - `notifications_enabled`: Whether in-app notifications/reminders are enabled.
+- `version`: Optimistic concurrency version, incremented on every profile or preferences update.
 - `created_at`: Timestamp when the user was created.
 - `updated_at`: Timestamp when the user was last updated.
 

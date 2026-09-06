@@ -57,6 +57,7 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
             entity.Property(user => user.Theme).HasColumnName("theme").HasMaxLength(20).IsRequired();
             entity.Property(user => user.Language).HasColumnName("language").HasMaxLength(10).IsRequired();
             entity.Property(user => user.NotificationsEnabled).HasColumnName("notifications_enabled").IsRequired();
+            entity.Property(user => user.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
             entity.Property(user => user.CreatedAt).HasColumnName("created_at").IsRequired();
             entity.Property(user => user.UpdatedAt).HasColumnName("updated_at").IsRequired();
             entity.HasOne<Tenant>()

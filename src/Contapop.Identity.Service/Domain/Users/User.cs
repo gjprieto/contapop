@@ -9,6 +9,7 @@ public sealed class User
     public string Theme { get; private set; } = null!;
     public string Language { get; private set; } = null!;
     public bool NotificationsEnabled { get; private set; }
+    public int Version { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
@@ -21,6 +22,7 @@ public sealed class User
         Theme = "light",
         Language = "es",
         NotificationsEnabled = true,
+        Version = 1,
         CreatedAt = createdAt,
         UpdatedAt = createdAt,
     };

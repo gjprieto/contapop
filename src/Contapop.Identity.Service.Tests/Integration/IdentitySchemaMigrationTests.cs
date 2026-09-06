@@ -39,7 +39,7 @@ public sealed class IdentitySchemaMigrationTests : IAsyncLifetime
             ["created_at", "id", "name", "status", "tenant_id", "updated_at"],
             projectColumns);
         Assert.Equal(
-            ["created_at", "email", "id", "language", "name", "notifications_enabled", "tenant_id", "theme", "updated_at"],
+            ["created_at", "email", "id", "language", "name", "notifications_enabled", "tenant_id", "theme", "updated_at", "version"],
             userColumns);
         Assert.Contains("event_id", outboxColumns);
         Assert.Contains("payload", outboxColumns);
