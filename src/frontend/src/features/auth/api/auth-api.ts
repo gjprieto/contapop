@@ -17,6 +17,24 @@ export type LoginInput = {
   password: string;
 };
 
+export type UpdateUserProfileInput = {
+  name: string;
+};
+
+export type UpdateUserPreferencesInput = {
+  theme?: 'light' | 'dark';
+  language?: string;
+  notificationsEnabled?: boolean;
+};
+
+export type UpdateUserProfileResponse = Pick<CurrentUser, 'userId' | 'name' | 'version'> & {
+  updatedAt: string;
+};
+
+export type UpdateUserPreferencesResponse = Pick<CurrentUser, 'userId' | 'theme' | 'language' | 'notificationsEnabled' | 'version'> & {
+  updatedAt: string;
+};
+
 export function getCurrentUser(signal?: AbortSignal) {
   return apiRequest<CurrentUser>('/experience/v1/user', { signal });
 }
@@ -24,6 +42,22 @@ export function getCurrentUser(signal?: AbortSignal) {
 export function login(input: LoginInput) {
   return apiRequestVoid('/experience/v1/auth/login', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateUserProfile(input: UpdateUserProfileInput) {
+  return apiRequest<UpdateUserProfileResponse>('/experience/v1/user', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateUserPreferences(input: UpdateUserPreferencesInput) {
+  return apiRequest<UpdateUserPreferencesResponse>('/experience/v1/settings', {
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
