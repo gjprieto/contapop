@@ -47,6 +47,7 @@ A Project represents a collection of resources and activities within the system.
 - `id`: Unique identifier for the project.
 - `tenant_id`: Identifier of the tenant the project belongs to.
 - `name`: Name of the project.
+- `status`: `active` or `archived` — archived instead of hard-deleted so replicated references never dangle.
 - `created_at`: Timestamp when the project was created.
 - `updated_at`: Timestamp when the project was last updated.
 

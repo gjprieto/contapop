@@ -1,6 +1,8 @@
 <Solution>
   <Project Path="Contapop.Application.AppHost/Contapop.Application.AppHost.csproj" />
   <Project Path="Contapop.Application.Server/Contapop.Application.Server.csproj" />
+  <Project Path="Contapop.Identity.Service/Contapop.Identity.Service.csproj" />
+  <Project Path="Contapop.Identity.Service.Tests/Contapop.Identity.Service.Tests.csproj" />
   <Project Path="frontend/frontend.esproj">
     <Build />
     <Deploy />

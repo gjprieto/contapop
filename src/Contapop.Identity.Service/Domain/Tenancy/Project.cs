@@ -1,0 +1,11 @@
+namespace Contapop.Identity.Service.Domain.Tenancy;
+
+public sealed class Project
+{
+    public Guid Id { get; private set; }
+    public Guid TenantId { get; private set; }
+    public string Name { get; private set; } = null!;
+    public string Status { get; private set; } = null!;
+    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset UpdatedAt { get; private set; }
+}

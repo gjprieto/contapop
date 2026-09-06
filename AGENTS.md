@@ -28,10 +28,10 @@ Then the code-level standards, which govern *how* code is written once you know 
 
 As of this writing, the repository is a **pre-Phase-1 scaffold** — the specs above describe the target architecture, almost none of it is built yet:
 
-- `src/Contapop.Application.slnx` is an Aspire solution with exactly three projects: `Contapop.Application.AppHost`, `Contapop.Application.Server`, and `frontend/frontend.esproj`. There is **one** backend project (`Contapop.Application.Server`), not the 6 services described in `services.md`. Decomposing into services is future work per `workplan.md`, not already done.
+- `src/Contapop.Application.slnx` is an Aspire solution with five projects: `Contapop.Application.AppHost`, `Contapop.Application.Server`, `Contapop.Identity.Service`, `Contapop.Identity.Service.Tests`, and `frontend/frontend.esproj`. The Identity & Tenancy service has its initial EF Core schema and migration; the remaining service projects are future work per `workplan.md`.
 - `Contapop.Application.AppHost/AppHost.cs` wires up Redis (`AddRedis("cache")`) and the single server project, plus the Vite frontend. **PostgreSQL is not yet added to the AppHost.** Adding it is part of Phase 1.
 - `Contapop.Application.Server` is the default ASP.NET Core Minimal API template output: `AddServiceDefaults()`, output caching via Redis, `AddProblemDetails()`, `AddOpenApi()`, health checks, and a placeholder `/api/weatherforecast` endpoint. **That endpoint is scaffold cruft from the Aspire template — it is not real Contapop functionality and should be deleted, not extended, when real endpoints are added.**
-- There is no EF Core, no database code, no domain/application/infrastructure layering, and no test project anywhere in `src/`. All of that is greenfield.
+- `Contapop.Identity.Service` contains the initial Identity & Tenancy EF Core model, migration, and transactional-outbox schema. `Contapop.Identity.Service.Tests` applies that migration to Testcontainers PostgreSQL. Commands, authentication, endpoints, and outbox dispatch are still future tasks.
 - `src/frontend` is a bare React 19.2 + TypeScript 5.9 + Vite 8 app. Only `react`/`react-dom` are installed as dependencies. None of `tech-stack.md`'s planned frontend packages (TanStack Query, React Router, React Hook Form, Zod, Radix UI) are installed yet — install them when the task that needs them starts, don't pre-install speculatively.
 - Do not trust a stale description of the repo (including anything an older version of this file said) over what's actually in `src/` — if something here turns out to be inaccurate, check the source and treat this file as needing an update, not the other way around.
 
@@ -42,6 +42,7 @@ Only use commands that are actually wired up. Don't invent a `dotnet test` comma
 Backend / orchestration (from `src/`):
 ```
 dotnet build Contapop.Application.slnx
+dotnet test Contapop.Application.slnx
 dotnet run --project Contapop.Application.AppHost   # starts the full Aspire app graph (server + Redis + frontend)
 ```
 
