@@ -11,6 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
+builder.Services.AddServiceDiscovery();
+builder.Services.ConfigureHttpClientDefaults(http => http.AddServiceDiscovery());
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {

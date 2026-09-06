@@ -14,6 +14,7 @@ var experienceApi = builder.AddProject<Projects.Contapop_Experience_Api>("experi
     .WithReference(cache)
     .WithEnvironment("InternalJwt__SigningKey", internalJwtSigningKey)
     .WaitFor(cache)
+    .WithHttpEndpoint()
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints();
 
