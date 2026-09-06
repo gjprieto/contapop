@@ -26,13 +26,16 @@ A Tenant represents an organization or individual that owns and manages resource
 
 ### User
 
-A User represents an individual who interacts with the system. Users are associated with a specific tenant and have roles and permissions that determine their access to resources and actions within the system.
+A User represents an individual who interacts with the system. Users are associated with a specific tenant and have roles and permissions that determine their access to resources and actions within the system. **Decision (2026-09-06): preferences live directly on User** — `theme`, `language`, `notifications_enabled` are added here rather than a separate entity, since MVP has exactly one User per Tenant (see `docs/analysis/mvp/scope-decisions.md`'s single-owner decision).
 
 **Attributes:**
 - `id`: Unique identifier for the user.
 - `tenant_id`: Identifier of the tenant the user belongs to.
 - `name`: Name of the user.
 - `email`: Email address of the user.
+- `theme`: UI theme preference (e.g. `light`, `dark`).
+- `language`: Preferred language/locale (e.g. `es`, `en`).
+- `notifications_enabled`: Whether in-app notifications/reminders are enabled.
 - `created_at`: Timestamp when the user was created.
 - `updated_at`: Timestamp when the user was last updated.
 
@@ -49,7 +52,7 @@ A Project represents a collection of resources and activities within the system.
 
 ### Bank Account
 
-A Bank Account represents a financial account associated with a tenant or project. It is used to manage and track financial transactions, balances, and other related information within the system.
+A Bank Account represents a financial account associated with a tenant or project. It is used to manage and track financial transactions, balances, and other related information within the system. **Decision (2026-09-06): soft-deleted like Project/Transaction** — `ArchiveBankAccount` (`docs/analysis/contracts.md`) needs a status to transition, so this gets the same `active`/`archived` pattern rather than a hard delete.
 
 **Attributes:**
 - `id`: Unique identifier for the bank account.
@@ -57,6 +60,7 @@ A Bank Account represents a financial account associated with a tenant or projec
 - `project_id`: Identifier of the project the bank account belongs to (if applicable).
 - `account_number`: Bank account number.
 - `bank_name`: Name of the bank.
+- `status`: `active` or `archived`.
 - `created_at`: Timestamp when the bank account was created.
 - `updated_at`: Timestamp when the bank account was last updated.
 
@@ -100,12 +104,13 @@ A Counterparty represents the customer or supplier on the other side of an Invoi
 - `tax_id`: Optional tax/fiscal identifier (e.g. NIF/CIF), useful for compliant invoicing.
 - `email`: Optional contact email.
 - `address`: Optional billing address.
+- `status`: `active` or `archived` — set by `ArchiveCounterparty` (`docs/analysis/contracts.md`); soft-deleted rather than hard-deleted since a Counterparty is referenced by Invoices.
 - `created_at`: Timestamp when the counterparty was created.
 - `updated_at`: Timestamp when the counterparty was last updated.
 
 ### Invoice or Ticket
 
-An Invoice or Ticket represents a billing or payment document associated with a tenant or project. It records details such as the amount, date, due date, and associated transactions within the system. **Decision (2026-09-06): added `counterparty_id` and `direction`** — the Invoices screen distinguishes incoming and outgoing invoices, which requires knowing which party (Counterparty) is on the other side and in which direction the money flows. **Decision (2026-09-06): basic VAT/IVA breakdown for MVP** — `amount` is replaced with a net/tax/total breakdown, the minimum needed for a usable Spanish invoice. Full Facturae/SII/Verifactu compliance is explicitly deferred past MVP (see `docs/analysis/mvp/scope-decisions.md`).
+An Invoice or Ticket represents a billing or payment document associated with a tenant or project. It records details such as the amount, date, due date, and associated transactions within the system. **Decision (2026-09-06): added `counterparty_id` and `direction`** — the Invoices screen distinguishes incoming and outgoing invoices, which requires knowing which party (Counterparty) is on the other side and in which direction the money flows. **Decision (2026-09-06): basic VAT/IVA breakdown for MVP** — `amount` is replaced with a net/tax/total breakdown, the minimum needed for a usable Spanish invoice. Full Facturae/SII/Verifactu compliance is explicitly deferred past MVP (see `docs/analysis/mvp/scope-decisions.md`). **Decision (2026-09-06): added a stored `status`** — `IssueInvoice`, `VoidInvoice`, `RecordPayment`, and the `MarkInvoicesOverdue` background job (`docs/analysis/contracts.md`) all transition it, and the Invoices screen filters by it.
 
 **Attributes:**
 - `id`: Unique identifier for the invoice or ticket.
@@ -113,6 +118,7 @@ An Invoice or Ticket represents a billing or payment document associated with a 
 - `project_id`: Identifier of the project the invoice or ticket belongs to (if applicable).
 - `counterparty_id`: Identifier of the Counterparty — the customer being billed (outgoing) or the supplier billing the tenant (incoming).
 - `direction`: Whether the invoice is `outgoing` (tenant billing the counterparty) or `incoming` (counterparty billing the tenant).
+- `status`: `draft`, `issued`, `paid`, `overdue`, or `void`.
 - `net_amount`: Amount before tax.
 - `tax_rate`: VAT/IVA rate applied (e.g. 21%, 10%, 4%, or 0% for exempt).
 - `tax_amount`: Computed tax amount (`net_amount` × `tax_rate`).
@@ -138,20 +144,20 @@ A Payment represents a financial transaction related to an invoice or ticket. It
 
 ### Report
 
-A Report represents a summary or analysis of financial data within the system. It is associated with a tenant or project and provides insights into financial performance, trends, and other relevant metrics.
+A Report represents a saved set of criteria for a financial analysis, not a frozen snapshot. **Decision (2026-09-06): stores `criteria`, not `content`** — per `docs/analysis/contracts.md`'s Reporting section, a saved report's financial content is always computed fresh from the Reporting service's projections at read time; only the title and the criteria used to generate it are persisted.
 
 **Attributes:**
 - `id`: Unique identifier for the report.
 - `tenant_id`: Identifier of the tenant the report belongs to.
 - `project_id`: Identifier of the project the report belongs to (if applicable).
 - `title`: Title of the report.
-- `content`: Content or body of the report.
+- `criteria`: Structured filter criteria used to generate the report's content (date range, plus any other filters offered on the Reports screen).
 - `created_at`: Timestamp when the report was created.
 - `updated_at`: Timestamp when the report was last updated.
 
 ### Expense
 
-An Expense represents a financial outflow associated with a tenant or project. It records details such as the amount, date, category, and associated entities within the system. It can be recurring or one-time, providing a way to track and manage expenditures effectively. **Decision (2026-09-06): can be reconciled against a Financial Accounts & Ledger Transaction** — optional, one-to-one for MVP; a cross-service reference validated the same way as a Project reference. **Decision (2026-09-06): can also be imported from a PDF via OCR** — see `import_source` below and `docs/analysis/contracts.md`.
+An Expense represents a financial outflow associated with a tenant or project. It records details such as the amount, date, category, and associated entities within the system. It can be recurring or one-time, providing a way to track and manage expenditures effectively. **Decision (2026-09-06): can be reconciled against a Financial Accounts & Ledger Transaction** — optional, one-to-one for MVP; a cross-service reference validated the same way as a Project reference. **Decision (2026-09-06): can also be imported from a PDF via OCR** — see `import_source` below and `docs/analysis/contracts.md`. **Decision (2026-09-06): added `confirmed_at`** — makes the "draft until confirmed" rule from `contracts.md` concrete: null while a `pdf_ocr` import is awaiting `ConfirmImportedExpense`, set immediately for a `manual` record, set by confirmation for an OCR one. Any report-facing query filters on `confirmed_at IS NOT NULL`.
 
 **Attributes:**
 - `id`: Unique identifier for the expense.
@@ -164,12 +170,13 @@ An Expense represents a financial outflow associated with a tenant or project. I
 - `recurring`: Indicates if the expense is recurring.
 - `recurring_interval`: Specifies the interval at which the expense recurs (e.g., monthly, yearly).
 - `import_source`: How the record was created — `manual` or `pdf_ocr`. An OCR-imported expense is created as a draft pending user confirmation before it counts toward reports (see `contracts.md`).
+- `confirmed_at`: Null while an OCR-imported draft awaits confirmation; set (immediately for manual, on confirmation for OCR) once the record counts toward reports.
 - `created_at`: Timestamp when the expense was created.
 - `updated_at`: Timestamp when the expense was last updated.
 
 ### Revenue
  
-A Revenue represents a financial inflow associated with a tenant or project. It records details such as the amount, date, category, and associated entities within the system. It can be recurring or one-time, providing a way to track and manage income effectively. **Decision (2026-09-06): can be reconciled against a Financial Accounts & Ledger Transaction** — optional, one-to-one for MVP; a cross-service reference validated the same way as a Project reference. **Decision (2026-09-06): can also be imported from a PDF via OCR** — see `import_source` below and `docs/analysis/contracts.md`.
+A Revenue represents a financial inflow associated with a tenant or project. It records details such as the amount, date, category, and associated entities within the system. It can be recurring or one-time, providing a way to track and manage income effectively. **Decision (2026-09-06): can be reconciled against a Financial Accounts & Ledger Transaction** — optional, one-to-one for MVP; a cross-service reference validated the same way as a Project reference. **Decision (2026-09-06): can also be imported from a PDF via OCR** — see `import_source` below and `docs/analysis/contracts.md`. **Decision (2026-09-06): added `confirmed_at`** — same purpose as Expense's field, above.
 
 **Attributes:**
 - `id`: Unique identifier for the revenue.
@@ -182,6 +189,7 @@ A Revenue represents a financial inflow associated with a tenant or project. It 
 - `recurring`: Indicates if the revenue is recurring.
 - `recurring_interval`: Specifies the interval at which the revenue recurs (e.g., monthly, yearly).
 - `import_source`: How the record was created — `manual` or `pdf_ocr`. An OCR-imported revenue is created as a draft pending user confirmation before it counts toward reports (see `contracts.md`).
+- `confirmed_at`: Null while an OCR-imported draft awaits confirmation; set (immediately for manual, on confirmation for OCR) once the record counts toward reports.
 - `created_at`: Timestamp when the revenue was created.
 - `updated_at`: Timestamp when the revenue was last updated.
 
@@ -198,6 +206,7 @@ A Plan represents a financial strategy or allocation associated with a tenant or
 - `allocated_amount`: Optional overall allocation/budget ceiling for the plan's period (absorbed from the former Budget entity).
 - `start_date`: Start date of the plan's period (absorbed from the former Budget entity).
 - `end_date`: End date of the plan's period (absorbed from the former Budget entity).
+- `status`: `active` or `archived` — set by `ArchivePlan` (`docs/analysis/contracts.md`).
 - `created_at`: Timestamp when the plan was created.
 - `updated_at`: Timestamp when the plan was last updated.
 
