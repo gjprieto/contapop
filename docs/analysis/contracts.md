@@ -29,6 +29,7 @@ Screens: none directly (Identity & Tenancy backs the app-wide auth-aware shell; 
 | Command | Route | Screen |
 |---|---|---|
 | `ProvisionTenant` | `POST /api/v1/tenants` | Manual onboarding (not a screen) |
+| `Login` | `POST /api/v1/auth/login` | App-wide auth-aware shell (not a screen) |
 | `UpdateUserProfile` | `PATCH /api/v1/users/me/profile` | User |
 | `UpdateUserPreferences` | `PATCH /api/v1/users/me/preferences` | Settings |
 | `ChangePassword` | `POST /api/v1/users/me/change-password` | Settings |
@@ -62,6 +63,21 @@ Manual/admin-driven per `scope-decisions.md`'s private-pilot decision — not ca
 **Errors:** `409 Conflict` if `ownerEmail` is already in use by another tenant.
 
 **Events:** `identity.tenant-created.v1`, `identity.project-created.v1`.
+
+#### `Login`
+
+Validates credentials against the Identity credential store created in `ProvisionTenant`/Task 1.4, then signs the caller in via ASP.NET Core Identity's cookie authentication (per `services.md`'s Authentication & Authorization section). **Anonymous endpoint** — the only one on this service. Exposed directly on the Identity & Tenancy service for Phase 1 (built/tested in Task 1.5, same "call it directly before the Experience API exists" pattern as `ProvisionTenant` in Task 1.4). The browser-facing login the frontend actually calls is `POST /experience/v1/auth/login` (documented in the Experience API section below); see Open Item 11 for how the two relate once Task 1.6 builds that endpoint.
+
+**Route:** `POST /api/v1/auth/login`
+
+**Request:**
+```
+{ "email": "string", "password": "string" }
+```
+
+**Response:** `204 No Content` — the ASP.NET Core Identity session cookie is set on the response.
+
+**Errors:** `401 Unauthorized` for an unknown email or an incorrect password (the two are not distinguished, to avoid leaking which emails are registered).
 
 #### `UpdateUserProfile`
 
@@ -1134,3 +1150,4 @@ Every other write action named in a service section above (creating an invoice, 
 8. **`ListUnreconciledTransactions`'s Experience-API-level composition** (item 3 above) is specified at the shape level here, but the exact mechanism for the Experience API to know a service's already-reconciled transaction IDs (a dedicated lightweight query on Billing/Bookkeeping, vs. deriving it from `ListPayments`/`ListExpenses`/`ListRevenues`'s existing `reconciledTransactionId` field) isn't chosen — the latter is simplest and needs no new endpoint, but flagging this as a decision point for whoever implements Task 2.6/3.7/4.6's composition logic.
 9. `GetFinancialOverview`'s and `GetPlanVsActual`'s exact trend-bucketing (monthly? weekly?) and category-grouping rules aren't pinned down — reasonable defaults are shown above (monthly trend, flat category list) but should be confirmed against the actual Financial Overview/Plans screen designs once those exist, per Task 5.1/4.1's spec-check step.
 10. The `skippedRows` shape on `ImportTransactionsFromFile`'s error response, and the equivalent for a malformed CSV, are illustrative — the exact validation-error vocabulary should be finalized during Task 2.5.
+11. **How Identity & Tenancy's own `POST /api/v1/auth/login` (added 2026-09-06 for Task 1.5) relates to the Experience API's `POST /experience/v1/auth/login`** isn't decided: whether Task 1.6 has the Experience API simply forward/reuse the cookie this endpoint sets, or has the Experience API call a credential-check-only variant of this endpoint and terminate its own separate cookie there (matching the letter of "terminated at the Experience API" in `services.md`'s Authentication & Authorization section more strictly). Either is workable for a single collocated-network MVP; pin this down when Task 1.6 is actually implemented, before it matters for a split deployment.
