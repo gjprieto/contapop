@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 // https://vite.dev/config/
@@ -6,11 +6,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // Proxy API calls to the app service
-      '/api': {
-        target: process.env.SERVER_HTTPS || process.env.SERVER_HTTP,
+      // The Experience API owns the browser-facing /experience route prefix.
+      '/experience': {
+        target: process.env.EXPERIENCE_API_HTTPS || process.env.EXPERIENCE_API_HTTP,
         changeOrigin: true
       }
-    }
+    },
+  },
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
   }
 });
