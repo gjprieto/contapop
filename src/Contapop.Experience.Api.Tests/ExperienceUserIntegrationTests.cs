@@ -34,6 +34,31 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
         Assert.Equal("Ana Garcia", user.Name);
     }
 
+    [Fact]
+    public async Task Update_user_profile_forwards_the_internal_jwt_and_version()
+    {
+        using var client = _experienceFactory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
+        var login = await client.PostAsJsonAsync("/experience/v1/auth/login", new LoginRequest("ana@acme.test", "Password1"));
+        Assert.Equal(HttpStatusCode.NoContent, login.StatusCode);
+
+        using var request = new HttpRequestMessage(HttpMethod.Patch, "/experience/v1/user")
+        {
+            Content = JsonContent.Create(new UpdateUserProfileRequest("Ana Lopez")),
+        };
+        request.Headers.TryAddWithoutValidation("If-Match", "\"1\"");
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var profile = await response.Content.ReadFromJsonAsync<UpdateUserProfileResponse>();
+        Assert.NotNull(profile);
+        Assert.Equal("Ana Lopez", profile.Name);
+        Assert.Equal(2, profile.Version);
+
+        var user = await client.GetFromJsonAsync<CurrentUserResponse>("/experience/v1/user");
+        Assert.NotNull(user);
+        Assert.Equal("Ana Lopez", user.Name);
+    }
+
     public async Task InitializeAsync()
     {
         var identityBuilder = WebApplication.CreateBuilder();
@@ -56,17 +81,28 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
         _identityService.UseAuthorization();
         _identityService.MapPost("/api/v1/auth/validate-credentials", () =>
             Results.Ok(new AuthenticatedUserResponse(Guid.Parse("11111111-1111-1111-1111-111111111111"), Guid.Parse("22222222-2222-2222-2222-222222222222"), "account-owner")));
+        var currentUser = new CurrentUserResponse(
+            Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Guid.Parse("33333333-3333-3333-3333-333333333333"),
+            "Ana Garcia", "ana@acme.test", "light", "es", true, 1);
         _identityService.MapGet("/api/v1/users/me", (HttpContext context) =>
         {
             Assert.True(context.User.Identity?.IsAuthenticated);
             Assert.Equal("11111111-1111-1111-1111-111111111111", context.User.FindFirstValue("tenant_id"));
             Assert.Equal("22222222-2222-2222-2222-222222222222", context.User.FindFirstValue("user_id"));
             Assert.Equal("account-owner", context.User.FindFirstValue(ClaimTypes.Role));
-            return Results.Ok(new CurrentUserResponse(
-                Guid.Parse("22222222-2222-2222-2222-222222222222"),
-                Guid.Parse("11111111-1111-1111-1111-111111111111"),
-                Guid.Parse("33333333-3333-3333-3333-333333333333"),
-                "Ana Garcia", "ana@acme.test", "light", "es", true, 1));
+            return Results.Ok(currentUser);
+        }).RequireAuthorization();
+        _identityService.MapPatch("/api/v1/users/me/profile", async (HttpContext context) =>
+        {
+            Assert.True(context.User.Identity?.IsAuthenticated);
+            Assert.Equal("\"1\"", context.Request.Headers.IfMatch.ToString());
+            var request = await context.Request.ReadFromJsonAsync<UpdateUserProfileRequest>();
+            Assert.NotNull(request);
+            currentUser = currentUser with { Name = request.Name, Version = 2 };
+            return Results.Ok(new UpdateUserProfileResponse(currentUser.UserId, currentUser.Name,
+                new DateTimeOffset(2026, 9, 6, 12, 0, 0, TimeSpan.Zero), currentUser.Version));
         }).RequireAuthorization();
         await _identityService.StartAsync();
 

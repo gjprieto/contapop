@@ -26,4 +26,36 @@ public sealed class User
         CreatedAt = createdAt,
         UpdatedAt = createdAt,
     };
+
+    public void UpdateProfile(string name, DateTimeOffset updatedAt)
+    {
+        Name = name;
+        Version++;
+        UpdatedAt = updatedAt;
+    }
+
+    public void UpdatePreferences(
+        string? theme,
+        string? language,
+        bool? notificationsEnabled,
+        DateTimeOffset updatedAt)
+    {
+        if (theme is not null)
+        {
+            Theme = theme;
+        }
+
+        if (language is not null)
+        {
+            Language = language;
+        }
+
+        if (notificationsEnabled is not null)
+        {
+            NotificationsEnabled = notificationsEnabled.Value;
+        }
+
+        Version++;
+        UpdatedAt = updatedAt;
+    }
 }

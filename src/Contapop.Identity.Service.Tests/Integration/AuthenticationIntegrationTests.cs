@@ -4,6 +4,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Contapop.Identity.Service.Api.Contracts;
+using Contapop.Identity.Service.Application.Commands.UpdateUserPreferences;
+using Contapop.Identity.Service.Application.Commands.UpdateUserProfile;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
@@ -70,6 +72,69 @@ public sealed class AuthenticationIntegrationTests : IAsyncLifetime
         Assert.Equal(provisioned.TenantId, user.TenantId);
         Assert.Equal(provisioned.ProjectId, user.ProjectId);
         Assert.Equal(1, user.Version);
+    }
+
+    [Fact]
+    public async Task Profile_and_preferences_updates_are_claim_scoped_and_reflected_by_get_current_user()
+    {
+        using var client = _factory.CreateClient();
+        var provision = await client.PostAsJsonAsync("/api/v1/tenants", new ProvisionTenantRequest(
+            "Acme Studio", "Maria Garcia", "maria@acme.test", "OriginalPassword"));
+        var provisioned = await provision.Content.ReadFromJsonAsync<ProvisionTenantResponse>();
+
+        Assert.NotNull(provisioned);
+        client.DefaultRequestHeaders.Authorization = new("Bearer", CreateInternalJwt(provisioned.TenantId, provisioned.OwnerUserId));
+
+        using var profileRequest = new HttpRequestMessage(HttpMethod.Patch, "/api/v1/users/me/profile")
+        {
+            Content = JsonContent.Create(new UpdateUserProfileRequest("Maria Lopez")),
+        };
+        profileRequest.Headers.TryAddWithoutValidation("If-Match", "\"1\"");
+        var profileResponse = await client.SendAsync(profileRequest);
+        Assert.Equal(HttpStatusCode.OK, profileResponse.StatusCode);
+        var profile = await profileResponse.Content.ReadFromJsonAsync<UpdateUserProfileResult>();
+        Assert.NotNull(profile);
+        Assert.Equal(2, profile.Version);
+
+        using var preferencesRequest = new HttpRequestMessage(HttpMethod.Patch, "/api/v1/users/me/preferences")
+        {
+            Content = JsonContent.Create(new UpdateUserPreferencesRequest("dark", "en", false)),
+        };
+        preferencesRequest.Headers.TryAddWithoutValidation("If-Match", "\"2\"");
+        var preferencesResponse = await client.SendAsync(preferencesRequest);
+        Assert.Equal(HttpStatusCode.OK, preferencesResponse.StatusCode);
+        var preferences = await preferencesResponse.Content.ReadFromJsonAsync<UpdateUserPreferencesResult>();
+        Assert.NotNull(preferences);
+        Assert.Equal(3, preferences.Version);
+
+        var currentUser = await client.GetFromJsonAsync<CurrentUserResponse>("/api/v1/users/me");
+        Assert.NotNull(currentUser);
+        Assert.Equal("Maria Lopez", currentUser.Name);
+        Assert.Equal("dark", currentUser.Theme);
+        Assert.Equal("en", currentUser.Language);
+        Assert.False(currentUser.NotificationsEnabled);
+        Assert.Equal(3, currentUser.Version);
+    }
+
+    [Fact]
+    public async Task Profile_update_rejects_a_stale_version()
+    {
+        using var client = _factory.CreateClient();
+        var provision = await client.PostAsJsonAsync("/api/v1/tenants", new ProvisionTenantRequest(
+            "Acme Studio", "Maria Garcia", "maria@acme.test", "OriginalPassword"));
+        var provisioned = await provision.Content.ReadFromJsonAsync<ProvisionTenantResponse>();
+
+        Assert.NotNull(provisioned);
+        client.DefaultRequestHeaders.Authorization = new("Bearer", CreateInternalJwt(provisioned.TenantId, provisioned.OwnerUserId));
+        using var request = new HttpRequestMessage(HttpMethod.Patch, "/api/v1/users/me/profile")
+        {
+            Content = JsonContent.Create(new UpdateUserProfileRequest("Maria Lopez")),
+        };
+        request.Headers.TryAddWithoutValidation("If-Match", "\"2\"");
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     private static string CreateInternalJwt(Guid tenantId, Guid userId)

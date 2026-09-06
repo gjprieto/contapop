@@ -3,6 +3,8 @@ using Contapop.Identity.Service.Infrastructure.Identity;
 using Contapop.Identity.Service.Infrastructure.Time;
 using Contapop.Identity.Service.Application.Abstractions;
 using Contapop.Identity.Service.Application.Commands.ProvisionTenant;
+using Contapop.Identity.Service.Application.Commands.UpdateUserProfile;
+using Contapop.Identity.Service.Application.Commands.UpdateUserPreferences;
 using Contapop.Identity.Service.Api.Contracts;
 using Contapop.Identity.Service.Infrastructure.Persistence.Interceptors;
 using Microsoft.AspNetCore.Identity;
@@ -53,6 +55,8 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<IPasswordHasher<IdentityCredential>, PasswordHasher<IdentityCredential>>();
 builder.Services.AddSingleton<IClock, Contapop.Identity.Service.Infrastructure.Time.SystemClock>();
 builder.Services.AddScoped<ProvisionTenantCommandHandler>();
+builder.Services.AddScoped<UpdateUserProfileCommandHandler>();
+builder.Services.AddScoped<UpdateUserPreferencesCommandHandler>();
 
 var app = builder.Build();
 
@@ -151,6 +155,70 @@ app.MapGet("/api/v1/users/me", async (
 .Produces<CurrentUserResponse>()
 .Produces(StatusCodes.Status401Unauthorized);
 
+app.MapPatch("/api/v1/users/me/profile", async (
+    UpdateUserProfileRequest request,
+    HttpContext httpContext,
+    UpdateUserProfileCommandHandler handler,
+    CancellationToken cancellationToken) =>
+{
+    if (!TryGetCurrentUser(httpContext, out var tenantId, out var userId) || !TryGetExpectedVersion(httpContext, out var expectedVersion))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["If-Match"] = ["A quoted current resource version is required."],
+        });
+    }
+
+    var command = new UpdateUserProfileCommand(tenantId, userId, expectedVersion, request.Name);
+    var errors = UpdateUserProfileCommandValidator.Validate(command);
+    if (errors.Count != 0)
+    {
+        return Results.ValidationProblem(errors);
+    }
+
+    var result = await handler.HandleAsync(command, cancellationToken);
+    return result is null
+        ? Results.Problem(statusCode: StatusCodes.Status409Conflict, title: "Conflict", detail: "The user profile has changed. Refresh and try again.")
+        : Results.Ok(result);
+})
+.RequireAuthorization("account-owner")
+.WithName("UpdateUserProfile")
+.Produces<UpdateUserProfileResult>()
+.ProducesValidationProblem()
+.ProducesProblem(StatusCodes.Status409Conflict);
+
+app.MapPatch("/api/v1/users/me/preferences", async (
+    UpdateUserPreferencesRequest request,
+    HttpContext httpContext,
+    UpdateUserPreferencesCommandHandler handler,
+    CancellationToken cancellationToken) =>
+{
+    if (!TryGetCurrentUser(httpContext, out var tenantId, out var userId) || !TryGetExpectedVersion(httpContext, out var expectedVersion))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]>
+        {
+            ["If-Match"] = ["A quoted current resource version is required."],
+        });
+    }
+
+    var command = new UpdateUserPreferencesCommand(tenantId, userId, expectedVersion, request.Theme, request.Language, request.NotificationsEnabled);
+    var errors = UpdateUserPreferencesCommandValidator.Validate(command);
+    if (errors.Count != 0)
+    {
+        return Results.ValidationProblem(errors);
+    }
+
+    var result = await handler.HandleAsync(command, cancellationToken);
+    return result is null
+        ? Results.Problem(statusCode: StatusCodes.Status409Conflict, title: "Conflict", detail: "The user preferences have changed. Refresh and try again.")
+        : Results.Ok(result);
+})
+.RequireAuthorization("account-owner")
+.WithName("UpdateUserPreferences")
+.Produces<UpdateUserPreferencesResult>()
+.ProducesValidationProblem()
+.ProducesProblem(StatusCodes.Status409Conflict);
+
 app.MapPost("/api/v1/tenants", async (
     ProvisionTenantRequest request,
     ProvisionTenantCommandHandler handler,
@@ -211,6 +279,26 @@ app.MapPost("/api/v1/users/me/change-password", async (
 .Produces(StatusCodes.Status401Unauthorized);
 
 app.Run();
+
+static bool TryGetCurrentUser(HttpContext httpContext, out Guid tenantId, out Guid userId)
+{
+    var hasTenantId = Guid.TryParse(httpContext.User.FindFirstValue("tenant_id"), out tenantId);
+    var hasUserId = Guid.TryParse(httpContext.User.FindFirstValue("user_id"), out userId);
+    return hasTenantId && hasUserId;
+}
+
+static bool TryGetExpectedVersion(HttpContext httpContext, out int version)
+{
+    var ifMatch = httpContext.Request.Headers.IfMatch.ToString();
+    var parsedVersion = 0;
+    var isValid = ifMatch.Length >= 3
+        && ifMatch[0] == '"'
+        && ifMatch[^1] == '"'
+        && int.TryParse(ifMatch[1..^1], out parsedVersion)
+        && parsedVersion > 0;
+    version = isValid ? parsedVersion : 0;
+    return isValid;
+}
 
 public partial class Program;
 
