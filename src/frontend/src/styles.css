@@ -111,6 +111,8 @@ textarea{resize:vertical;font-family:inherit;}
 .nav-item svg{width:17px;height:17px;flex:none;}
 .nav-item:hover{background:var(--surface-2);color:var(--text);}
 .nav-item.active{background:var(--brand-50);color:var(--brand-600);}
+.nav-item-disabled{cursor:default;opacity:.58;}
+.nav-item-disabled:hover{background:none;color:var(--text-muted);}
 html[data-theme="dark"] .nav-item.active{color:var(--brand-200);}
 .nav-section-label{font-size:10.5px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-faint);padding:14px 12px 4px;font-weight:700;}
 .sidebar-footer{padding:12px;border-top:1px solid var(--border);}
@@ -427,13 +429,8 @@ tbody tr:hover .row-actions{opacity:1;}
 .form-error{margin:0;color:var(--red-500);font-size:12px;}
 .form-error-global{margin-top:10px;}
 .auth-status,.empty-home{min-height:calc(100vh - 65px);display:grid;place-content:center;padding:24px;text-align:center;color:var(--text-muted);}
-.app-shell-header{height:65px;display:flex;align-items:center;gap:32px;padding:0 24px;border-bottom:1px solid var(--border);background:var(--surface);}
-.app-shell-brand{font-size:17px;font-weight:700;text-decoration:none;color:var(--text);}
-.app-shell-header nav{display:flex;align-items:center;gap:4px;}
-.app-shell-header nav a{padding:7px 10px;border-radius:var(--radius-sm);color:var(--text-muted);font-weight:600;font-size:13px;text-decoration:none;}
-.app-shell-header nav a:hover,.app-shell-header nav a.active{background:var(--brand-50);color:var(--brand-600);}
-.page{width:min(100% - 32px,720px);margin:0 auto;padding:56px 0;}
-.home-page{min-height:calc(100vh - 65px);display:grid;align-content:center;}
+.page{width:100%;padding:0;}
+.home-page{min-height:calc(100vh - 149px);display:grid;align-content:center;}
 .page h1{margin:6px 0;font-size:32px;color:var(--text);}
 .page-intro{max-width:540px;color:var(--text-muted);font-size:15px;}
 .form-card{margin-top:28px;padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);}
@@ -443,4 +440,4 @@ tbody tr:hover .row-actions{opacity:1;}
 .checkbox-field{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;cursor:pointer;}
 .checkbox-field input{width:16px;height:16px;accent-color:var(--brand-500);}
 .form-success{margin:0;color:var(--green-500);font-size:12px;}
-@media (max-width:520px){.app-shell-header{gap:12px;padding:0 16px;}.app-shell-header nav{margin-left:auto;}.app-shell-header nav a{padding:7px 6px;font-size:12px;}.page{width:min(100% - 32px,720px);padding:36px 0;}.page h1{font-size:28px;}.form-card{padding:20px;}}
+@media (max-width:520px){.page{padding:0;}.page h1{font-size:28px;}.form-card{padding:20px;}}
