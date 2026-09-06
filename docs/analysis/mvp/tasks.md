@@ -49,25 +49,25 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **What you can test:** ask the agent to show you the applied schema (e.g. `\dt` / `\d+ tenants` output against the running `contapop_identity` database via the Aspire dashboard's Postgres connection, or a quick `psql` session) and confirm it matches `domain.md`'s Tenant/User/Project attributes. Still no runnable feature.
 
-### Task 1.4 — `ProvisionTenant` command + outbox publish
+### Task 1.4 — `ProvisionTenant` command + Identity store + outbox publish
 
 **Depends on:** 1.3.
 
-**Implement:** the `ProvisionTenant` command from `contracts.md` (creates Tenant + owner User + the one auto-provisioned Project transactionally, per `scope-decisions.md`'s single-project/single-owner/private-pilot decisions) and its handler in `Application/Commands/ProvisionTenant/`. On success, write `identity.project-created.v1` (per `events.md`) to the outbox in the same transaction. Expose it as a real HTTP endpoint on the Identity & Tenancy service's own `/api/v1/...` root (no Experience API yet — this is called directly for now, e.g. via a seed script or Swagger).
+**Implement:** the `ProvisionTenant` command from `contracts.md` and its handler in `Application/Commands/ProvisionTenant/`. This is also where ASP.NET Core Identity's credential store is introduced (moved up from Task 1.5, 2026-09-06): add ASP.NET Core Identity's schema (via `IdentityDbContext`/`AddIdentityCore`, per `services.md`'s Authentication & Authorization section) to the Identity & Tenancy service's database and generate its migration alongside Task 1.3's schema. `ProvisionTenant` then, in one transaction, creates the domain Tenant + owner User + the one auto-provisioned Project (per `scope-decisions.md`'s single-project/single-owner/private-pilot decisions), *and* creates the owner's ASP.NET Core Identity credential record from the request's `initialPassword` (hashed via Identity's own password hasher) — this is the only place `initialPassword` is ever persisted, and it never touches the domain `User` entity. On success, write both `identity.tenant-created.v1` and `identity.project-created.v1` (per `events.md`) to the outbox in the same transaction. Expose it as a real HTTP endpoint on the Identity & Tenancy service's own `/api/v1/...` root (no Experience API yet — this is called directly for now, e.g. via a seed script or Swagger).
 
-**Automated tests:** a command-handler unit test (fakes for persistence/time, per `backend-api-code-guidelines.md`'s Unit Testing section) plus an integration test against Testcontainers Postgres asserting Tenant + User + Project are created in one transaction and that the outbox row is written with the correct payload shape from `events.md`.
+**Automated tests:** a command-handler unit test (fakes for persistence/time, per `backend-api-code-guidelines.md`'s Unit Testing section) plus an integration test against Testcontainers Postgres asserting Tenant + User + Project + the Identity credential record are all created in one transaction, and that both outbox rows (`identity.tenant-created.v1`, `identity.project-created.v1`) are written with the correct payload shapes from `events.md`.
 
-**What you can test:** call the `ProvisionTenant` endpoint yourself (via the service's OpenAPI/Swagger UI, since `AddOpenApi()` is already wired per the scaffold) with a test tenant name/owner email, then query the database directly to see the Tenant, User, and Project rows land together, plus one row in the outbox table.
+**What you can test:** call the `ProvisionTenant` endpoint yourself (via the service's OpenAPI/Swagger UI, since `AddOpenApi()` is already wired per the scaffold) with a test tenant name/owner email/initial password, then query the database directly to see the Tenant, User, and Project rows land together, plus the Identity credential row for the owner, plus two rows in the outbox table.
 
-### Task 1.5 — Authentication: ASP.NET Core Identity + cookie login
+### Task 1.5 — Authentication: cookie login + change password
 
 **Depends on:** 1.4.
 
-**Implement:** wire ASP.NET Core Identity into the Identity & Tenancy service per `services.md`'s Authentication & Authorization section — the Identity store, a login endpoint issuing the auth cookie, and `ChangePassword` from `contracts.md`. Seed one pilot user (matching a provisioned tenant from Task 1.4) so there's something to log in as.
+**Implement:** wire ASP.NET Core Identity's runtime authentication pieces into the Identity & Tenancy service per `services.md`'s Authentication & Authorization section — cookie authentication middleware, a login endpoint that validates against the Identity credential store Task 1.4 already created, and `ChangePassword` from `contracts.md`. No credential-storage schema work here (that's done in 1.4); this task is login/cookie/password-change behavior only. The tenant owner provisioned in Task 1.4's own testing already has a usable credential — use it as the pilot login target rather than seeding a separate one.
 
 **Automated tests:** integration tests for login success/failure and `ChangePassword`, per the Unit Testing section's guidance on faking identity where possible and using Testcontainers where real Identity behavior must be exercised.
 
-**What you can test:** hit the login endpoint directly (Swagger or `curl -c cookies.txt`) with the seeded pilot user's credentials and confirm a session cookie comes back; confirm a wrong password is rejected.
+**What you can test:** hit the login endpoint directly (Swagger or `curl -c cookies.txt`) with a tenant owner's credentials from Task 1.4 and confirm a session cookie comes back; confirm a wrong password is rejected.
 
 ### Task 1.6 — Experience API skeleton + internal JWT issuance
 

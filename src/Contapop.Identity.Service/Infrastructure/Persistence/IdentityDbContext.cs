@@ -1,19 +1,22 @@
 using Contapop.Identity.Service.Domain.Tenancy;
 using Contapop.Identity.Service.Domain.Users;
 using Contapop.Identity.Service.Infrastructure.Outbox;
+using Contapop.Identity.Service.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Contapop.Identity.Service.Infrastructure.Persistence;
 
-public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : DbContext(options)
+public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> options) : IdentityDbContext<IdentityCredential, Microsoft.AspNetCore.Identity.IdentityRole<Guid>, Guid>(options)
 {
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<Project> Projects => Set<Project>();
-    public DbSet<User> Users => Set<User>();
+    public DbSet<User> DomainUsers => Set<User>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema("tenancy");
 
         modelBuilder.Entity<Tenant>(entity =>
@@ -85,5 +88,21 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
             entity.Property(message => message.LastError).HasColumnName("last_error").HasMaxLength(4000);
             entity.HasIndex(message => new { message.Status, message.OccurredAt });
         });
+
+        modelBuilder.Entity<IdentityCredential>(entity =>
+        {
+            entity.ToTable("identity_credentials", "users");
+            entity.Property(credential => credential.TenantId).HasColumnName("tenant_id").IsRequired();
+            entity.Property(credential => credential.DomainUserId).HasColumnName("domain_user_id").IsRequired();
+            entity.HasIndex(credential => credential.DomainUserId).IsUnique();
+            entity.HasIndex(credential => new { credential.TenantId, credential.NormalizedEmail }).IsUnique();
+        });
+
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityRole<Guid>>().ToTable("identity_roles", "users");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<Guid>>().ToTable("identity_user_roles", "users");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserClaim<Guid>>().ToTable("identity_user_claims", "users");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserLogin<Guid>>().ToTable("identity_user_logins", "users");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityRoleClaim<Guid>>().ToTable("identity_role_claims", "users");
+        modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserToken<Guid>>().ToTable("identity_user_tokens", "users");
     }
 }

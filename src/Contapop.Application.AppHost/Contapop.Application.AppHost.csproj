@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Contapop.Application.Server\Contapop.Application.Server.csproj" />
+    <ProjectReference Include="..\Contapop.Identity.Service\Contapop.Identity.Service.csproj" />
   </ItemGroup>
 
   <ItemGroup>

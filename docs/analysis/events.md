@@ -145,9 +145,21 @@ These are the events that make the Cross-Service Data Consistency Strategy work.
 
 ## Other Anticipated Integration Events (first pass)
 
-These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need, so naming them now avoids each service inventing its own convention later. Payloads intentionally left undetailed until each service's contract is designed.
+These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need, so naming them now avoids each service inventing its own convention later. Payloads intentionally left undetailed until each service's contract is designed, except `identity.tenant-created.v1` below, which Task 1.4 (`ProvisionTenant`) needs fully specified now.
 
-- **Identity & Tenancy:** `identity.tenant-created.v1` (a record of the fact for audit/reporting purposes — not a domain synchronization event; Tenant is still excluded from that category per the reasoning above)
+### `identity.tenant-created.v1`
+
+**Producer:** Identity & Tenancy, on tenant provisioning (`ProvisionTenant`, see `docs/analysis/contracts.md`).
+**Aggregate:** `Tenant` / `tenant_id` — a record of the fact for audit/reporting purposes, not a domain synchronization event; Tenant is still excluded from that category per the reasoning above (no other service holds a local Tenant replica).
+**Consumers:** Reporting only, for its audit/admin projections. No other service consumes this in Phase 1 — Financial Accounts & Ledger, Billing & Invoicing, and Bookkeeping & Planning key everything off `project_id`, not `tenant_id`, so they have no replica row to create from it.
+
+| Payload field | Notes |
+|---|---|
+| `tenant_id` | |
+| `name` | The tenant/business name (`tenantName` on `ProvisionTenant`) |
+| `owner_user_id` | The initial owner User created alongside the tenant |
+| `created_at` | |
+
 - **Billing & Invoicing:** `billing.invoice-issued.v1`, `billing.invoice-paid.v1`, `billing.invoice-overdue.v1`, `billing.payment-recorded.v1`
 - **Financial Accounts & Ledger:** `ledger.bank-account-linked.v1`, `ledger.card-linked.v1` (`ledger.transaction-recorded.v1` and `ledger.transaction-archived.v1` moved up to Domain Synchronization Events, 2026-09-06 — they're business facts for Reporting too, just no longer *only* that)
 - **Bookkeeping & Planning:** `bookkeeping.expense-recorded.v1`, `bookkeeping.revenue-recorded.v1`, `bookkeeping.plan-created.v1`, `bookkeeping.planned-expense-added.v1`, `bookkeeping.planned-revenue-added.v1`

@@ -17,4 +17,24 @@ public sealed class OutboxMessage
     public int PublishAttempts { get; private set; }
     public DateTimeOffset? PublishedAt { get; private set; }
     public string? LastError { get; private set; }
+
+    public static OutboxMessage Create(
+        string eventName,
+        string aggregateType,
+        Guid aggregateId,
+        Guid tenantId,
+        DateTimeOffset occurredAt,
+        string payload) => new()
+    {
+        EventId = Guid.NewGuid(),
+        EventName = eventName,
+        AggregateType = aggregateType,
+        AggregateId = aggregateId,
+        AggregateVersion = 1,
+        TenantId = tenantId,
+        OccurredAt = occurredAt,
+        Payload = payload,
+        Status = "pending",
+        PublishAttempts = 0,
+    };
 }

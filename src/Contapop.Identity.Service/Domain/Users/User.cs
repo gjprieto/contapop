@@ -11,4 +11,17 @@ public sealed class User
     public bool NotificationsEnabled { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
+
+    public static User Create(Guid id, Guid tenantId, string name, string email, DateTimeOffset createdAt) => new()
+    {
+        Id = id,
+        TenantId = tenantId,
+        Name = name,
+        Email = email,
+        Theme = "light",
+        Language = "es",
+        NotificationsEnabled = true,
+        CreatedAt = createdAt,
+        UpdatedAt = createdAt,
+    };
 }

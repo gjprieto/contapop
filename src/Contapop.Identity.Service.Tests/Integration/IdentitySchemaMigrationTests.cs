@@ -29,6 +29,7 @@ public sealed class IdentitySchemaMigrationTests : IAsyncLifetime
         Assert.Contains("tenancy.projects", tables);
         Assert.Contains("tenancy.outbox_messages", tables);
         Assert.Contains("users.users", tables);
+        Assert.Contains("users.identity_credentials", tables);
 
         var projectColumns = await GetColumnNamesAsync(database, "tenancy", "projects");
         var userColumns = await GetColumnNamesAsync(database, "users", "users");
