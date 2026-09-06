@@ -1,0 +1,167 @@
+# Events
+
+This document catalogs the events flowing through Contapop, following the event conventions in `docs/standards/architecture-guidelines.md` (Domain Events, Outbox, Inbox, and Event-Driven Integration sections). It starts with the domain synchronization events that back the Cross-Service Data Consistency Strategy in `docs/analysis/services.md`, and sketches the wider event catalog as a first pass to be refined service by service.
+
+## Event Categories
+
+Two distinct kinds of event appear in this system, and only one of them is documented here in full:
+
+- **Domain events** are internal to a bounded context — raised on an aggregate during command handling, immutable, past tense (e.g. `InvoiceIssued`). Per the architecture guidelines, a domain event is never itself a public contract; it's translated at the application/infrastructure boundary before anything crosses a service boundary. This document doesn't catalog these exhaustively — they're an internal implementation detail of each service — but the last section lists representative examples so the terminology is unambiguous.
+- **Integration events** are the versioned, public contracts published through a service's transactional outbox and consumed by other services through their inbox. Every event in the main catalog below is an integration event. This document's job is to make these a shared, explicit contract between services.
+
+A specific subset of integration events — the ones whose only job is keeping a consuming service's local read replica in sync, per the Cross-Service Data Consistency Strategy — are called **domain synchronization events** here. They're listed first because that's this document's starting point.
+
+## Naming & Envelope Conventions
+
+**Name:** `{bounded-context}.{event-name}.v{major}` (matches `architecture-guidelines.md`, e.g. `invoicing.invoice-issued.v1`). Bounded-context slugs match the database names already chosen in `services.md`: `identity`, `ledger` (Financial Accounts & Ledger), `billing` (Billing & Invoicing), `bookkeeping` (Bookkeeping & Planning). Reporting and the Experience API don't publish integration events — they only consume.
+
+**Envelope** — every integration event carries these fields regardless of payload, per the outbox record shape already specified in the guidelines:
+
+| Field | Purpose |
+|---|---|
+| `event_id` | Unique message ID (dedup key on the consumer's inbox) |
+| `event_name` | e.g. `identity.project-created.v1` |
+| `aggregate_type` / `aggregate_id` | What changed |
+| `aggregate_version` | Lets a consumer ignore an out-of-order or already-applied event |
+| `tenant_id` | Every event is tenant-scoped |
+| `occurred_at` | UTC timestamp of the fact, not the publish time |
+| `correlation_id` / `causation_id` | Traceability across the command → event → reaction chain |
+| `payload` | Event-specific fields, listed per event below |
+
+**Delivery:** at-least-once, per the guidelines. Every consumer here applies the standard inbox pattern — reject if `event_id` already processed for that consumer, apply only if `aggregate_version` is newer than the replica's last-applied version, tolerate reordering across different aggregates.
+
+**Topics (proposed, not yet confirmed):** one Dapr pub/sub topic per bounded context (e.g. `identity.events`) rather than one per event type, to keep topic count low at this service count. Flagging this as a first pass rather than a settled decision.
+
+## How the Candidate Entities Were Selected
+
+Each of `domain.md`'s 15 entities was checked against the six declared services in `services.md` for foreign keys that cross a service boundary — the same test already applied to Project. The result:
+
+| Entity | Owning service | Foreign keys | Crosses a service boundary? |
+|---|---|---|---|
+| Tenant | Identity & Tenancy | — | n/a (top of the hierarchy) |
+| User | Identity & Tenancy | `tenant_id` | No — internal to Identity & Tenancy |
+| Project | Identity & Tenancy | `tenant_id` | No — internal to Identity & Tenancy |
+| Bank Account | Financial Accounts & Ledger | `tenant_id`, `project_id` | **Yes — `project_id`** |
+| Credit/Debit Card | Financial Accounts & Ledger | `tenant_id`, `project_id` | **Yes — `project_id`** |
+| Transaction | Financial Accounts & Ledger | `bank_account_id` | No, but **referenced FROM other services** — see below |
+| Invoice/Ticket | Billing & Invoicing | `tenant_id`, `project_id`, `counterparty_id` | **Yes — `project_id`** (`counterparty_id` is internal to Billing & Invoicing) |
+| Counterparty | Billing & Invoicing | `tenant_id` | No — internal to Billing & Invoicing |
+| Payment | Billing & Invoicing | `invoice_or_ticket_id`, `reconciled_transaction_id` | **Yes — `reconciled_transaction_id`** (2026-09-06 reconciliation decision) |
+| Expense | Bookkeeping & Planning | `tenant_id`, `project_id`, `reconciled_transaction_id` | **Yes — `project_id` and `reconciled_transaction_id`** |
+| Revenue | Bookkeeping & Planning | `tenant_id`, `project_id`, `reconciled_transaction_id` | **Yes — `project_id` and `reconciled_transaction_id`** |
+| Plan (absorbs former Budget) | Bookkeeping & Planning | `tenant_id`, `project_id` | **Yes — `project_id`** |
+| Planned Revenue | Bookkeeping & Planning | `tenant_id`, `project_id`, `plan_id` | **Yes — `project_id`** (`plan_id` is internal) |
+| Planned Expense | Bookkeeping & Planning | `tenant_id`, `project_id`, `plan_id` | **Yes — `project_id`** (`plan_id` is internal) |
+| Report | Reporting | `tenant_id`, `project_id` | **Yes — `project_id`** |
+
+**Result, updated 2026-09-06: Project and Transaction are the entities that need domain synchronization events.** Transaction wasn't referenced cross-service when this table was first built — the 2026-09-06 decision to support full reconciliation (an Expense, Revenue, or Payment can point at the Transaction it was matched against) made Financial Accounts & Ledger a second reference-data hub alongside Identity & Tenancy. Every other cross-entity reference stays inside the owning service (Payment→Invoice, Invoice→Counterparty, PlannedRevenue/PlannedExpense→Plan) or is `tenant_id`, which is excluded for the reason below.
+
+**Entities evaluated and excluded:**
+
+- **Tenant** — appears as `tenant_id` on every entity in the system, but it's resolved from the authenticated request's tenant context (token/claim), not looked up as a business reference the way `project_id` is. No service needs a local Tenant replica to validate a write; tenant scoping and any suspension/lockout enforcement belong at the auth/gateway layer, not this data-consistency mechanism. This resolves the `identity.tenant-status-changed.v1` candidate raised previously — it's out of scope here, not merely deferred.
+- **User** — no entity in `domain.md` carries a `user_id` foreign key (only `tenant_id` and `project_id` appear outside a service's own aggregates), so no other service ever needs to validate a User reference. This resolves the `identity.user-created.v1` candidate raised previously — not needed under the current domain model.
+- **Counterparty (Customer/Supplier)** — added to `domain.md` (2026-09-06), living inside Billing & Invoicing alongside Invoice and Payment (see `services.md`). Invoice's reference to it (`counterparty_id`) is an internal foreign key, not cross-service, so no synchronization event is needed. It would only need one if another service (e.g. Bookkeeping & Planning, for a supplier-tagged Expense) started referencing it directly — `domain.md` doesn't model that today; revisit if that gap gets filled.
+
+## Domain Synchronization Events
+
+These are the events that make the Cross-Service Data Consistency Strategy work. There are now two reference-data hubs:
+
+- **Identity & Tenancy**, publishing Project lifecycle events, consumed by Financial Accounts & Ledger, Billing & Invoicing, Bookkeeping & Planning (to validate `project_id`), and Reporting (for display).
+- **Financial Accounts & Ledger**, publishing Transaction lifecycle events (new, 2026-09-06), consumed by Bookkeeping & Planning and Billing & Invoicing (to validate `reconciled_transaction_id`), and Reporting (for display).
+
+### `identity.project-created.v1`
+
+**Producer:** Identity & Tenancy, on Project creation.
+**Consumers:** Financial Accounts & Ledger, Billing & Invoicing, Bookkeeping & Planning (insert a new row into their local Project read-replica); Reporting (projection).
+
+| Payload field | Notes |
+|---|---|
+| `project_id` | |
+| `tenant_id` | |
+| `name` | |
+| `status` | Always `active` on creation |
+| `created_at` | |
+
+### `identity.project-renamed.v1`
+
+**Producer:** Identity & Tenancy, when a Project's name changes.
+**Consumers:** same four services — updates the `name` field on the local replica row if `aggregate_version` is newer than what's stored.
+
+| Payload field | Notes |
+|---|---|
+| `project_id` | |
+| `tenant_id` | |
+| `name` | The new name |
+| `renamed_at` | |
+
+### `identity.project-archived.v1`
+
+**Producer:** Identity & Tenancy, when a Project is archived. Per the soft-delete/tombstone approach already agreed for referential integrity, this never becomes a hard delete — the Project ID is never reused or removed.
+**Consumers:** same four services — sets `status = archived` on the local replica row. Per the deferred compensation strategy, this is also the trigger a future reconciliation/saga mechanism would react to when deciding whether to flag existing dependents (Bank Accounts, Invoices, Expenses already pointing at this Project).
+
+| Payload field | Notes |
+|---|---|
+| `project_id` | |
+| `tenant_id` | |
+| `archived_at` | |
+
+### `identity.project-reactivated.v1`
+
+**Producer:** Identity & Tenancy, if an archived Project is reactivated.
+**Consumers:** same four services — sets `status = active` again.
+
+| Payload field | Notes |
+|---|---|
+| `project_id` | |
+| `tenant_id` | |
+| `reactivated_at` | |
+
+### `ledger.transaction-recorded.v1`
+
+**Producer:** Financial Accounts & Ledger, on `RecordTransaction` or as part of `ImportTransactionsFromFile` (see `docs/analysis/contracts.md`).
+**Consumers:** Bookkeeping & Planning and Billing & Invoicing (insert into their local Transaction read-replica so `reconciled_transaction_id` can be validated); Reporting (projection). This event already existed in the "Other Anticipated Integration Events" list below as a business fact for Reporting — as of 2026-09-06 it does double duty as a domain synchronization event too.
+
+| Payload field | Notes |
+|---|---|
+| `transaction_id` | |
+| `tenant_id` | |
+| `bank_account_id` | |
+| `amount` | |
+| `date` | |
+| `type` | |
+| `status` | Always `active` on creation |
+| `created_at` | |
+
+### `ledger.transaction-archived.v1`
+
+**Producer:** Financial Accounts & Ledger, when a Transaction is deleted from the Transactions screen. Per the same soft-delete/tombstone reasoning as Project, this is never a hard delete once Transaction can be referenced cross-service — the ID is never reused or removed.
+**Consumers:** Bookkeeping & Planning and Billing & Invoicing — sets `status = archived` on the local replica row. This is the trigger the deferred compensation mechanism would react to for any Expense/Revenue/Payment still pointing at this Transaction, same as `identity.project-archived.v1` is for Project.
+
+| Payload field | Notes |
+|---|---|
+| `transaction_id` | |
+| `tenant_id` | |
+| `archived_at` | |
+
+## Other Anticipated Integration Events (first pass)
+
+These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need, so naming them now avoids each service inventing its own convention later. Payloads intentionally left undetailed until each service's contract is designed.
+
+- **Identity & Tenancy:** `identity.tenant-created.v1` (a record of the fact for audit/reporting purposes — not a domain synchronization event; Tenant is still excluded from that category per the reasoning above)
+- **Billing & Invoicing:** `billing.invoice-issued.v1`, `billing.invoice-paid.v1`, `billing.invoice-overdue.v1`, `billing.payment-recorded.v1`
+- **Financial Accounts & Ledger:** `ledger.bank-account-linked.v1`, `ledger.card-linked.v1` (`ledger.transaction-recorded.v1` and `ledger.transaction-archived.v1` moved up to Domain Synchronization Events, 2026-09-06 — they're business facts for Reporting too, just no longer *only* that)
+- **Bookkeeping & Planning:** `bookkeeping.expense-recorded.v1`, `bookkeeping.revenue-recorded.v1`, `bookkeeping.plan-created.v1`, `bookkeeping.planned-expense-added.v1`, `bookkeeping.planned-revenue-added.v1`
+
+## Domain Events (internal, not public contracts — examples only)
+
+Listed for terminology only; these live inside a single service and are never subscribed to directly by another service. A domain event is mapped to one of the integration events above (if any external service needs to know) at the outbox boundary — the two are not the same object.
+
+Examples: `InvoiceIssued`, `InvoiceMarkedPaid`, `ExpenseRecorded`, `BankAccountLinked`, `TransactionCategorized`, `PlanRevised`.
+
+## Open Items
+
+1. Confirm the proposed one-topic-per-bounded-context convention, or choose one-topic-per-event-type instead.
+2. The "Other Anticipated Integration Events" section is a placeholder outline — it should be expanded with full payloads as each service's System API contract is actually designed, rather than finalized speculatively now.
+3. If Bookkeeping & Planning ever references Counterparty directly (e.g. a supplier-tagged Expense), that would introduce a new cross-service candidate and a matching set of `billing.counterparty-*` synchronization events — not needed under the current domain model.
+4. Reconciliation (`reconciled_transaction_id`) is modeled as optional and one-to-one for MVP — a Transaction reconciles to at most one Expense, Revenue, or Payment, and vice versa. Split transactions or many-to-one reconciliation are not supported by this shape; revisit if that turns out to be needed.
+5. `Expense`/`Revenue`'s new `import_source` (`manual` vs `pdf_ocr`) and the "draft pending confirmation" step for OCR-imported records (see `docs/analysis/contracts.md`) don't currently raise a distinct event from `bookkeeping.expense-recorded.v1`/`bookkeeping.revenue-recorded.v1` — confirmation only happens once, after which it's an ordinary record. Revisit if Reporting or anything else needs to distinguish OCR-sourced records specifically.

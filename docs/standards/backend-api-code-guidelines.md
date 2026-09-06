@@ -488,7 +488,7 @@ public static class ResultMappings
 ## Security, Contracts, And Observability
 
 - Require authentication and an explicit authorization policy on every non-public endpoint. Default-deny is preferred.
-- Read tenant, actor, roles, and permissions from trusted claims or a server-side identity context. Apply tenant scope both in commands and queries.
+- Read tenant, actor, roles, and permissions from trusted claims or a server-side identity context. Apply tenant scope both in commands and queries. Concretely: a System API reads these from the short-lived internal JWT the Experience API issues per request — see `docs/analysis/services.md`'s Authentication & Authorization section — never from the browser's ASP.NET Core Identity cookie directly.
 - Validate all identifiers, page sizes, sort fields, enum values, and date ranges. Use allowlists for sortable or filterable properties; never build dynamic SQL from request values.
 - Publish OpenAPI documents for HTTP APIs and keep endpoint descriptions, response codes, DTOs, and authorization requirements current.
 - Use versioned API paths or headers according to the service contract. Make additive changes compatible; release a new major version for breaking changes.
