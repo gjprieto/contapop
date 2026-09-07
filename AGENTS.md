@@ -52,6 +52,8 @@ npm run dev        # Vite dev server
 npm run build       # tsc -b && vite build
 npm run lint        # eslint .
 npm run preview
+npm run test        # Vitest component tests
+npm run test:e2e    # Playwright critical-path tests; requires the local Aspire stack and PLAYWRIGHT_PILOT_EMAIL/PASSWORD/NAME
 ```
 
 When a task introduces a new project type (a service's test project, an E2E Playwright project, etc.), add its build/run/test commands to this section in the same commit/PR that adds the project, so this file stays accurate.

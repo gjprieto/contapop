@@ -22,7 +22,8 @@ export function SettingsPage() {
     defaultValues: { theme: 'light', language: 'es', notificationsEnabled: true },
   });
   const savePreferences = useMutation({
-    mutationFn: updateUserPreferences,
+    mutationFn: (values: PreferencesFormValues) =>
+      updateUserPreferences({ ...values, version: currentUser.data?.version ?? 0 }),
     onSuccess: (preferences) => {
       queryClient.setQueryData(authKeys.currentUser, (user: CurrentUser | undefined) =>
         user ? { ...user, ...preferences } : user,

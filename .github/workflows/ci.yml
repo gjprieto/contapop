@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend build and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet build Contapop.Application.slnx --configuration Release
+        working-directory: src
+      - run: dotnet test Contapop.Application.slnx --configuration Release --no-build
+        working-directory: src
+
+  frontend:
+    name: Frontend lint, build, and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+      - run: npm ci
+        working-directory: src/frontend
+      - run: npm run lint
+        working-directory: src/frontend
+      - run: npm run build
+        working-directory: src/frontend
+      - run: npm run test
+        working-directory: src/frontend
+
+  e2e:
+    name: Phase 1 end-to-end
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/frontend/package-lock.json
+      - run: npm ci
+        working-directory: src/frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: src/frontend
+      - run: dotnet run --project Contapop.Application.AppHost --no-launch-profile > "$RUNNER_TEMP/aspire.log" 2>&1 &
+        working-directory: src
+        env:
+          Parameters__internal-jwt-signing-key: ${{ secrets.INTERNAL_JWT_SIGNING_KEY }}
+      - run: ./scripts/wait-for-phase-1.sh
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:5173
+          PLAYWRIGHT_IDENTITY_BASE_URL: http://localhost:5111
+          PLAYWRIGHT_PILOT_EMAIL: ${{ secrets.PLAYWRIGHT_PILOT_EMAIL }}
+          PLAYWRIGHT_PILOT_PASSWORD: ${{ secrets.PLAYWRIGHT_PILOT_PASSWORD }}
+          PLAYWRIGHT_PILOT_NAME: ${{ secrets.PLAYWRIGHT_PILOT_NAME }}
+      - run: npm run test:e2e
+        working-directory: src/frontend
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:5173
+          PLAYWRIGHT_PILOT_EMAIL: ${{ secrets.PLAYWRIGHT_PILOT_EMAIL }}
+          PLAYWRIGHT_PILOT_PASSWORD: ${{ secrets.PLAYWRIGHT_PILOT_PASSWORD }}
+          PLAYWRIGHT_PILOT_NAME: ${{ secrets.PLAYWRIGHT_PILOT_NAME }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-1-e2e-artifacts
+          path: |
+            src/frontend/test-results/
+            src/frontend/playwright-report/
+            ${{ runner.temp }}/aspire.log
+          if-no-files-found: ignore

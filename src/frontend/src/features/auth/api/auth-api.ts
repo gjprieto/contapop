@@ -47,18 +47,22 @@ export function login(input: LoginInput) {
   });
 }
 
-export function updateUserProfile(input: UpdateUserProfileInput) {
+export function updateUserProfile(input: UpdateUserProfileInput & { version: number }) {
   return apiRequest<UpdateUserProfileResponse>('/experience/v1/user', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
+    headers: { 'Content-Type': 'application/json', 'If-Match': `"${input.version}"` },
+    body: JSON.stringify({ name: input.name }),
   });
 }
 
-export function updateUserPreferences(input: UpdateUserPreferencesInput) {
+export function updateUserPreferences(input: UpdateUserPreferencesInput & { version: number }) {
   return apiRequest<UpdateUserPreferencesResponse>('/experience/v1/settings', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
+    headers: { 'Content-Type': 'application/json', 'If-Match': `"${input.version}"` },
+    body: JSON.stringify({
+      theme: input.theme,
+      language: input.language,
+      notificationsEnabled: input.notificationsEnabled,
+    }),
   });
 }

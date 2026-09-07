@@ -20,7 +20,8 @@ export function UserPage() {
     defaultValues: { name: '' },
   });
   const saveProfile = useMutation({
-    mutationFn: updateUserProfile,
+    mutationFn: (values: ProfileFormValues) =>
+      updateUserProfile({ ...values, version: currentUser.data?.version ?? 0 }),
     onSuccess: (profile) => {
       queryClient.setQueryData(authKeys.currentUser, (user: CurrentUser | undefined) =>
         user ? { ...user, ...profile } : user,

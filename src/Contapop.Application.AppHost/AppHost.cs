@@ -14,7 +14,7 @@ var experienceApi = builder.AddProject<Projects.Contapop_Experience_Api>("experi
     .WithReference(cache)
     .WithEnvironment("InternalJwt__SigningKey", internalJwtSigningKey)
     .WaitFor(cache)
-    .WithHttpEndpoint()
+    .WithHttpEndpoint(port: 5112)
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints();
 
@@ -22,7 +22,7 @@ var identity = builder.AddProject<Projects.Contapop_Identity_Service>("identity-
     .WithReference(identityDatabase)
     .WithEnvironment("InternalJwt__SigningKey", internalJwtSigningKey)
     .WaitFor(identityDatabase)
-    .WithHttpEndpoint()
+    .WithHttpEndpoint(port: 5111)
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints();
 
@@ -30,7 +30,8 @@ experienceApi.WithReference(identity).WaitFor(identity);
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
     .WithReference(experienceApi)
-    .WaitFor(experienceApi);
+    .WaitFor(experienceApi)
+    .WithHttpEndpoint(port: 5173);
 
 experienceApi.PublishWithContainerFiles(webfrontend, "wwwroot");
 
