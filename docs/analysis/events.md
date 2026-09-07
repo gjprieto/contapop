@@ -30,7 +30,7 @@ A specific subset of integration events — the ones whose only job is keeping a
 
 **Delivery:** at-least-once, per the guidelines. Every consumer here applies the standard inbox pattern — reject if `event_id` already processed for that consumer, apply only if `aggregate_version` is newer than the replica's last-applied version, tolerate reordering across different aggregates.
 
-**Topics (proposed, not yet confirmed):** one Dapr pub/sub topic per bounded context (e.g. `identity.events`) rather than one per event type, to keep topic count low at this service count. Flagging this as a first pass rather than a settled decision.
+**Topics:** one Dapr pub/sub topic per bounded context: `identity.events`, `ledger.events`, `billing.events`, and `bookkeeping.events`. Producers publish every integration event for their bounded context to its topic; consumers subscribe to that topic and select the event types they handle from the envelope's `event_name`. This keeps topic count low at the current service count while preserving explicit, versioned event contracts.
 
 ## How the Candidate Entities Were Selected
 
@@ -172,8 +172,7 @@ Examples: `InvoiceIssued`, `InvoiceMarkedPaid`, `ExpenseRecorded`, `BankAccountL
 
 ## Open Items
 
-1. Confirm the proposed one-topic-per-bounded-context convention, or choose one-topic-per-event-type instead.
-2. The "Other Anticipated Integration Events" section is a placeholder outline — it should be expanded with full payloads as each service's System API contract is actually designed, rather than finalized speculatively now.
-3. If Bookkeeping & Planning ever references Counterparty directly (e.g. a supplier-tagged Expense), that would introduce a new cross-service candidate and a matching set of `billing.counterparty-*` synchronization events — not needed under the current domain model.
-4. Reconciliation (`reconciled_transaction_id`) is modeled as optional and one-to-one for MVP — a Transaction reconciles to at most one Expense, Revenue, or Payment, and vice versa. Split transactions or many-to-one reconciliation are not supported by this shape; revisit if that turns out to be needed.
-5. `Expense`/`Revenue`'s new `import_source` (`manual` vs `pdf_ocr`) and the "draft pending confirmation" step for OCR-imported records (see `docs/analysis/contracts.md`) don't currently raise a distinct event from `bookkeeping.expense-recorded.v1`/`bookkeeping.revenue-recorded.v1` — confirmation only happens once, after which it's an ordinary record. Revisit if Reporting or anything else needs to distinguish OCR-sourced records specifically.
+1. The "Other Anticipated Integration Events" section is a placeholder outline — it should be expanded with full payloads as each service's System API contract is actually designed, rather than finalized speculatively now.
+2. If Bookkeeping & Planning ever references Counterparty directly (e.g. a supplier-tagged Expense), that would introduce a new cross-service candidate and a matching set of `billing.counterparty-*` synchronization events — not needed under the current domain model.
+3. Reconciliation (`reconciled_transaction_id`) is modeled as optional and one-to-one for MVP — a Transaction reconciles to at most one Expense, Revenue, or Payment, and vice versa. Split transactions or many-to-one reconciliation are not supported by this shape; revisit if that turns out to be needed.
+4. `Expense`/`Revenue`'s new `import_source` (`manual` vs `pdf_ocr`) and the "draft pending confirmation" step for OCR-imported records (see `contracts.md`) don't currently raise a distinct event from `bookkeeping.expense-recorded.v1`/`bookkeeping.revenue-recorded.v1` — confirmation only happens once, after which it's an ordinary record. Revisit if Reporting or anything else needs to distinguish OCR-sourced records specifically.
