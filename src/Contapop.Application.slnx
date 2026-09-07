@@ -4,6 +4,8 @@
   <Project Path="Contapop.Experience.Api.Tests/Contapop.Experience.Api.Tests.csproj" />
   <Project Path="Contapop.Identity.Service/Contapop.Identity.Service.csproj" />
   <Project Path="Contapop.Identity.Service.Tests/Contapop.Identity.Service.Tests.csproj" />
+  <Project Path="Contapop.Ledger.Service/Contapop.Ledger.Service.csproj" />
+  <Project Path="Contapop.Ledger.Service.Tests/Contapop.Ledger.Service.Tests.csproj" />
   <Project Path="frontend/frontend.esproj">
     <Build />
     <Deploy />

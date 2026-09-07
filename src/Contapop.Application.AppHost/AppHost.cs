@@ -5,7 +5,7 @@ var internalJwtSigningKey = builder.AddParameter("internal-jwt-signing-key", sec
 
 var postgres = builder.AddPostgres("postgres");
 var identityDatabase = postgres.AddDatabase("identity", "contapop_identity");
-postgres.AddDatabase("ledger", "contapop_ledger");
+var ledgerDatabase = postgres.AddDatabase("ledger", "contapop_ledger");
 postgres.AddDatabase("billing", "contapop_billing");
 postgres.AddDatabase("bookkeeping", "contapop_bookkeeping");
 postgres.AddDatabase("reporting", "contapop_reporting");
@@ -25,6 +25,12 @@ var identity = builder.AddProject<Projects.Contapop_Identity_Service>("identity-
     .WithHttpEndpoint(port: 5111)
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints();
+
+var ledger = builder.AddProject<Projects.Contapop_Ledger_Service>("ledger-service")
+    .WithReference(ledgerDatabase)
+    .WaitFor(ledgerDatabase)
+    .WithHttpEndpoint(port: 5113)
+    .WithHttpHealthCheck("/health");
 
 experienceApi.WithReference(identity).WaitFor(identity);
 
