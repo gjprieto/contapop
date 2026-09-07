@@ -87,6 +87,7 @@ public sealed class IdentityDbContext(DbContextOptions<IdentityDbContext> option
             entity.Property(message => message.PublishAttempts).HasColumnName("publish_attempts").IsRequired();
             entity.Property(message => message.PublishedAt).HasColumnName("published_at");
             entity.Property(message => message.LastError).HasColumnName("last_error").HasMaxLength(4000);
+            entity.Property(message => message.LockedUntil).HasColumnName("locked_until");
             entity.HasIndex(message => new { message.Status, message.OccurredAt });
         });
 

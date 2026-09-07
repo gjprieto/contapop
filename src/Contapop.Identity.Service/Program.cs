@@ -13,15 +13,20 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Dapr.Client;
+using Contapop.Identity.Service.Infrastructure.Messaging;
+using Contapop.Identity.Service.Infrastructure.Outbox;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
-builder.Services.AddScoped<DomainEventOutboxInterceptor>();
-builder.Services.AddDbContext<IdentityDbContext>((serviceProvider, options) =>
+builder.Services.AddSingleton<DomainEventOutboxInterceptor>();
+builder.Services.AddDbContextFactory<IdentityDbContext>((serviceProvider, options) =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("identity"))
         .AddInterceptors(serviceProvider.GetRequiredService<DomainEventOutboxInterceptor>()));
+builder.Services.AddScoped<IdentityDbContext>(serviceProvider =>
+    serviceProvider.GetRequiredService<IDbContextFactory<IdentityDbContext>>().CreateDbContext());
 builder.Services.AddIdentityCore<IdentityCredential>(options =>
     {
         options.Password.RequiredLength = 8;
@@ -57,6 +62,20 @@ builder.Services.AddSingleton<IClock, Contapop.Identity.Service.Infrastructure.T
 builder.Services.AddScoped<ProvisionTenantCommandHandler>();
 builder.Services.AddScoped<UpdateUserProfileCommandHandler>();
 builder.Services.AddScoped<UpdateUserPreferencesCommandHandler>();
+builder.Services.AddSingleton<DaprClient>(serviceProvider =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var builder = new DaprClientBuilder();
+    if (configuration["DAPR_GRPC_PORT"] is { Length: > 0 } grpcPort)
+    {
+        builder.UseGrpcEndpoint($"http://127.0.0.1:{grpcPort}");
+    }
+
+    return builder.Build();
+});
+builder.Services.AddScoped<IIntegrationEventPublisher, DaprIntegrationEventPublisher>();
+builder.Services.AddScoped<OutboxDispatcher>();
+builder.Services.AddHostedService<OutboxDispatchService>();
 
 var app = builder.Build();
 

@@ -20,6 +20,7 @@ await using (var scope = app.Services.CreateAsyncScope())
 }
 
 app.UseExceptionHandler();
+app.UseCloudEvents();
 
 if (app.Environment.IsDevelopment())
 {
@@ -27,6 +28,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapGet("/health", () => Results.Ok());
+app.MapSubscribeHandler();
 app.MapProjectReplicationEndpoints();
 
 app.Run();

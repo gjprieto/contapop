@@ -143,9 +143,19 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **What you can test:** with Task 1.4's `ProvisionTenant` still creating real projects and publishing to the Identity & Tenancy outbox, confirm (via direct DB query, or a small script the agent provides) that a project created there shows up in `contapop_ledger`'s `project_replica` table shortly after — this is your first real look at the event backbone actually working end-to-end between two services.
 
-### Task 2.3 — Bank Accounts & Payment Cards commands/queries
+### Task 2.2a — Identity outbox dispatch and Ledger event delivery
 
 **Depends on:** 2.2.
+
+**Implement:** close the producer-side half of the event backbone that Task 2.2 needs but does not own: add an Identity & Tenancy outbox dispatcher that publishes pending messages through Dapr pub/sub to the event topic defined in `events.md`, run Identity & Tenancy and Financial Accounts & Ledger with Dapr sidecars, and subscribe Ledger to `identity.events`. The dispatcher claims pending rows safely, marks an event dispatched only after Dapr acknowledges publication, and records failed attempts for retry. Ledger continues to own inbox deduplication and Project replica projection from Task 2.2; no synchronous Identity-to-Ledger database or HTTP dependency is introduced.
+
+**Automated tests:** `scripts/test-event-backbone.ps1` starts the local Dapr-capable environment, provisions a tenant, and asserts its Project reaches Ledger's `project_replica`. Dispatcher integration tests cover successful dispatch and failed-publication retry state; Task 2.2's duplicate-delivery test remains the redelivery assertion proving the inbox leaves the final replica state unchanged.
+
+**What you can test:** provision a tenant through Identity & Tenancy, then query `contapop_ledger`'s `project_replica` table shortly afterward and see the provisioned Project without manually posting an event.
+
+### Task 2.3 — Bank Accounts & Payment Cards commands/queries
+
+**Depends on:** 2.2a.
 
 **Implement:** `LinkBankAccount`, `ArchiveBankAccount`, `AddPaymentCardLabel`, `RemovePaymentCardLabel`, `ListBankAccounts`, `ListPaymentCards` from `contracts.md`. `LinkBankAccount` validates `project_id` against `project_replica` from Task 2.2 (not a synchronous call) and rejects a fabricated project ID. Publish `ledger.bank-account-linked.v1` / `ledger.card-linked.v1` per `events.md`.
 
@@ -155,7 +165,7 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 ### Task 2.4 — Transactions: record, update, archive (soft-delete)
 
-**Depends on:** 2.2.
+**Depends on:** 2.2a.
 
 **Implement:** `RecordTransaction`, `UpdateTransaction`, `ArchiveTransaction`, `ListTransactions`, `GetTransactionById`, `ListUnreconciledTransactions` from `contracts.md`. `ArchiveTransaction` sets `status = archived` (soft-delete, per `domain.md`'s Decision note — never a hard delete, since Transaction becomes cross-service-referenceable starting Phase 3). Transaction's own outbox publishes `ledger.transaction-recorded.v1` / `ledger.transaction-archived.v1` per `events.md`, ready for Phase 3/4 to consume later (no consumer exists yet).
 

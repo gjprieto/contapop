@@ -45,7 +45,10 @@ Backend / orchestration (from `src/`):
 dotnet build Contapop.Application.slnx
 dotnet test Contapop.Application.slnx
 dotnet run --project Contapop.Application.AppHost   # starts the full Aspire app graph (server + Redis + frontend)
+powershell -ExecutionPolicy Bypass -File ../scripts/test-event-backbone.ps1  # exercises Identity outbox -> Dapr -> Ledger replica
 ```
+
+The AppHost runs Identity & Tenancy and Ledger with Dapr sidecars. Install the Dapr CLI before starting the full graph; the `CommunityToolkit.Aspire.Hosting.Dapr` package is pinned to the compatible `13.5.1-beta.748` release while Aspire 13.5.x reaches a stable Dapr-hosting integration.
 
 Frontend (from `src/frontend`):
 ```

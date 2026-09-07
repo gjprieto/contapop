@@ -1,6 +1,8 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 var cache = builder.AddRedis("cache");
+builder.AddDapr();
+var pubSub = builder.AddDaprPubSub("pubsub");
 var internalJwtSigningKey = builder.AddParameter("internal-jwt-signing-key", secret: true);
 
 var postgres = builder.AddPostgres("postgres");
@@ -24,13 +26,15 @@ var identity = builder.AddProject<Projects.Contapop_Identity_Service>("identity-
     .WaitFor(identityDatabase)
     .WithHttpEndpoint(port: 5111)
     .WithHttpHealthCheck("/health")
-    .WithExternalHttpEndpoints();
+    .WithExternalHttpEndpoints()
+    .WithDaprSidecar(sidecar => sidecar.WithReference(pubSub));
 
 var ledger = builder.AddProject<Projects.Contapop_Ledger_Service>("ledger-service")
     .WithReference(ledgerDatabase)
     .WaitFor(ledgerDatabase)
     .WithHttpEndpoint(port: 5113)
-    .WithHttpHealthCheck("/health");
+    .WithHttpHealthCheck("/health")
+    .WithDaprSidecar(sidecar => sidecar.WithReference(pubSub));
 
 experienceApi.WithReference(identity).WaitFor(identity);
 

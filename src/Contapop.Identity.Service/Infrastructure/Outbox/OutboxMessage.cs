@@ -17,6 +17,7 @@ public sealed class OutboxMessage
     public int PublishAttempts { get; private set; }
     public DateTimeOffset? PublishedAt { get; private set; }
     public string? LastError { get; private set; }
+    public DateTimeOffset? LockedUntil { get; private set; }
 
     public static OutboxMessage Create(
         string eventName,
@@ -37,4 +38,19 @@ public sealed class OutboxMessage
         Status = "pending",
         PublishAttempts = 0,
     };
+
+    public void MarkDispatched(DateTimeOffset publishedAt)
+    {
+        Status = "dispatched";
+        PublishedAt = publishedAt;
+        LockedUntil = null;
+        LastError = null;
+    }
+
+    public void MarkFailed(string error, DateTimeOffset retryAfter)
+    {
+        Status = "pending";
+        LockedUntil = retryAfter;
+        LastError = error.Length > 4000 ? error[..4000] : error;
+    }
 }

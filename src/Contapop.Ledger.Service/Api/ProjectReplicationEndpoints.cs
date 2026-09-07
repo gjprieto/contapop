@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Contapop.Ledger.Service.Application.ProjectReplication;
+using Dapr;
 
 namespace Contapop.Ledger.Service.Api;
 
@@ -21,6 +22,7 @@ public static class ProjectReplicationEndpoints
             await consumer.ConsumeAsync(envelope, cancellationToken);
             return Results.Ok();
         })
+        .WithTopic("pubsub", "identity.events")
         .WithName("ConsumeIdentityProjectEvents")
         .AllowAnonymous();
 
