@@ -244,6 +244,7 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
 .cell-sub{font-size:11.5px;color:var(--text-faint);margin-top:1px;}
 .row-actions{display:flex;gap:4px;justify-content:flex-end;opacity:0;transition:opacity .1s;}
 tbody tr:hover .row-actions{opacity:1;}
+.row-actions.visible-actions{opacity:1;}
 
 /* ---------- Badges ---------- */
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:0.01em;white-space:nowrap;}
@@ -349,6 +350,7 @@ tbody tr:hover .row-actions{opacity:1;}
 .step-indicator .sep{flex:1;height:1px;background:var(--border);}
 .progress-bar{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;}
 .progress-bar .fill{height:100%;background:var(--brand-500);transition:width .3s ease;}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 
 /* ---------- Bars / charts (inline SVG) ---------- */
 .chart-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;}

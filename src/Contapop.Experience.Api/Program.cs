@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("account-owner", policy => policy.RequireRole("account-owner")));
 builder.Services.AddHttpClient("identity-service", client => client.BaseAddress = new Uri(
     builder.Configuration["IdentityService:BaseUrl"] ?? "https+http://identity-service"));
+builder.Services.AddHttpClient("ledger-service", client => client.BaseAddress = new Uri(
+    builder.Configuration["LedgerService:BaseUrl"] ?? "https+http://ledger-service"));
 builder.Services.AddSingleton<InternalJwtIssuer>();
 
 var app = builder.Build();
@@ -158,6 +161,38 @@ app.MapPatch("/experience/v1/settings", async (
 .ProducesValidationProblem()
 .ProducesProblem(StatusCodes.Status409Conflict);
 
+var financialOverview = app.MapGroup("/experience/v1/financial-overview")
+    .RequireAuthorization("account-owner");
+financialOverview.MapGet("/bank-accounts", (HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Get, "/api/v1/bank-accounts" + context.Request.QueryString, null, context, clientFactory, jwtIssuer, cancellationToken));
+financialOverview.MapPost("/bank-accounts", (JsonElement body, HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Post, "/api/v1/bank-accounts", body, context, clientFactory, jwtIssuer, cancellationToken, requiresIdempotencyKey: true));
+financialOverview.MapPost("/bank-accounts/{bankAccountId:guid}/archive", (Guid bankAccountId, HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Post, $"/api/v1/bank-accounts/{bankAccountId}/archive", null, context, clientFactory, jwtIssuer, cancellationToken, requiresIdempotencyKey: true, requiresVersion: true));
+financialOverview.MapGet("/payment-cards", (HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Get, "/api/v1/payment-cards" + context.Request.QueryString, null, context, clientFactory, jwtIssuer, cancellationToken));
+financialOverview.MapPost("/payment-cards", (JsonElement body, HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Post, "/api/v1/payment-cards", body, context, clientFactory, jwtIssuer, cancellationToken, requiresIdempotencyKey: true));
+financialOverview.MapDelete("/payment-cards/{cardId:guid}", (Guid cardId, HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Delete, $"/api/v1/payment-cards/{cardId}", null, context, clientFactory, jwtIssuer, cancellationToken, requiresIdempotencyKey: true, requiresVersion: true));
+
+var transactions = app.MapGroup("/experience/v1/transactions")
+    .RequireAuthorization("account-owner");
+transactions.MapGet("", (HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Get, "/api/v1/transactions" + context.Request.QueryString, null, context, clientFactory, jwtIssuer, cancellationToken));
+transactions.MapGet("/{transactionId:guid}", (Guid transactionId, HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Get, $"/api/v1/transactions/{transactionId}", null, context, clientFactory, jwtIssuer, cancellationToken));
+transactions.MapPost("", (JsonElement body, HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Post, "/api/v1/transactions", body, context, clientFactory, jwtIssuer, cancellationToken, requiresIdempotencyKey: true));
+transactions.MapPatch("/{transactionId:guid}", (Guid transactionId, JsonElement body, HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Patch, $"/api/v1/transactions/{transactionId}", body, context, clientFactory, jwtIssuer, cancellationToken, requiresIdempotencyKey: true, requiresVersion: true));
+transactions.MapPost("/{transactionId:guid}/archive", (Guid transactionId, HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerAsync(HttpMethod.Post, $"/api/v1/transactions/{transactionId}/archive", null, context, clientFactory, jwtIssuer, cancellationToken, requiresIdempotencyKey: true, requiresVersion: true));
+transactions.MapPost("/import", ([FromForm] IFormFile? file, [FromForm] Guid bankAccountId, [FromForm] string? columnMapping, HttpContext context, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken) =>
+    ForwardLedgerImportAsync(file, bankAccountId, columnMapping, context, clientFactory, jwtIssuer, cancellationToken))
+    .Accepts<IFormFile>("multipart/form-data")
+    .DisableAntiforgery();
+
 app.MapGet("/health", () => Results.Ok());
 app.Run();
 
@@ -209,6 +244,81 @@ static async Task<IResult> ForwardUserUpdateAsync<TRequest>(
 
     var responseBody = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken);
     return Results.Json(responseBody);
+}
+
+static async Task<IResult> ForwardLedgerAsync(
+    HttpMethod method,
+    string path,
+    object? body,
+    HttpContext httpContext,
+    IHttpClientFactory clientFactory,
+    InternalJwtIssuer jwtIssuer,
+    CancellationToken cancellationToken,
+    bool requiresIdempotencyKey = false,
+    bool requiresVersion = false)
+{
+    path = path.Replace("date-desc", "date:desc", StringComparison.Ordinal)
+        .Replace("date-asc", "date:asc", StringComparison.Ordinal)
+        .Replace("amount-desc", "amount:desc", StringComparison.Ordinal)
+        .Replace("amount-asc", "amount:asc", StringComparison.Ordinal);
+
+    var idempotencyKey = httpContext.Request.Headers["Idempotency-Key"].ToString();
+    if (requiresIdempotencyKey && string.IsNullOrWhiteSpace(idempotencyKey))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]> { ["Idempotency-Key"] = ["A GUID idempotency key is required."] });
+    }
+
+    var ifMatch = httpContext.Request.Headers.IfMatch.ToString();
+    if (requiresVersion && string.IsNullOrWhiteSpace(ifMatch))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]> { ["If-Match"] = ["A quoted current resource version is required."] });
+    }
+
+    using var request = new HttpRequestMessage(method, path);
+    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtIssuer.Create(httpContext.User));
+    if (requiresIdempotencyKey) request.Headers.TryAddWithoutValidation("Idempotency-Key", idempotencyKey.ToString());
+    if (requiresVersion) request.Headers.TryAddWithoutValidation("If-Match", ifMatch.ToString());
+    if (body is not null) request.Content = JsonContent.Create(body);
+    return await ForwardLedgerResponseAsync(request, clientFactory, cancellationToken);
+}
+
+static async Task<IResult> ForwardLedgerImportAsync(IFormFile? file, Guid bankAccountId, string? columnMapping, HttpContext httpContext, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken)
+{
+    if (!httpContext.Request.Headers.TryGetValue("Idempotency-Key", out var idempotencyKey))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]> { ["Idempotency-Key"] = ["A GUID idempotency key is required."] });
+    }
+
+    if (file is null || file.Length == 0 || bankAccountId == Guid.Empty || string.IsNullOrWhiteSpace(columnMapping))
+    {
+        return Results.ValidationProblem(new Dictionary<string, string[]> { ["request"] = ["A non-empty file, bank account ID, and column mapping are required."] });
+    }
+
+    using var content = new MultipartFormDataContent();
+    content.Add(new StringContent(bankAccountId.ToString()), "bankAccountId");
+    content.Add(new StringContent(columnMapping), "columnMapping");
+    await using var source = file.OpenReadStream();
+    using var fileContent = new StreamContent(source);
+    fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(
+        string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType);
+    content.Add(fileContent, "file", file.FileName);
+
+    using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/transactions/import") { Content = content };
+    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtIssuer.Create(httpContext.User));
+    request.Headers.TryAddWithoutValidation("Idempotency-Key", idempotencyKey.ToString());
+    return await ForwardLedgerResponseAsync(request, clientFactory, cancellationToken);
+}
+
+static async Task<IResult> ForwardLedgerResponseAsync(HttpRequestMessage request, IHttpClientFactory clientFactory, CancellationToken cancellationToken)
+{
+    using var response = await clientFactory.CreateClient("ledger-service").SendAsync(request, cancellationToken);
+    var content = await response.Content.ReadAsStringAsync(cancellationToken);
+    if (response.IsSuccessStatusCode || response.StatusCode is System.Net.HttpStatusCode.BadRequest or System.Net.HttpStatusCode.NotFound or System.Net.HttpStatusCode.Conflict or System.Net.HttpStatusCode.UnprocessableEntity)
+    {
+        return Results.Content(content, response.Content.Headers.ContentType?.MediaType ?? "application/json", statusCode: (int)response.StatusCode);
+    }
+
+    return Results.Problem(statusCode: StatusCodes.Status502BadGateway, title: "Ledger service unavailable");
 }
 
 public sealed record LoginRequest(string Email, string Password);

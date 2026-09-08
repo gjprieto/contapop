@@ -47,6 +47,24 @@ public sealed class TransactionCommandHandlerIntegrationTests : IAsyncLifetime
         Assert.Equal(2, message.AggregateVersion);
     }
 
+    [Fact]
+    public async Task Search_matches_a_transaction_description()
+    {
+        var tenantId = Guid.NewGuid();
+        var bankAccountId = await SeedActiveBankAccountAsync(tenantId);
+        await using var database = new LedgerDbContext(CreateOptions());
+        var handler = new TransactionCommandHandler(database);
+        await handler.RecordTransactionAsync(new(tenantId, Guid.NewGuid().ToString(), bankAccountId, -1_250, new DateOnly(2026, 9, 8), "expense", "Office supplies"), CancellationToken.None);
+
+        var matches = await database.Transactions.AsNoTracking()
+            .Where(transaction => transaction.TenantId == tenantId && transaction.Status == "active")
+            .Where(transaction => transaction.Type.Contains("supplies")
+                || (transaction.Description != null && transaction.Description.Contains("supplies")))
+            .ToListAsync();
+
+        Assert.Single(matches);
+    }
+
     private async Task<Guid> SeedActiveBankAccountAsync(Guid tenantId)
     {
         await using var database = new LedgerDbContext(CreateOptions());

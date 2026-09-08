@@ -1,9 +1,16 @@
+using System.Net;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using ClosedXML.Excel;
 using Contapop.Ledger.Service.Application.Commands;
 using Contapop.Ledger.Service.Infrastructure.Persistence;
 using Contapop.Ledger.Service.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.TestHost;
 using Testcontainers.PostgreSql;
 
 namespace Contapop.Ledger.Service.Tests.Integration;
@@ -32,6 +39,64 @@ public sealed class TransactionImportIntegrationTests : IAsyncLifetime
             transaction => { Assert.Equal(-1_250, transaction.AmountMinor); Assert.Equal("expense", transaction.Type); Assert.Equal("Cafe", transaction.Description); },
             transaction => { Assert.Equal(10_000, transaction.AmountMinor); Assert.Equal("income", transaction.Type); Assert.Equal("Invoice", transaction.Description); });
         Assert.Equal(2, await database.OutboxMessages.CountAsync(message => message.EventName == "ledger.transaction-recorded.v1"));
+    }
+
+    [Fact]
+    public async Task Csv_import_accepts_the_documented_comma_delimited_example()
+    {
+        var importer = new TransactionFileImporter();
+        await using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("Date,Amount,Type,Description\n2026-09-01,-24.50,expense,Office supplies\n2026-09-02,1500.00,income,Client payment\n"));
+
+        var parsed = await importer.ParseAsync(stream, "test.csv", new("Date", "Amount", "Type", "Description"), CancellationToken.None);
+
+        Assert.Equal(2, parsed.Rows.Count);
+        Assert.Empty(parsed.SkippedRows);
+        Assert.Equal(-2_450, parsed.Rows[0].AmountMinor);
+        Assert.Equal("Office supplies", parsed.Rows[0].Description);
+    }
+
+    [Fact]
+    public async Task Multipart_import_binds_the_file_and_form_fields()
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseTestServer();
+        var app = builder.Build();
+        app.MapPost("/import", ([FromForm] IFormFile? file, [FromForm] Guid bankAccountId, [FromForm] string? columnMapping) =>
+            file is not null && bankAccountId != Guid.Empty && columnMapping is not null ? Results.Ok() : Results.BadRequest())
+            .Accepts<IFormFile>("multipart/form-data")
+            .DisableAntiforgery();
+        await app.StartAsync();
+        try
+        {
+            using var content = new MultipartFormDataContent();
+            content.Add(new StringContent(Guid.NewGuid().ToString()), "bankAccountId");
+            content.Add(new StringContent("{\"dateColumn\":\"Date\",\"amountColumn\":\"Amount\"}"), "columnMapping");
+            var file = new ByteArrayContent("Date,Amount\n2026-09-01,-24.50"u8.ToArray());
+            file.Headers.ContentType = new MediaTypeHeaderValue("text/csv");
+            content.Add(file, "file", "test.csv");
+
+            var response = await app.GetTestServer().CreateClient().PostAsync("/import", content);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+        finally
+        {
+            await app.DisposeAsync();
+        }
+    }
+
+    [Fact]
+    public void Column_mapping_deserializes_the_camel_case_http_contract()
+    {
+        var mapping = JsonSerializer.Deserialize<TransactionColumnMapping>(
+            "{\"dateColumn\":\"Date\",\"amountColumn\":\"Amount\",\"typeColumn\":\"Type\",\"descriptionColumn\":\"Description\"}",
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        Assert.NotNull(mapping);
+        Assert.Equal("Date", mapping.DateColumn);
+        Assert.Equal("Amount", mapping.AmountColumn);
+        Assert.Equal("Type", mapping.TypeColumn);
+        Assert.Equal("Description", mapping.DescriptionColumn);
     }
 
     [Fact]

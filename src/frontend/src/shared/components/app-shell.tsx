@@ -27,13 +27,13 @@ const icons = {
 
 const navigation: Array<NavigationItem | string> = [
   { icon: 'home', label: 'Home', to: '/' },
-  { icon: 'overview', label: 'Financial Overview' },
+  { icon: 'overview', label: 'Financial Overview', to: '/financial-overview' },
   'Money',
   { icon: 'expenses', label: 'Expenses' },
   { icon: 'revenues', label: 'Revenues' },
   { icon: 'invoices', label: 'Invoices' },
   { icon: 'payments', label: 'Payments' },
-  { icon: 'transactions', label: 'Transactions' },
+  { icon: 'transactions', label: 'Transactions', to: '/transactions' },
   'Plan & analyze',
   { icon: 'reports', label: 'Reports' },
   { icon: 'plans', label: 'Plans' },
@@ -44,6 +44,8 @@ const navigation: Array<NavigationItem | string> = [
 
 const pageTitles: Record<string, [string, string]> = {
   '/': ['Home', 'Your financial snapshot at a glance'],
+  '/financial-overview': ['Financial Overview', 'Manage accounts and payment cards'],
+  '/transactions': ['Transactions', 'Review and record your bank-side movements'],
   '/settings': ['Settings', 'Manage your account preferences'],
   '/user': ['My Profile', 'Your personal information'],
 };

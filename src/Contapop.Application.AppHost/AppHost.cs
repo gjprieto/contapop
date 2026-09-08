@@ -38,6 +38,7 @@ var ledger = builder.AddProject<Projects.Contapop_Ledger_Service>("ledger-servic
     .WithDaprSidecar(sidecar => sidecar.WithReference(pubSub));
 
 experienceApi.WithReference(identity).WaitFor(identity);
+experienceApi.WithReference(ledger).WaitFor(ledger);
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
     .WithReference(experienceApi)

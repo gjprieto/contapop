@@ -13,7 +13,9 @@ public static class TransactionEndpoints
     {
         var transactions = endpoints.MapGroup("/api/v1/transactions").RequireAuthorization("account-owner");
         transactions.MapPost("", RecordTransactionAsync);
-        transactions.MapPost("/import", ImportTransactionsAsync).DisableAntiforgery();
+        transactions.MapPost("/import", ImportTransactionsAsync)
+            .Accepts<IFormFile>("multipart/form-data")
+            .DisableAntiforgery();
         transactions.MapPatch("/{transactionId:guid}", UpdateTransactionAsync);
         transactions.MapPost("/{transactionId:guid}/archive", ArchiveTransactionAsync);
         transactions.MapGet("/unreconciled", ListUnreconciledTransactionsAsync);
@@ -34,7 +36,7 @@ public static class TransactionEndpoints
             : Results.Created($"/api/v1/transactions/{result.Value!.TransactionId}", result.Value);
     }
 
-    private static async Task<IResult> ImportTransactionsAsync(IFormFile? file, Guid bankAccountId, string? columnMapping, HttpContext context, TransactionFileImporter importer, TransactionCommandHandler handler, CancellationToken cancellationToken)
+    private static async Task<IResult> ImportTransactionsAsync([FromForm] IFormFile? file, [FromForm] Guid bankAccountId, [FromForm] string? columnMapping, HttpContext context, TransactionFileImporter importer, TransactionCommandHandler handler, CancellationToken cancellationToken)
     {
         if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
         if (!TryGetIdempotencyKey(context, out var idempotencyKey)) return MissingIdempotencyKey();
@@ -44,7 +46,7 @@ public static class TransactionEndpoints
         }
 
         TransactionColumnMapping? mapping;
-        try { mapping = JsonSerializer.Deserialize<TransactionColumnMapping>(columnMapping); }
+        try { mapping = JsonSerializer.Deserialize<TransactionColumnMapping>(columnMapping, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }); }
         catch (JsonException) { return Results.ValidationProblem(new Dictionary<string, string[]> { ["columnMapping"] = ["Column mapping must be valid JSON."] }); }
         if (mapping is null || string.IsNullOrWhiteSpace(mapping.DateColumn) || string.IsNullOrWhiteSpace(mapping.AmountColumn))
         {
@@ -118,7 +120,9 @@ public static class TransactionEndpoints
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim();
-            query = query.Where(transaction => transaction.Type.Contains(term));
+            query = query.Where(transaction =>
+                transaction.Type.Contains(term)
+                || (transaction.Description != null && transaction.Description.Contains(term)));
         }
 
         var total = await query.CountAsync(cancellationToken);
