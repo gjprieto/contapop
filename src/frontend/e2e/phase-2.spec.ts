@@ -22,6 +22,7 @@ test('pilot can manage an account and its transactions', async ({ page }) => {
   const manualDescription = `Phase 2 manual transaction ${suffix}`;
 
   await signIn(page);
+  await expect(page.getByText('No bank accounts linked yet.')).toBeVisible();
 
   // The form normally uses the pilot's replica-backed project ID. Replace it only
   // for this request to prove the UI surfaces the Ledger's fabricated-ID rejection.
@@ -39,7 +40,13 @@ test('pilot can manage an account and its transactions', async ({ page }) => {
   await page.getByRole('button', { name: 'Link bank account' }).click();
   await page.getByLabel('Bank name').fill(bankName);
   await page.getByLabel('Account number').fill(accountNumber);
+  const rejectedLink = page.waitForResponse((response) =>
+    response.url().includes('/experience/v1/financial-overview/bank-accounts')
+    && response.request().method() === 'POST'
+    && response.status() === 422,
+  );
   await page.getByRole('button', { name: 'Link account' }).click();
+  await rejectedLink;
   await expect(page.getByRole('alert')).toContainText('We could not link this account.');
 
   const accountDialog = page.getByRole('dialog', { name: 'Link bank account' });
@@ -54,7 +61,7 @@ test('pilot can manage an account and its transactions', async ({ page }) => {
   await page.getByRole('button', { name: 'Record transaction' }).click();
   await page.getByLabel('Bank account').selectOption({ label: `${bankName} · ${accountNumber}` });
   await page.getByLabel('Amount (EUR)').fill('12.34');
-  await page.getByLabel('Date').fill('2026-09-08');
+  await page.getByLabel('Date', { exact: true }).fill('2026-09-08');
   await page.getByLabel('Description').fill(manualDescription);
   await page.getByRole('button', { name: 'Save transaction' }).click();
   await expect(page.getByText(manualDescription)).toBeVisible();
