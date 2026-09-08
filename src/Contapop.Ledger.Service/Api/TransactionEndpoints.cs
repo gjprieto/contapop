@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using System.Text.Json;
 using Contapop.Ledger.Service.Application.Commands;
 using Contapop.Ledger.Service.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Contapop.Ledger.Service.Api;
 
@@ -11,6 +13,7 @@ public static class TransactionEndpoints
     {
         var transactions = endpoints.MapGroup("/api/v1/transactions").RequireAuthorization("account-owner");
         transactions.MapPost("", RecordTransactionAsync);
+        transactions.MapPost("/import", ImportTransactionsAsync).DisableAntiforgery();
         transactions.MapPatch("/{transactionId:guid}", UpdateTransactionAsync);
         transactions.MapPost("/{transactionId:guid}/archive", ArchiveTransactionAsync);
         transactions.MapGet("/unreconciled", ListUnreconciledTransactionsAsync);
@@ -25,10 +28,45 @@ public static class TransactionEndpoints
         if (!TryGetIdempotencyKey(context, out var idempotencyKey)) return MissingIdempotencyKey();
         var errors = Validate(request.BankAccountId, request.AmountMinor, request.Date, request.Type, requireValue: true);
         if (errors.Count > 0) return Results.ValidationProblem(errors);
-        var result = await handler.RecordTransactionAsync(new(tenantId, idempotencyKey, request.BankAccountId, request.AmountMinor, request.Date, request.Type), cancellationToken);
+        var result = await handler.RecordTransactionAsync(new(tenantId, idempotencyKey, request.BankAccountId, request.AmountMinor, request.Date, request.Type, request.Description), cancellationToken);
         return result.IsBankAccountUnavailable
             ? Results.Problem(statusCode: StatusCodes.Status422UnprocessableEntity, title: "Bank account is unavailable")
             : Results.Created($"/api/v1/transactions/{result.Value!.TransactionId}", result.Value);
+    }
+
+    private static async Task<IResult> ImportTransactionsAsync(IFormFile? file, Guid bankAccountId, string? columnMapping, HttpContext context, TransactionFileImporter importer, TransactionCommandHandler handler, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
+        if (!TryGetIdempotencyKey(context, out var idempotencyKey)) return MissingIdempotencyKey();
+        if (file is null || file.Length == 0 || bankAccountId == Guid.Empty || string.IsNullOrWhiteSpace(columnMapping))
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]> { ["request"] = ["A non-empty file, bank account ID, and column mapping are required."] });
+        }
+
+        TransactionColumnMapping? mapping;
+        try { mapping = JsonSerializer.Deserialize<TransactionColumnMapping>(columnMapping); }
+        catch (JsonException) { return Results.ValidationProblem(new Dictionary<string, string[]> { ["columnMapping"] = ["Column mapping must be valid JSON."] }); }
+        if (mapping is null || string.IsNullOrWhiteSpace(mapping.DateColumn) || string.IsNullOrWhiteSpace(mapping.AmountColumn))
+        {
+            return Results.ValidationProblem(new Dictionary<string, string[]> { ["columnMapping"] = ["Date and amount columns are required."] });
+        }
+
+        TransactionFileImportParseResult parsed;
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            parsed = await importer.ParseAsync(stream, file.FileName, mapping, cancellationToken);
+        }
+        catch (TransactionFileImportException exception)
+        {
+            var problem = new ProblemDetails { Status = StatusCodes.Status422UnprocessableEntity, Title = "Transaction import could not be parsed", Detail = exception.Message };
+            problem.Extensions["skippedRows"] = exception.SkippedRows;
+            return Results.Json(problem, statusCode: StatusCodes.Status422UnprocessableEntity);
+        }
+
+        var result = await handler.ImportTransactionsAsync(new(tenantId, idempotencyKey, bankAccountId, parsed.Rows), cancellationToken);
+        if (result.IsBankAccountUnavailable) return Results.Problem(statusCode: StatusCodes.Status422UnprocessableEntity, title: "Bank account is unavailable");
+        return Results.Ok(new ImportTransactionsResponse(result.Value!.TransactionIds.Count, result.Value.TransactionIds, parsed.SkippedRows));
     }
 
     private static async Task<IResult> UpdateTransactionAsync(Guid transactionId, UpdateTransactionRequest request, HttpContext context, TransactionCommandHandler handler, CancellationToken cancellationToken)
@@ -43,7 +81,7 @@ public static class TransactionEndpoints
             return Results.ValidationProblem(new Dictionary<string, string[]> { ["request"] = ["At least one field must be supplied."] });
         }
 
-        var result = await handler.UpdateTransactionAsync(new(tenantId, idempotencyKey, transactionId, version, request.BankAccountId, request.AmountMinor, request.Date, request.Type), cancellationToken);
+        var result = await handler.UpdateTransactionAsync(new(tenantId, idempotencyKey, transactionId, version, request.BankAccountId, request.AmountMinor, request.Date, request.Type, request.Description), cancellationToken);
         return result.IsNotFound ? Results.NotFound()
             : result.IsConflict ? Conflict()
             : result.IsBankAccountUnavailable ? Results.Problem(statusCode: StatusCodes.Status422UnprocessableEntity, title: "Bank account is unavailable")
@@ -92,7 +130,7 @@ public static class TransactionEndpoints
             _ => query.OrderByDescending(transaction => transaction.Date).ThenByDescending(transaction => transaction.Id),
         };
         var items = await ordered.Skip((actualPage - 1) * actualPageSize).Take(actualPageSize)
-            .Select(transaction => new TransactionListItem(transaction.Id, transaction.BankAccountId, transaction.AmountMinor, transaction.Date, transaction.Type, transaction.Status))
+            .Select(transaction => new TransactionListItem(transaction.Id, transaction.BankAccountId, transaction.AmountMinor, transaction.Date, transaction.Type, transaction.Description, transaction.Status))
             .ToListAsync(cancellationToken);
         return Results.Ok(new PagedResponse<TransactionListItem>(items, actualPage, actualPageSize, total));
     }
@@ -102,7 +140,7 @@ public static class TransactionEndpoints
         if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
         var item = await database.Transactions.AsNoTracking()
             .Where(transaction => transaction.Id == transactionId && transaction.TenantId == tenantId)
-            .Select(transaction => new TransactionDetailsResponse(transaction.Id, transaction.BankAccountId, transaction.AmountMinor, transaction.Date, transaction.Type, transaction.Status, transaction.CreatedAt, transaction.UpdatedAt, (int)transaction.Version))
+            .Select(transaction => new TransactionDetailsResponse(transaction.Id, transaction.BankAccountId, transaction.AmountMinor, transaction.Date, transaction.Type, transaction.Description, transaction.Status, transaction.CreatedAt, transaction.UpdatedAt, (int)transaction.Version))
             .SingleOrDefaultAsync(cancellationToken);
         return item is null ? Results.NotFound() : Results.Ok(item);
     }
@@ -127,7 +165,8 @@ public static class TransactionEndpoints
     private static (int Page, int PageSize) NormalizePaging(int? page, int? pageSize) => (Math.Max(page ?? 1, 1), Math.Clamp(pageSize ?? 25, 1, 100));
 }
 
-public sealed record RecordTransactionRequest(Guid BankAccountId, long AmountMinor, DateOnly Date, string Type);
-public sealed record UpdateTransactionRequest(Guid? BankAccountId, long? AmountMinor, DateOnly? Date, string? Type);
-public sealed record TransactionListItem(Guid TransactionId, Guid BankAccountId, long AmountMinor, DateOnly Date, string Type, string Status);
-public sealed record TransactionDetailsResponse(Guid TransactionId, Guid BankAccountId, long AmountMinor, DateOnly Date, string Type, string Status, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version);
+public sealed record RecordTransactionRequest(Guid BankAccountId, long AmountMinor, DateOnly Date, string Type, string? Description = null);
+public sealed record UpdateTransactionRequest(Guid? BankAccountId, long? AmountMinor, DateOnly? Date, string? Type, string? Description = null);
+public sealed record ImportTransactionsResponse(int ImportedCount, IReadOnlyList<Guid> TransactionIds, IReadOnlyList<SkippedImportRow> SkippedRows);
+public sealed record TransactionListItem(Guid TransactionId, Guid BankAccountId, long AmountMinor, DateOnly Date, string Type, string? Description, string Status);
+public sealed record TransactionDetailsResponse(Guid TransactionId, Guid BankAccountId, long AmountMinor, DateOnly Date, string Type, string? Description, string Status, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version);

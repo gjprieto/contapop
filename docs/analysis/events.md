@@ -129,6 +129,7 @@ These are the events that make the Cross-Service Data Consistency Strategy work.
 | `amount` | |
 | `date` | |
 | `type` | |
+| `description` | Optional statement or user-provided transaction description |
 | `status` | Always `active` on creation |
 | `created_at` | |
 
@@ -156,6 +157,7 @@ These are the events that make the Cross-Service Data Consistency Strategy work.
 | `amount` | |
 | `date` | |
 | `type` | |
+| `description` | Optional statement or user-provided transaction description |
 | `status` | Always `active`; archived transactions cannot be updated |
 | `updated_at` | |
 

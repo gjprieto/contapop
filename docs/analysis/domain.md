@@ -92,6 +92,7 @@ A Transaction represents a financial operation involving a bank account. It reco
 - `amount`: Amount of the transaction.
 - `date`: Date of the transaction.
 - `type`: Type of the transaction (e.g., income, expense).
+- `description`: Optional user- or statement-provided transaction description.
 - `status`: `active` or `archived` — archived instead of hard-deleted once referenced by a reconciliation.
 - `created_at`: Timestamp when the transaction was created.
 - `updated_at`: Timestamp when the transaction was last updated.

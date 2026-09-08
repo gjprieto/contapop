@@ -252,8 +252,9 @@ Cards aren't cross-service referenced, so this is a real (hard) delete, unlike t
 {
   "bankAccountId": "guid",
   "amountMinor": "int",
-  "date": "date",
-  "type": "string — \"income\" | \"expense\""
+   "date": "date",
+   "type": "string — \"income\" | \"expense\"",
+   "description": "string optional"
 }
 ```
 
@@ -282,6 +283,8 @@ columnMapping: {
 }
 ```
 
+**Supported import formats:** UTF-8 CSV and `.xlsx`. Dates accept `yyyy-MM-dd` or Spanish `dd/MM/yyyy`; amounts accept invariant or Spanish decimal notation (for example, `1234.56` or `1.234,56`). Legacy `.xls` is not supported. A supplied `descriptionColumn` is persisted on the Transaction.
+
 **Response:** `200 OK`
 ```
 {
@@ -305,7 +308,8 @@ columnMapping: {
   "bankAccountId": "guid optional",
   "amountMinor": "int optional",
   "date": "date optional",
-  "type": "string optional — \"income\" | \"expense\""
+  "type": "string optional — \"income\" | \"expense\"",
+  "description": "string optional"
 }
 ```
 
@@ -378,7 +382,7 @@ Soft-delete, not hard-delete, since Transaction becomes cross-service-referencea
 ```
 {
   "items": [
-    { "transactionId": "guid", "bankAccountId": "guid", "amountMinor": "int", "date": "date", "type": "string", "status": "string" }
+    { "transactionId": "guid", "bankAccountId": "guid", "amountMinor": "int", "date": "date", "type": "string", "description": "string optional", "status": "string" }
   ],
   "page": "int", "pageSize": "int", "totalCount": "int"
 }
@@ -396,6 +400,7 @@ Soft-delete, not hard-delete, since Transaction becomes cross-service-referencea
   "amountMinor": "int",
   "date": "date",
   "type": "string",
+  "description": "string optional",
   "status": "string",
   "createdAt": "date-time",
   "updatedAt": "date-time",

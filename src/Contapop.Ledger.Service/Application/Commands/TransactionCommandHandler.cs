@@ -14,7 +14,7 @@ public sealed class TransactionCommandHandler(LedgerDbContext database)
         if (!await HasActiveBankAccountAsync(command.TenantId, command.BankAccountId, cancellationToken)) return TransactionCommandResult<RecordedTransactionResult>.BankAccountUnavailable();
 
         var now = DateTimeOffset.UtcNow;
-        var transaction = Transaction.Create(command.TenantId, command.BankAccountId, command.AmountMinor, command.Date, command.Type, now);
+        var transaction = Transaction.Create(command.TenantId, command.BankAccountId, command.AmountMinor, command.Date, command.Type, command.Description, now);
         var result = new RecordedTransactionResult(transaction.Id, transaction.Status, transaction.CreatedAt, (int)transaction.Version);
         database.Transactions.Add(transaction);
         database.IdempotencyRecords.Add(IdempotencyRecord.Create(command.TenantId, "record-transaction", command.IdempotencyKey, JsonSerializer.Serialize(result), now));
@@ -29,12 +29,27 @@ public sealed class TransactionCommandHandler(LedgerDbContext database)
         var transaction = await database.Transactions.SingleOrDefaultAsync(candidate => candidate.Id == command.TransactionId && candidate.TenantId == command.TenantId, cancellationToken);
         if (transaction is null) return TransactionCommandResult<TransactionDetailsResult>.NotFound();
         if (command.BankAccountId is { } bankAccountId && !await HasActiveBankAccountAsync(command.TenantId, bankAccountId, cancellationToken)) return TransactionCommandResult<TransactionDetailsResult>.BankAccountUnavailable();
-        if (!transaction.TryUpdate(command.ExpectedVersion, command.BankAccountId, command.AmountMinor, command.Date, command.Type, DateTimeOffset.UtcNow)) return TransactionCommandResult<TransactionDetailsResult>.Conflict();
+        if (!transaction.TryUpdate(command.ExpectedVersion, command.BankAccountId, command.AmountMinor, command.Date, command.Type, command.Description, DateTimeOffset.UtcNow)) return TransactionCommandResult<TransactionDetailsResult>.Conflict();
 
         var result = ToDetails(transaction);
         database.IdempotencyRecords.Add(IdempotencyRecord.Create(command.TenantId, "update-transaction", command.IdempotencyKey, JsonSerializer.Serialize(result), DateTimeOffset.UtcNow));
         await database.SaveChangesAsync(cancellationToken);
         return TransactionCommandResult<TransactionDetailsResult>.Success(result);
+    }
+
+    public async Task<TransactionCommandResult<ImportedTransactionsResult>> ImportTransactionsAsync(ImportTransactionsCommand command, CancellationToken cancellationToken)
+    {
+        var replay = await GetReplayAsync<ImportedTransactionsResult>(command.TenantId, "import-transactions", command.IdempotencyKey, cancellationToken);
+        if (replay is not null) return TransactionCommandResult<ImportedTransactionsResult>.Success(replay);
+        if (!await HasActiveBankAccountAsync(command.TenantId, command.BankAccountId, cancellationToken)) return TransactionCommandResult<ImportedTransactionsResult>.BankAccountUnavailable();
+
+        var now = DateTimeOffset.UtcNow;
+        var transactions = command.Rows.Select(row => Transaction.Create(command.TenantId, command.BankAccountId, row.AmountMinor, row.Date, row.Type, row.Description, now)).ToArray();
+        var result = new ImportedTransactionsResult(transactions.Select(transaction => transaction.Id).ToArray());
+        database.Transactions.AddRange(transactions);
+        database.IdempotencyRecords.Add(IdempotencyRecord.Create(command.TenantId, "import-transactions", command.IdempotencyKey, JsonSerializer.Serialize(result), now));
+        await database.SaveChangesAsync(cancellationToken);
+        return TransactionCommandResult<ImportedTransactionsResult>.Success(result);
     }
 
     public async Task<TransactionCommandResult<ArchivedTransactionResult>> ArchiveTransactionAsync(ArchiveTransactionCommand command, CancellationToken cancellationToken)
@@ -63,12 +78,13 @@ public sealed class TransactionCommandHandler(LedgerDbContext database)
         return result is null ? null : JsonSerializer.Deserialize<T>(result);
     }
 
-    private static TransactionDetailsResult ToDetails(Transaction transaction) => new(transaction.Id, transaction.BankAccountId, transaction.AmountMinor, transaction.Date, transaction.Type, transaction.Status, transaction.CreatedAt, transaction.UpdatedAt, (int)transaction.Version);
+    private static TransactionDetailsResult ToDetails(Transaction transaction) => new(transaction.Id, transaction.BankAccountId, transaction.AmountMinor, transaction.Date, transaction.Type, transaction.Description, transaction.Status, transaction.CreatedAt, transaction.UpdatedAt, (int)transaction.Version);
 }
 
 public sealed record RecordedTransactionResult(Guid TransactionId, string Status, DateTimeOffset CreatedAt, int Version);
 public sealed record ArchivedTransactionResult(Guid TransactionId, string Status, DateTimeOffset UpdatedAt, int Version);
-public sealed record TransactionDetailsResult(Guid TransactionId, Guid BankAccountId, long AmountMinor, DateOnly Date, string Type, string Status, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version);
+public sealed record ImportedTransactionsResult(IReadOnlyList<Guid> TransactionIds);
+public sealed record TransactionDetailsResult(Guid TransactionId, Guid BankAccountId, long AmountMinor, DateOnly Date, string Type, string? Description, string Status, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version);
 
 public sealed class TransactionCommandResult<T>
 {

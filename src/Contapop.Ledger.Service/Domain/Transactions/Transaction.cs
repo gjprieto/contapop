@@ -10,13 +10,14 @@ public sealed class Transaction
     public long AmountMinor { get; private set; }
     public DateOnly Date { get; private set; }
     public string Type { get; private set; } = null!;
+    public string? Description { get; private set; }
     public string Status { get; private set; } = null!;
     public long Version { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     private List<object> DomainEvents { get; } = [];
 
-    public static Transaction Create(Guid tenantId, Guid bankAccountId, long amountMinor, DateOnly date, string type, DateTimeOffset now)
+    public static Transaction Create(Guid tenantId, Guid bankAccountId, long amountMinor, DateOnly date, string type, string? description, DateTimeOffset now)
     {
         var transaction = new Transaction
         {
@@ -26,16 +27,17 @@ public sealed class Transaction
             AmountMinor = amountMinor,
             Date = date,
             Type = type,
+            Description = description,
             Status = "active",
             Version = 1,
             CreatedAt = now,
             UpdatedAt = now,
         };
-        transaction.DomainEvents.Add(new TransactionRecorded(transaction.Id, transaction.TenantId, transaction.BankAccountId, transaction.AmountMinor, transaction.Date, transaction.Type, transaction.Status, now));
+        transaction.DomainEvents.Add(new TransactionRecorded(transaction.Id, transaction.TenantId, transaction.BankAccountId, transaction.AmountMinor, transaction.Date, transaction.Type, transaction.Description, transaction.Status, now));
         return transaction;
     }
 
-    public bool TryUpdate(int expectedVersion, Guid? bankAccountId, long? amountMinor, DateOnly? date, string? type, DateTimeOffset now)
+    public bool TryUpdate(int expectedVersion, Guid? bankAccountId, long? amountMinor, DateOnly? date, string? type, string? description, DateTimeOffset now)
     {
         if (Status != "active" || Version != expectedVersion) return false;
 
@@ -43,9 +45,10 @@ public sealed class Transaction
         AmountMinor = amountMinor ?? AmountMinor;
         Date = date ?? Date;
         Type = type ?? Type;
+        Description = description ?? Description;
         Version++;
         UpdatedAt = now;
-        DomainEvents.Add(new TransactionUpdated(Id, TenantId, BankAccountId, AmountMinor, Date, Type, Status, now));
+        DomainEvents.Add(new TransactionUpdated(Id, TenantId, BankAccountId, AmountMinor, Date, Type, Description, Status, now));
         return true;
     }
 

@@ -43,14 +43,14 @@ public sealed class DomainEventOutboxInterceptor : SaveChangesInterceptor
             {
                 context.Set<OutboxMessage>().Add(OutboxMessage.Create(
                     "ledger.transaction-recorded.v1", "Transaction", domainEvent.TransactionId, transaction.Version, domainEvent.TenantId, domainEvent.OccurredAt,
-                    JsonSerializer.Serialize(new { transaction_id = domainEvent.TransactionId, tenant_id = domainEvent.TenantId, bank_account_id = domainEvent.BankAccountId, amount = domainEvent.AmountMinor, date = domainEvent.Date, type = domainEvent.Type, status = domainEvent.Status, created_at = domainEvent.OccurredAt })));
+                    JsonSerializer.Serialize(new { transaction_id = domainEvent.TransactionId, tenant_id = domainEvent.TenantId, bank_account_id = domainEvent.BankAccountId, amount = domainEvent.AmountMinor, date = domainEvent.Date, type = domainEvent.Type, description = domainEvent.Description, status = domainEvent.Status, created_at = domainEvent.OccurredAt })));
             }
 
             foreach (var domainEvent in transaction.GetDomainEvents().OfType<TransactionUpdated>())
             {
                 context.Set<OutboxMessage>().Add(OutboxMessage.Create(
                     "ledger.transaction-updated.v1", "Transaction", domainEvent.TransactionId, transaction.Version, domainEvent.TenantId, domainEvent.OccurredAt,
-                    JsonSerializer.Serialize(new { transaction_id = domainEvent.TransactionId, tenant_id = domainEvent.TenantId, bank_account_id = domainEvent.BankAccountId, amount = domainEvent.AmountMinor, date = domainEvent.Date, type = domainEvent.Type, status = domainEvent.Status, updated_at = domainEvent.OccurredAt })));
+                    JsonSerializer.Serialize(new { transaction_id = domainEvent.TransactionId, tenant_id = domainEvent.TenantId, bank_account_id = domainEvent.BankAccountId, amount = domainEvent.AmountMinor, date = domainEvent.Date, type = domainEvent.Type, description = domainEvent.Description, status = domainEvent.Status, updated_at = domainEvent.OccurredAt })));
             }
 
             foreach (var domainEvent in transaction.GetDomainEvents().OfType<TransactionArchived>())

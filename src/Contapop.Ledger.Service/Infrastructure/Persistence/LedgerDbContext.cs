@@ -62,6 +62,7 @@ public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) :
             entity.Property(transaction => transaction.AmountMinor).HasColumnName("amount_minor").IsRequired();
             entity.Property(transaction => transaction.Date).HasColumnName("date").IsRequired();
             entity.Property(transaction => transaction.Type).HasColumnName("type").HasMaxLength(20).IsRequired();
+            entity.Property(transaction => transaction.Description).HasColumnName("description").HasMaxLength(1_000);
             entity.Property(transaction => transaction.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
             entity.Property(transaction => transaction.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
             entity.Property(transaction => transaction.CreatedAt).HasColumnName("created_at").IsRequired();
