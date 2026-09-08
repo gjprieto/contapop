@@ -5,14 +5,14 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { TransactionsPage } from './transactions-page';
 
-const mocks = vi.hoisted(() => ({ getTransactions: vi.fn(), getBankAccounts: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getTransactions: vi.fn(), getBankAccounts: vi.fn(), importTransactions: vi.fn() }));
 
 vi.mock('../api/transactions-api', () => ({
   getTransactions: mocks.getTransactions,
   createTransaction: vi.fn(),
   updateTransaction: vi.fn(),
   archiveTransaction: vi.fn(),
-  importTransactions: vi.fn(),
+  importTransactions: mocks.importTransactions,
 }));
 
 vi.mock('../../accounts/api/accounts-api', () => ({ getBankAccounts: mocks.getBankAccounts, getPaymentCards: vi.fn() }));
@@ -62,5 +62,22 @@ describe('TransactionsPage', () => {
     await actor.click(screen.getByRole('button', { name: 'Continue' }));
     expect(screen.getByLabelText('Date column')).toBeVisible();
     expect(screen.getByLabelText('Amount column')).toBeVisible();
+  });
+
+  it('shows the completion state after a CSV import succeeds', async () => {
+    const actor = userEvent.setup();
+    mocks.importTransactions.mockResolvedValue({ importedCount: 1, transactionIds: ['transaction-1'], skippedRows: [] });
+    renderPage();
+
+    await actor.click(screen.getByRole('button', { name: 'Import CSV' }));
+    await actor.upload(screen.getByLabelText('Choose a CSV or Excel file'), new File(['Date,Amount\n2026-01-01,-12.50'], 'statement.csv', { type: 'text/csv' }));
+    await actor.selectOptions(screen.getByLabelText('Bank account'), 'account-1');
+    await actor.click(screen.getByRole('button', { name: 'Continue' }));
+    await actor.type(screen.getByLabelText('Date column'), 'Date');
+    await actor.type(screen.getByLabelText('Amount column'), 'Amount');
+    await actor.click(screen.getByRole('button', { name: 'Import transactions' }));
+
+    expect(await screen.findByText('Import complete')).toBeVisible();
+    expect(mocks.importTransactions).toHaveBeenCalledWith(expect.objectContaining({ bankAccountId: 'account-1' }));
   });
 });
