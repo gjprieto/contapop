@@ -3,6 +3,7 @@ using System;
 using Contapop.Ledger.Service.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Contapop.Ledger.Service.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(LedgerDbContext))]
-    partial class LedgerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260908062538_AddAccountCommands")]
+    partial class AddAccountCommands
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -252,36 +255,6 @@ namespace Contapop.Ledger.Service.Infrastructure.Persistence.Migrations
                     b.HasIndex("Status", "OccurredAt");
 
                     b.ToTable("outbox_messages", "bank_accounts");
-                });
-
-            modelBuilder.Entity("Contapop.Ledger.Service.Infrastructure.Persistence.IdempotencyRecord", b =>
-                {
-                    b.Property<Guid>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("tenant_id");
-
-                    b.Property<string>("Operation")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("operation");
-
-                    b.Property<string>("Key")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("key");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Result")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("result");
-
-                    b.HasKey("TenantId", "Operation", "Key");
-
-                    b.ToTable("idempotency_records", "bank_accounts");
                 });
 
             modelBuilder.Entity("Contapop.Ledger.Service.Infrastructure.Replication.ProjectReplica", b =>

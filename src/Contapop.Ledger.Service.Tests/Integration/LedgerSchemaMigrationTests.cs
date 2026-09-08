@@ -23,6 +23,8 @@ public sealed class LedgerSchemaMigrationTests : IAsyncLifetime
 
         Assert.Contains("bank_accounts.bank_accounts", tables);
         Assert.Contains("bank_accounts.inbox_messages", tables);
+        Assert.Contains("bank_accounts.idempotency_records", tables);
+        Assert.Contains("bank_accounts.outbox_messages", tables);
         Assert.Contains("bank_accounts.project_replica", tables);
         Assert.Contains("payment_cards.payment_cards", tables);
         Assert.Contains("transactions.transactions", tables);
@@ -31,6 +33,12 @@ public sealed class LedgerSchemaMigrationTests : IAsyncLifetime
         Assert.Equal(
             ["aggregate_version", "created_at", "name", "project_id", "status", "tenant_id", "updated_at"],
             replicaColumns);
+
+        var accountColumns = await GetColumnNamesAsync(database, "bank_accounts", "bank_accounts");
+        Assert.Contains("version", accountColumns);
+
+        var cardColumns = await GetColumnNamesAsync(database, "payment_cards", "payment_cards");
+        Assert.Contains("version", cardColumns);
     }
 
     private static Task<List<string>> GetColumnNamesAsync(LedgerDbContext database, string schema, string table) =>

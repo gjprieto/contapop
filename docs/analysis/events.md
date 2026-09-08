@@ -161,7 +161,37 @@ These aren't domain synchronization events — nothing replicates them into a lo
 | `created_at` | |
 
 - **Billing & Invoicing:** `billing.invoice-issued.v1`, `billing.invoice-paid.v1`, `billing.invoice-overdue.v1`, `billing.payment-recorded.v1`
-- **Financial Accounts & Ledger:** `ledger.bank-account-linked.v1`, `ledger.card-linked.v1` (`ledger.transaction-recorded.v1` and `ledger.transaction-archived.v1` moved up to Domain Synchronization Events, 2026-09-06 — they're business facts for Reporting too, just no longer *only* that)
+- **Financial Accounts & Ledger:**
+
+### `ledger.bank-account-linked.v1`
+
+**Producer:** Financial Accounts & Ledger, when `LinkBankAccount` succeeds.
+**Consumers:** Reporting only, when its account-level projections are introduced in Phase 5.
+
+| Payload field | Notes |
+|---|---|
+| `bank_account_id` | |
+| `tenant_id` | |
+| `project_id` | |
+| `bank_name` | |
+| `status` | Always `active` on creation |
+| `created_at` | |
+
+`account_number` is deliberately excluded. It is sensitive financial data owned by Financial Accounts & Ledger, and no current downstream consumer needs it.
+
+### `ledger.card-linked.v1`
+
+**Producer:** Financial Accounts & Ledger, when `AddPaymentCardLabel` succeeds.
+**Consumers:** Reporting only, when its card-level projections are introduced in Phase 5.
+
+| Payload field | Notes |
+|---|---|
+| `card_id` | |
+| `tenant_id` | |
+| `project_id` | |
+| `label` | Metadata only; never a real card number |
+| `created_at` | |
+
 - **Bookkeeping & Planning:** `bookkeeping.expense-recorded.v1`, `bookkeeping.revenue-recorded.v1`, `bookkeeping.plan-created.v1`, `bookkeeping.planned-expense-added.v1`, `bookkeeping.planned-revenue-added.v1`
 
 ## Domain Events (internal, not public contracts — examples only)

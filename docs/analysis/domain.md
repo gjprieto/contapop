@@ -63,6 +63,7 @@ A Bank Account represents a financial account associated with a tenant or projec
 - `account_number`: Bank account number.
 - `bank_name`: Name of the bank.
 - `status`: `active` or `archived`.
+- `version`: Optimistic concurrency version, incremented when the account is archived.
 - `created_at`: Timestamp when the bank account was created.
 - `updated_at`: Timestamp when the bank account was last updated.
 
@@ -79,6 +80,7 @@ A Credit or Debit Card represents a manual, user-entered label for a payment car
 - `expiration_date`: Optional, user-entered, informational only — not used for any payment processing.
 - `created_at`: Timestamp when the card was created.
 - `updated_at`: Timestamp when the card was last updated.
+- `version`: Optimistic concurrency version, used when removing the card label.
 
 ### Transaction
 

@@ -31,6 +31,7 @@ var identity = builder.AddProject<Projects.Contapop_Identity_Service>("identity-
 
 var ledger = builder.AddProject<Projects.Contapop_Ledger_Service>("ledger-service")
     .WithReference(ledgerDatabase)
+    .WithEnvironment("InternalJwt__SigningKey", internalJwtSigningKey)
     .WaitFor(ledgerDatabase)
     .WithHttpEndpoint(port: 5113)
     .WithHttpHealthCheck("/health")

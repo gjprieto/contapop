@@ -210,6 +210,8 @@ Validates `projectId` against this service's local `project_replica` (per `servi
 { "bankAccountId": "guid", "status": "\"archived\"", "updatedAt": "date-time", "version": "int" }
 ```
 
+**Required header:** `If-Match: "<version>"` — obtain the current version from `ListBankAccounts`.
+
 #### `AddPaymentCardLabel`
 
 Metadata only, per `domain.md`'s Decision note — never a real card number.
@@ -238,6 +240,8 @@ Cards aren't cross-service referenced, so this is a real (hard) delete, unlike t
 **Route:** `DELETE /api/v1/payment-cards/{cardId}`
 
 **Response:** `204 No Content`
+
+**Required header:** `If-Match: "<version>"` — obtain the current version from `ListPaymentCards`.
 
 #### `RecordTransaction`
 
@@ -342,7 +346,7 @@ Soft-delete, not hard-delete, since Transaction becomes cross-service-referencea
 ```
 {
   "items": [
-    { "bankAccountId": "guid", "accountNumber": "string", "bankName": "string", "status": "string", "balanceMinor": "int — sum of active transactions" }
+    { "bankAccountId": "guid", "accountNumber": "string", "bankName": "string", "status": "string", "balanceMinor": "int — sum of active transactions", "version": "int" }
   ],
   "page": "int", "pageSize": "int", "totalCount": "int"
 }
@@ -356,7 +360,7 @@ Soft-delete, not hard-delete, since Transaction becomes cross-service-referencea
 ```
 {
   "items": [
-    { "cardId": "guid", "label": "string", "cardholderName": "string", "expirationDate": "date optional" }
+    { "cardId": "guid", "label": "string", "cardholderName": "string", "expirationDate": "date optional", "version": "int" }
   ],
   "page": "int", "pageSize": "int", "totalCount": "int"
 }

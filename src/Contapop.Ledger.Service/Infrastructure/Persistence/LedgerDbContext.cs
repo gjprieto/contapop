@@ -2,6 +2,7 @@ using Contapop.Ledger.Service.Domain.BankAccounts;
 using Contapop.Ledger.Service.Domain.PaymentCards;
 using Contapop.Ledger.Service.Domain.Transactions;
 using Contapop.Ledger.Service.Infrastructure.Messaging;
+using Contapop.Ledger.Service.Infrastructure.Outbox;
 using Contapop.Ledger.Service.Infrastructure.Replication;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,8 @@ public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) :
     public DbSet<Transaction> Transactions => Set<Transaction>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
     public DbSet<ProjectReplica> ProjectReplicas => Set<ProjectReplica>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +30,7 @@ public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) :
             entity.Property(account => account.AccountNumber).HasColumnName("account_number").HasMaxLength(200).IsRequired();
             entity.Property(account => account.BankName).HasColumnName("bank_name").HasMaxLength(200).IsRequired();
             entity.Property(account => account.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.Property(account => account.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
             entity.Property(account => account.CreatedAt).HasColumnName("created_at").IsRequired();
             entity.Property(account => account.UpdatedAt).HasColumnName("updated_at").IsRequired();
             entity.HasIndex(account => new { account.TenantId, account.ProjectId });
@@ -42,6 +46,7 @@ public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) :
             entity.Property(card => card.Label).HasColumnName("label").HasMaxLength(200).IsRequired();
             entity.Property(card => card.CardholderName).HasColumnName("cardholder_name").HasMaxLength(200).IsRequired();
             entity.Property(card => card.ExpirationDate).HasColumnName("expiration_date");
+            entity.Property(card => card.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
             entity.Property(card => card.CreatedAt).HasColumnName("created_at").IsRequired();
             entity.Property(card => card.UpdatedAt).HasColumnName("updated_at").IsRequired();
             entity.HasIndex(card => new { card.TenantId, card.ProjectId });
@@ -85,6 +90,33 @@ public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) :
             entity.Property(project => project.CreatedAt).HasColumnName("created_at").IsRequired();
             entity.Property(project => project.UpdatedAt).HasColumnName("updated_at").IsRequired();
             entity.HasIndex(project => new { project.TenantId, project.Status });
+        });
+
+        modelBuilder.Entity<OutboxMessage>(entity =>
+        {
+            entity.ToTable("outbox_messages", "bank_accounts");
+            entity.HasKey(message => message.EventId);
+            entity.Property(message => message.EventId).HasColumnName("event_id");
+            entity.Property(message => message.EventName).HasColumnName("event_name").HasMaxLength(200).IsRequired();
+            entity.Property(message => message.AggregateType).HasColumnName("aggregate_type").HasMaxLength(100).IsRequired();
+            entity.Property(message => message.AggregateId).HasColumnName("aggregate_id").IsRequired();
+            entity.Property(message => message.AggregateVersion).HasColumnName("aggregate_version").IsRequired();
+            entity.Property(message => message.TenantId).HasColumnName("tenant_id").IsRequired();
+            entity.Property(message => message.OccurredAt).HasColumnName("occurred_at").IsRequired();
+            entity.Property(message => message.Payload).HasColumnName("payload").HasColumnType("jsonb").IsRequired();
+            entity.Property(message => message.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.HasIndex(message => new { message.Status, message.OccurredAt });
+        });
+
+        modelBuilder.Entity<IdempotencyRecord>(entity =>
+        {
+            entity.ToTable("idempotency_records", "bank_accounts");
+            entity.HasKey(record => new { record.TenantId, record.Operation, record.Key });
+            entity.Property(record => record.TenantId).HasColumnName("tenant_id");
+            entity.Property(record => record.Operation).HasColumnName("operation").HasMaxLength(100);
+            entity.Property(record => record.Key).HasColumnName("key").HasMaxLength(200);
+            entity.Property(record => record.Result).HasColumnName("result").HasColumnType("jsonb").IsRequired();
+            entity.Property(record => record.CreatedAt).HasColumnName("created_at").IsRequired();
         });
     }
 }
