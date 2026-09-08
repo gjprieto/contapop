@@ -42,7 +42,7 @@ jobs:
         working-directory: src/frontend
 
   e2e:
-    name: Phase 1 end-to-end
+    name: Phase 1 and 2 end-to-end
     needs: [backend, frontend]
     runs-on: ubuntu-latest
     steps:
@@ -63,7 +63,7 @@ jobs:
         working-directory: src
         env:
           Parameters__internal-jwt-signing-key: ${{ secrets.INTERNAL_JWT_SIGNING_KEY }}
-      - run: ./scripts/wait-for-phase-1.sh
+      - run: ./scripts/wait-for-phase-2.sh
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:5173
           PLAYWRIGHT_IDENTITY_BASE_URL: http://localhost:5111
@@ -80,7 +80,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phase-1-e2e-artifacts
+            name: e2e-artifacts
           path: |
             src/frontend/test-results/
             src/frontend/playwright-report/

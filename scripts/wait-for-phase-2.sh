@@ -27,7 +27,7 @@ curl --fail --silent --show-error \
   --request POST "$identity_base_url/api/v1/tenants" \
   --header 'Content-Type: application/json' \
   --data "$(jq -n \
-    --arg tenantName 'Phase 1 Pilot' \
+    --arg tenantName 'Phase 2 Pilot' \
     --arg ownerName "${PLAYWRIGHT_PILOT_NAME:?PLAYWRIGHT_PILOT_NAME is required}" \
     --arg ownerEmail "${PLAYWRIGHT_PILOT_EMAIL:?PLAYWRIGHT_PILOT_EMAIL is required}" \
     --arg initialPassword "${PLAYWRIGHT_PILOT_PASSWORD:?PLAYWRIGHT_PILOT_PASSWORD is required}" \
