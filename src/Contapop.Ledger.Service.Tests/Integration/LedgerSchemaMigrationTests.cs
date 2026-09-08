@@ -28,6 +28,7 @@ public sealed class LedgerSchemaMigrationTests : IAsyncLifetime
         Assert.Contains("bank_accounts.project_replica", tables);
         Assert.Contains("payment_cards.payment_cards", tables);
         Assert.Contains("transactions.transactions", tables);
+        Assert.Contains("transactions.reconciliation_claims", tables);
 
         var replicaColumns = await GetColumnNamesAsync(database, "bank_accounts", "project_replica");
         Assert.Equal(

@@ -1,6 +1,6 @@
 # Services
 
-This document defines the deployable service boundaries for Contapop, following the API-led connectivity model in `docs/standards/architecture-guidelines.md` and the System API analysis in `docs/analysis/api-led/system-apis.md`. It groups the System APIs derived from `docs/analysis/domain.md` into six services rather than deploying one service per System API — each service is a genuine bond of shared data ownership and lifecycle, not just a technical convenience. MVP-specific scope cuts (currency, invoice tax handling, single-project, single-user) are tracked separately in `docs/analysis/mvp/scope-decisions.md` and referenced below where they reduce a service's near-term build.
+This document defines the deployable service boundaries for Contapop, following the API-led connectivity model in `docs/standards/architecture-guidelines.md` and the System API analysis in `docs/analysis/api-led/system-apis.md`. It groups the System APIs derived from `docs/analysis/domain.md` into seven services rather than deploying one service per System API — each service is a genuine bond of shared data ownership and lifecycle, not just a technical convenience. MVP-specific scope cuts (currency, invoice tax handling, single-project, single-user) are tracked separately in `docs/analysis/mvp/scope-decisions.md` and referenced below where they reduce a service's near-term build.
 
 Within every service, each System API it hosts is still an independently documented HTTP surface (own route prefix, own OpenAPI contract, own database schema even where the schema lives in the same PostgreSQL instance). No code reaches across schemas. This keeps a later split — pulling one System API out into its own service — a matter of moving a schema and a folder, not a redesign.
 
@@ -60,6 +60,15 @@ Thin, channel-specific boundary per `architecture-guidelines.md`. The frontend c
 
 **Split trigger:** a second client channel (e.g. mobile) needs its own Experience API.
 
+## Reconciliation Process API
+
+**Hosts:** Transaction Reconciliation coordinator API
+**Owns:** durable reconciliation-operation retry records only
+
+This internal Process API coordinates the narrow strict-global-reconciliation protocol. It persists an operation before reserving a Ledger claim, invokes Billing or Bookkeeping's idempotent dependent reconciliation, records the outcome, and confirms or releases the claim. It retries failed confirmation and release operations. The Experience API remains stateless and calls this Process API rather than retaining durable orchestration state.
+
+**Split trigger:** none anticipated. This is a narrowly scoped Process API, not a general saga framework.
+
 ## Summary
 
 | Service | System APIs hosted | Entities owned |
@@ -70,8 +79,9 @@ Thin, channel-specific boundary per `architecture-guidelines.md`. The frontend c
 | Bookkeeping & Planning | Expenses, Revenues, Planning | Expense, Revenue, Plan, Planned Revenue, Planned Expense |
 | Reporting | none (Process/read-model) | projections; optionally Report metadata |
 | Experience API | none (Experience layer) | none — aggregates the above |
+| Reconciliation Process API | Transaction Reconciliation coordinator | durable reconciliation-operation retry records only |
 
-Six deployables total, each with its own pipeline, Dapr sidecar, database, and on-call surface — versus eleven if every System API were deployed separately. This refines rather than replaces the starting service list in `architecture-guidelines.md`'s Module Structure section (`Identity, Clients, Invoicing, Expenses, Payments, Reporting`): it names Financial Accounts & Ledger and Bookkeeping & Planning explicitly, and folds the placeholder "Clients" service into Billing & Invoicing as Counterparties.
+Seven deployables total, each with its own pipeline, Dapr sidecar, database, and on-call surface — versus eleven if every System API were deployed separately. This refines rather than replaces the starting service list in `architecture-guidelines.md`'s Module Structure section (`Identity, Clients, Invoicing, Expenses, Payments, Reporting`): it names Financial Accounts & Ledger and Bookkeeping & Planning explicitly, folds the placeholder "Clients" service into Billing & Invoicing as Counterparties, and adds the narrowly scoped reconciliation coordinator required for durable global uniqueness.
 
 ## Domain Questions Resolved (2026-09-06)
 
@@ -84,7 +94,7 @@ The four open questions carried over from the domain analysis are now settled, a
 
 ## Data Storage
 
-Yes — one PostgreSQL database per service, consistent with the "independently owned database per service" rule already stated in `architecture-guidelines.md`. Five of the six services need one; the Experience API doesn't.
+Yes — one PostgreSQL database per stateful service, consistent with the "independently owned database per service" rule already stated in `architecture-guidelines.md`. Six of the seven services need one; the Experience API doesn't.
 
 | Service | Own database? | Internal schemas (one per hosted System API) |
 |---|---|---|
@@ -94,10 +104,11 @@ Yes — one PostgreSQL database per service, consistent with the "independently 
 | Bookkeeping & Planning | Yes — `contapop_bookkeeping` | expenses, revenues, planning |
 | Reporting | Yes — `contapop_reporting` | read-model projections only, populated from the other services' integration events — never queries their databases directly |
 | Experience API | No | stateless aggregator; at most a namespaced slice of the shared Redis cache for response caching, never authoritative data |
+| Reconciliation Process API | Yes — `contapop_reconciliation` | reconciliation-operation records and retry state only |
 
 Each database gets its own EF Core migration history and its own dedicated database role/credentials, so no service can query another's tables even accidentally — that's what "independently owned" is actually enforcing, not physical hardware separation. The outbox and inbox tables (per `architecture-guidelines.md`) live inside each service's own database, in the schema of the aggregate that emits or consumes the event — never a shared table.
 
-**Physical layout for now:** run all five as separate databases on the single Aspire-managed PostgreSQL server already in `tech-stack.md`, using Aspire's `AddDatabase(...)` per service. That gives full logical isolation (separate credentials, separate migrations, no cross-database joins possible) while keeping one server instance to operate, patch, and back up at this team size. Promoting any one of them to its own dedicated server instance later is purely an infrastructure change — a new connection string — since the application layer never assumed shared access in the first place.
+**Physical layout for now:** run all six as separate databases on the single Aspire-managed PostgreSQL server already in `tech-stack.md`, using Aspire's `AddDatabase(...)` per stateful service. That gives full logical isolation (separate credentials, separate migrations, no cross-database joins possible) while keeping one server instance to operate, patch, and back up at this team size. Promoting any one of them to its own dedicated server instance later is purely an infrastructure change — a new connection string — since the application layer never assumed shared access in the first place.
 
 **First candidate to split onto its own server instance:** Financial Accounts & Ledger, once real bank-feed ingestion volume needs its own scaling/reliability profile, or card handling reaches a compliance scope that calls for network-level isolation.
 

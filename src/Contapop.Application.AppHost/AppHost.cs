@@ -11,6 +11,7 @@ var ledgerDatabase = postgres.AddDatabase("ledger", "contapop_ledger");
 postgres.AddDatabase("billing", "contapop_billing");
 postgres.AddDatabase("bookkeeping", "contapop_bookkeeping");
 postgres.AddDatabase("reporting", "contapop_reporting");
+var reconciliationDatabase = postgres.AddDatabase("reconciliation", "contapop_reconciliation");
 
 var experienceApi = builder.AddProject<Projects.Contapop_Experience_Api>("experience-api")
     .WithReference(cache)
@@ -37,8 +38,16 @@ var ledger = builder.AddProject<Projects.Contapop_Ledger_Service>("ledger-servic
     .WithHttpHealthCheck("/health")
     .WithDaprSidecar(sidecar => sidecar.WithReference(pubSub));
 
+var reconciliation = builder.AddProject<Projects.Contapop_Reconciliation_Service>("reconciliation-service")
+    .WithReference(reconciliationDatabase)
+    .WaitFor(reconciliationDatabase)
+    .WithHttpEndpoint(port: 5114)
+    .WithHttpHealthCheck("/health")
+    .WithDaprSidecar(sidecar => sidecar.WithReference(pubSub));
+
 experienceApi.WithReference(identity).WaitFor(identity);
 experienceApi.WithReference(ledger).WaitFor(ledger);
+experienceApi.WithReference(reconciliation).WaitFor(reconciliation);
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
     .WithReference(experienceApi)

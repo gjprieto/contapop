@@ -338,7 +338,7 @@ Soft-delete, not hard-delete, since Transaction becomes cross-service-referencea
 
 #### Transaction Reconciliation Claim protocol
 
-These internal System API operations are used only by the Experience API reconciliation coordinator. They enforce the MVP invariant that a Transaction can reconcile with only one Payment, Expense, or Revenue. Each operation is tenant-scoped and requires the normal internal JWT and `Idempotency-Key`; claim-state updates also use `If-Match` when the current claim version is returned.
+These internal System API operations are used only by the Reconciliation Process API coordinator. They enforce the MVP invariant that a Transaction can reconcile with only one Payment, Expense, or Revenue. Each operation is tenant-scoped and requires the normal internal JWT and `Idempotency-Key`; claim-state updates also use `If-Match` when the current claim version is returned.
 
 `ReserveTransactionReconciliation` creates a short-lived reservation before the dependent service persists its reconciliation.
 
@@ -369,13 +369,13 @@ These internal System API operations are used only by the Experience API reconci
 
 **Errors:** `409 Conflict` if the reservation has expired or been released.
 
-`ReleaseTransactionReconciliation` releases an unconfirmed reservation after a durably recorded failed dependent write, or a confirmed Expense/Revenue claim after its dependent record is deleted. It is idempotent: releasing an already-released claim returns `204 No Content`.
+`ReleaseTransactionReconciliation` releases an unconfirmed reservation after a durably recorded failed dependent write, or a confirmed Expense/Revenue claim after its dependent record is deleted. A confirmed Payment claim cannot be released in MVP because Payments have no delete/unreconcile command. It is idempotent: releasing an already-released claim returns `204 No Content`.
 
 **Route:** `DELETE /api/v1/reconciliation-claims/{claimId}`
 
 **Response:** `204 No Content`
 
-An unconfirmed claim past `expiresAt` is never automatically released by Ledger, because the dependent write may have succeeded before a coordinator failure. The Experience API's durable reconciliation operation resolves the idempotent dependent write first, then confirms a successful reconciliation or releases a failed one. It retries failed confirmations and releases until complete.
+An unconfirmed claim past `expiresAt` is never automatically released by Ledger, because the dependent write may have succeeded before a coordinator failure. The Reconciliation Process API's durable reconciliation operation resolves the idempotent dependent write first, then confirms a successful reconciliation or releases a failed one. It retries failed confirmations and releases until complete.
 
 `ValidateTransactionReconciliation` is called by Billing or Bookkeeping during its reconciliation command handling. It verifies a still-reserved claim belongs to the authenticated tenant and exactly matches the supplied Transaction, dependent type, and dependent ID. This narrow synchronous call prevents a System API caller from supplying a claim ID reserved for a different record. Billing and Bookkeeping obtain this Ledger client through an application abstraction with timeout and resilience handling; the domain layer remains free of HTTP concerns.
 

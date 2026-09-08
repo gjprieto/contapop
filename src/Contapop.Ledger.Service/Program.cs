@@ -20,6 +20,7 @@ builder.Services.AddScoped<ProjectReplicationConsumer>();
 builder.Services.AddScoped<AccountCommandHandler>();
 builder.Services.AddScoped<TransactionCommandHandler>();
 builder.Services.AddScoped<TransactionFileImporter>();
+builder.Services.AddScoped<ReconciliationClaimCommandHandler>();
 builder.Services.AddAuthentication().AddJwtBearer("InternalJwt", options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -58,6 +59,7 @@ app.MapSubscribeHandler();
 app.MapProjectReplicationEndpoints();
 app.MapAccountEndpoints();
 app.MapTransactionEndpoints();
+app.MapReconciliationClaimEndpoints();
 
 app.Run();
 

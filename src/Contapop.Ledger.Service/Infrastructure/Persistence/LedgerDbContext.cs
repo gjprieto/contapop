@@ -1,6 +1,7 @@
 using Contapop.Ledger.Service.Domain.BankAccounts;
 using Contapop.Ledger.Service.Domain.PaymentCards;
 using Contapop.Ledger.Service.Domain.Transactions;
+using Contapop.Ledger.Service.Domain.Reconciliation;
 using Contapop.Ledger.Service.Infrastructure.Messaging;
 using Contapop.Ledger.Service.Infrastructure.Outbox;
 using Contapop.Ledger.Service.Infrastructure.Replication;
@@ -13,6 +14,7 @@ public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) :
     public DbSet<BankAccount> BankAccounts => Set<BankAccount>();
     public DbSet<PaymentCard> PaymentCards => Set<PaymentCard>();
     public DbSet<Transaction> Transactions => Set<Transaction>();
+    public DbSet<TransactionReconciliationClaim> ReconciliationClaims => Set<TransactionReconciliationClaim>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
     public DbSet<ProjectReplica> ProjectReplicas => Set<ProjectReplica>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
@@ -68,6 +70,25 @@ public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) :
             entity.Property(transaction => transaction.CreatedAt).HasColumnName("created_at").IsRequired();
             entity.Property(transaction => transaction.UpdatedAt).HasColumnName("updated_at").IsRequired();
             entity.HasIndex(transaction => new { transaction.TenantId, transaction.BankAccountId, transaction.Date });
+        });
+
+        modelBuilder.Entity<TransactionReconciliationClaim>(entity =>
+        {
+            entity.ToTable("reconciliation_claims", "transactions");
+            entity.HasKey(claim => claim.Id);
+            entity.Property(claim => claim.Id).HasColumnName("id");
+            entity.Property(claim => claim.TenantId).HasColumnName("tenant_id").IsRequired();
+            entity.Property(claim => claim.TransactionId).HasColumnName("transaction_id").IsRequired();
+            entity.Property(claim => claim.DependentType).HasColumnName("dependent_type").HasMaxLength(20).IsRequired();
+            entity.Property(claim => claim.DependentId).HasColumnName("dependent_id").IsRequired();
+            entity.Property(claim => claim.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.Property(claim => claim.ExpiresAt).HasColumnName("expires_at").IsRequired();
+            entity.Property(claim => claim.CreatedAt).HasColumnName("created_at").IsRequired();
+            entity.Property(claim => claim.ConfirmedAt).HasColumnName("confirmed_at");
+            entity.Property(claim => claim.ReleasedAt).HasColumnName("released_at");
+            entity.Property(claim => claim.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
+            entity.HasIndex(claim => new { claim.TenantId, claim.TransactionId }).IsUnique().HasFilter("status <> 'released'");
+            entity.HasIndex(claim => new { claim.TenantId, claim.DependentType, claim.DependentId }).IsUnique().HasFilter("status <> 'released'");
         });
 
         modelBuilder.Entity<InboxMessage>(entity =>
