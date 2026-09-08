@@ -313,6 +313,8 @@ columnMapping: {
 
 **Errors:** `409 Conflict` if the transaction's `status` is `archived`.
 
+**Event:** `ledger.transaction-updated.v1`.
+
 #### `ArchiveTransaction`
 
 Soft-delete, not hard-delete, since Transaction becomes cross-service-referenceable starting Phase 3 (`domain.md`'s Decision note).

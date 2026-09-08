@@ -18,6 +18,7 @@ builder.Services.AddDbContext<LedgerDbContext>((serviceProvider, options) =>
         .AddInterceptors(serviceProvider.GetRequiredService<DomainEventOutboxInterceptor>()));
 builder.Services.AddScoped<ProjectReplicationConsumer>();
 builder.Services.AddScoped<AccountCommandHandler>();
+builder.Services.AddScoped<TransactionCommandHandler>();
 builder.Services.AddAuthentication().AddJwtBearer("InternalJwt", options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -55,6 +56,7 @@ app.MapGet("/health", () => Results.Ok());
 app.MapSubscribeHandler();
 app.MapProjectReplicationEndpoints();
 app.MapAccountEndpoints();
+app.MapTransactionEndpoints();
 
 app.Run();
 

@@ -31,7 +31,7 @@ Per `docs/analysis/mvp/scope-decisions.md`'s test-rigor decision, only the money
 **Delivers:**
 - The inbox side of the event backbone, built here for the first time — the first proof that a service can validate a cross-service reference (`project_id`) against a locally replicated read model instead of a synchronous call.
 - Financial Accounts & Ledger System APIs: Bank Accounts (`LinkBankAccount`, `ArchiveBankAccount`), Payment Cards (`AddPaymentCardLabel`, `RemovePaymentCardLabel`, metadata-only), Transactions (`RecordTransaction`, `ImportTransactionsFromFile` for CSV/Excel, `UpdateTransaction`, `ArchiveTransaction` — soft-delete, not hard-delete, since Transaction can be referenced cross-service starting in Phase 3/4).
-- Transaction's own outbox, publishing `ledger.transaction-recorded.v1` / `ledger.transaction-archived.v1` for Phase 3 and 4 to consume later.
+- Transaction's own outbox, publishing `ledger.transaction-recorded.v1` / `ledger.transaction-updated.v1` / `ledger.transaction-archived.v1` for Phase 3 and 4 to consume later.
 - Frontend: Financial Overview screen's accounts/cards section, Transactions screen (full CRUD, search/filter/sort/paginate, CSV import wizard).
 
 **E2E test:** link a bank account to the pilot project (proves the Project replica works) and confirm linking to a fabricated project ID is rejected (proves validation isn't a rubber stamp); record a transaction manually and via CSV import; archive a transaction.

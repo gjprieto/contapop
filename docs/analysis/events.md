@@ -119,7 +119,7 @@ These are the events that make the Cross-Service Data Consistency Strategy work.
 ### `ledger.transaction-recorded.v1`
 
 **Producer:** Financial Accounts & Ledger, on `RecordTransaction` or as part of `ImportTransactionsFromFile` (see `docs/analysis/contracts.md`).
-**Consumers:** Bookkeeping & Planning and Billing & Invoicing (insert into their local Transaction read-replica so `reconciled_transaction_id` can be validated); Reporting (projection). This event already existed in the "Other Anticipated Integration Events" list below as a business fact for Reporting — as of 2026-09-06 it does double duty as a domain synchronization event too.
+**Consumers:** Bookkeeping & Planning and Billing & Invoicing (insert into their local Transaction read-replica so `reconciled_transaction_id` can be validated); Reporting (projection). This event already existed in the "Other Anticipated Integration Events" list below as a business fact for Reporting — as of 2026-09-06 it does double duty as a domain synchronization event too. Later changes are propagated by `ledger.transaction-updated.v1`.
 
 | Payload field | Notes |
 |---|---|
@@ -142,6 +142,22 @@ These are the events that make the Cross-Service Data Consistency Strategy work.
 | `transaction_id` | |
 | `tenant_id` | |
 | `archived_at` | |
+
+### `ledger.transaction-updated.v1`
+
+**Producer:** Financial Accounts & Ledger, when `UpdateTransaction` succeeds.
+**Consumers:** Bookkeeping & Planning and Billing & Invoicing update their local Transaction read-replica when `aggregate_version` is newer; Reporting updates its transaction projection.
+
+| Payload field | Notes |
+|---|---|
+| `transaction_id` | |
+| `tenant_id` | |
+| `bank_account_id` | |
+| `amount` | |
+| `date` | |
+| `type` | |
+| `status` | Always `active`; archived transactions cannot be updated |
+| `updated_at` | |
 
 ## Other Anticipated Integration Events (first pass)
 

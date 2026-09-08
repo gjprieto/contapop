@@ -167,7 +167,7 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 2.2a.
 
-**Implement:** `RecordTransaction`, `UpdateTransaction`, `ArchiveTransaction`, `ListTransactions`, `GetTransactionById`, `ListUnreconciledTransactions` from `contracts.md`. `ArchiveTransaction` sets `status = archived` (soft-delete, per `domain.md`'s Decision note — never a hard delete, since Transaction becomes cross-service-referenceable starting Phase 3). Transaction's own outbox publishes `ledger.transaction-recorded.v1` / `ledger.transaction-archived.v1` per `events.md`, ready for Phase 3/4 to consume later (no consumer exists yet).
+**Implement:** `RecordTransaction`, `UpdateTransaction`, `ArchiveTransaction`, `ListTransactions`, `GetTransactionById`, `ListUnreconciledTransactions` from `contracts.md`. `ArchiveTransaction` sets `status = archived` (soft-delete, per `domain.md`'s Decision note — never a hard delete, since Transaction becomes cross-service-referenceable starting Phase 3). Transaction's own outbox publishes `ledger.transaction-recorded.v1` / `ledger.transaction-updated.v1` / `ledger.transaction-archived.v1` per `events.md`, ready for Phase 3/4 to consume later (no consumer exists yet).
 
 **Automated tests:** unit tests for the archive-not-delete invariant; integration tests for the outbox rows on record/archive.
 
@@ -223,7 +223,7 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 3.1.
 
-**Implement:** create `src/Contapop.Billing.Service/` with `invoicing`, `payments`, and `counterparties` schemas in `contapop_billing`. Add its inbox plus **two** local replicas per `services.md`'s updated Cross-Service Data Consistency Strategy: `project_replica` (consuming `identity.project-*.v1`) and `transaction_replica` (consuming `ledger.transaction-recorded.v1`/`-archived.v1` from Task 2.4's outbox) — this service's second proof of the event backbone, and the first case of a service consuming from two different upstream services.
+**Implement:** create `src/Contapop.Billing.Service/` with `invoicing`, `payments`, and `counterparties` schemas in `contapop_billing`. Add its inbox plus **two** local replicas per `services.md`'s updated Cross-Service Data Consistency Strategy: `project_replica` (consuming `identity.project-*.v1`) and `transaction_replica` (consuming `ledger.transaction-recorded.v1`/`-updated.v1`/`-archived.v1` from Task 2.4's outbox) — this service's second proof of the event backbone, and the first case of a service consuming from two different upstream services.
 
 **Automated tests:** the same replica correctness tests as Task 2.2 (dedup, version-gating), run against both replicas.
 
@@ -309,7 +309,7 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 4.1.
 
-**Implement:** create `src/Contapop.Bookkeeping.Service/` with `expenses`, `revenues`, and `planning` schemas in `contapop_bookkeeping`. Add its inbox plus `project_replica` and `transaction_replica` (same pattern as Task 3.2).
+**Implement:** create `src/Contapop.Bookkeeping.Service/` with `expenses`, `revenues`, and `planning` schemas in `contapop_bookkeeping`. Add its inbox plus `project_replica` and `transaction_replica` (same pattern as Task 3.2, including `ledger.transaction-recorded.v1`/`-updated.v1`/`-archived.v1`).
 
 **Automated tests:** same replica correctness tests as Task 3.2.
 
