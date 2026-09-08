@@ -34,11 +34,11 @@ This document records scope cut-lines for the MVP — decisions about how much o
 
 ## Transaction Reconciliation
 
-**Decision (2026-09-06):** full reconciliation is in MVP scope. A Payment, Expense, or Revenue can each optionally reference the Financial Accounts & Ledger Transaction it was matched against, via `reconciled_transaction_id` (applied to `domain.md`). One-to-one only for MVP — no splitting one transaction across multiple records or vice versa.
+**Decision (2026-09-06, clarified 2026-09-08):** full reconciliation is in MVP scope. A Payment, Expense, or Revenue can each optionally reference the Financial Accounts & Ledger Transaction it was matched against, via `reconciled_transaction_id` (applied to `domain.md`). One-to-one globally for MVP — one Transaction can reconcile with at most one Payment, Expense, or Revenue, and vice versa. No splitting one transaction across multiple records or vice versa.
 
 **Why:** this is more work than the "no linking" alternative, since it makes Transaction a second reference-data hub (alongside Identity & Tenancy's Project) that Bookkeeping & Planning and Billing & Invoicing both need to replicate locally and validate against — see `docs/analysis/events.md`'s `ledger.transaction-recorded.v1`/`ledger.transaction-updated.v1`/`ledger.transaction-archived.v1` domain synchronization events and `docs/analysis/services.md`'s updated Cross-Service Data Consistency Strategy. Chosen anyway because it directly supports a core freelancer workflow: turning bank statement lines into bookkeeping entries and confirming an invoice was actually paid.
 
-**Consequence:** Transaction is now soft-deleted (`status: active/archived`) instead of hard-deleted, the same pattern as Project, since a reconciled reference must never dangle.
+**Consequence:** Transaction is now soft-deleted (`status: active/archived`) instead of hard-deleted, the same pattern as Project, since a reconciled reference must never dangle. Financial Accounts & Ledger owns durable Transaction Reconciliation Claims, which reserve, confirm, and release the one permitted cross-service reconciliation; the Experience API coordinates this narrow compensation protocol. See `services.md`'s **Strict global Transaction reconciliation** section.
 
 ## PDF Invoice/Receipt Import
 
@@ -75,5 +75,5 @@ Gerardo guides development directly; most implementation is carried out by AI co
 | Audience/onboarding | Small private pilot, manually onboarded | No — usage/UI scope only |
 | Test rigor | Critical paths only (E2E + unit) | N/A |
 | Hosting target | Not yet decided | N/A |
-| Transaction reconciliation | Full reconciliation (one-to-one), in MVP | Yes — `domain.md`'s Payment/Expense/Revenue/Transaction |
+| Transaction reconciliation | Full reconciliation (globally one-to-one), in MVP | Yes — `domain.md`'s Payment/Expense/Revenue/Transaction Reconciliation Claim |
 | PDF invoice/receipt import | Full OCR extraction, in MVP | Yes — `domain.md`'s Expense/Revenue (`import_source`) |

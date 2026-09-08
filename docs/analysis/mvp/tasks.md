@@ -183,9 +183,19 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **What you can test:** upload a small sample CSV/Excel bank statement (ask the agent for a fixture file or provide your own) through the import endpoint and confirm the resulting transactions list matches the file.
 
+### Task 2.5a — Global Transaction reconciliation claims
+
+**Depends on:** 2.4.
+
+**Implement:** add the Ledger-owned `Transaction Reconciliation Claim` aggregate and its schema, migration, internal System API contract, expiry recovery signal, and durable Experience API reconciliation-operation retry record described in `services.md`'s **Strict global Transaction reconciliation** section and `contracts.md`. `ReserveTransactionReconciliation` atomically reserves one active Transaction for one Payment, Expense, or Revenue; `ConfirmTransactionReconciliation` makes that claim permanent; `ReleaseTransactionReconciliation` is idempotent and releases only a durably known failed reservation or a claim whose Expense/Revenue was deleted. An expired reservation is resolved by replaying/checking the idempotent dependent write, then confirmed or released; it is never automatically released while the outcome is unknown. Billing and Bookkeeping validate a claim through Ledger as part of their reconciliation commands. This is a narrow, explicit exception to asynchronous replica validation, not a cross-service database dependency.
+
+**Automated tests:** Ledger integration tests covering atomic contention (only one reservation can succeed), retrying the same reservation idempotently, archived-Transaction rejection, confirmation, and explicit release. Experience API integration tests cover a successful reserve → dependent write → confirm flow, confirmation retry after an uncertain response, and a failed dependent write whose release is retried durably. An expired reservation test proves it remains blocked until the durable coordinator resolves the idempotent dependent outcome. The future Billing/Bookkeeping reconciliation tests assert that a missing or mismatched claim is rejected.
+
+**What you can test:** reserve a Transaction for one test dependent ID, confirm a second reservation for a different dependent ID is rejected, release the first claim, then confirm the second reservation succeeds. Trigger a failed dependent write and verify the retry record releases the reservation rather than leaving the Transaction unavailable.
+
 ### Task 2.6 — Experience API + frontend: Financial Overview accounts/cards, Transactions screen
 
-**Depends on:** 2.3, 2.4, 2.5, 1.8.
+**Depends on:** 2.3, 2.4, 2.5, 2.5a, 1.8.
 
 **Implement:** Experience API endpoints composing the above for the Financial Overview screen's accounts/cards section and the Transactions screen (full CRUD, search/filter/sort/paginate, CSV import wizard), per `screens-and-features.md`. Frontend slices in `features/accounts/` and `features/transactions/`.
 
@@ -211,9 +221,9 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 ### Task 3.1 — Confirm the spec slice
 
-**Depends on:** 2.7.
+**Depends on:** 2.7, 2.5a.
 
-**Implement:** no code. Re-read `domain.md` (Counterparty, Invoice/Ticket, Payment), `services.md` (Billing & Invoicing section), `events.md` (`billing.*.v1`, and the Transaction replica this service now needs), `contracts.md` (Billing & Invoicing section).
+**Implement:** no code. Re-read `domain.md` (Counterparty, Invoice/Ticket, Payment), `services.md` (Billing & Invoicing section and **Strict global Transaction reconciliation**), `events.md` (the now-complete `billing.*.v1` payload contracts, and the Transaction replica this service needs), and `contracts.md` (Billing & Invoicing plus the Transaction Reconciliation Claim protocol). Confirm the settled design: Billing validates Transaction existence/status from its local replica, validates a Ledger-issued claim during reconciliation, and the Experience API coordinates reserve → persist → confirm or compensating release.
 
 **Automated tests:** none.
 
@@ -251,11 +261,11 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 ### Task 3.5 — Payments + reconciliation against Transaction
 
-**Depends on:** 3.4, 3.2.
+**Depends on:** 3.4, 3.2, 2.5a.
 
-**Implement:** `RecordPayment` (publishes `billing.payment-recorded.v1`, and `billing.invoice-paid.v1` once payments sum to `total_amount`), `ReconcilePaymentWithTransaction` (validates `transaction_id` against this service's `transaction_replica` from Task 3.2 — the second proof-point named in `workplan.md`), `ListPayments`, `GenerateInvoiceDocument` (PDF) from `contracts.md`.
+**Implement:** `RecordPayment` (publishes `billing.payment-recorded.v1`, and `billing.invoice-paid.v1` once payments sum to `total_amount`), `ReconcilePaymentWithTransaction` (validates `transaction_id` against this service's `transaction_replica` from Task 3.2 and its matching Ledger claim from Task 2.5a — the second proof-point named in `workplan.md`), `ListPayments`, `GenerateInvoiceDocument` (PDF) from `contracts.md`.
 
-**Automated tests:** unit test for the invoice-paid threshold logic; unit test rejecting reconciliation against a fabricated/archived transaction ID; integration test for the PDF generation producing a well-formed file.
+**Automated tests:** unit test for the invoice-paid threshold logic; unit test rejecting reconciliation against a fabricated/archived transaction ID or missing/mismatched reconciliation claim; integration test for the PDF generation producing a well-formed file.
 
 **What you can test:** record a payment against your issued invoice, reconcile it against a Phase 2 transaction, watch the invoice status flip to paid once fully covered, download the generated invoice PDF and open it.
 
@@ -297,7 +307,7 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 ### Task 4.1 — Confirm the spec slice
 
-**Depends on:** 2.7.
+**Depends on:** 2.7, 2.5a.
 
 **Implement:** no code. Re-read `domain.md` (Expense, Revenue, Plan, Planned Revenue, Planned Expense), `services.md` (Bookkeeping & Planning section), `events.md` (`bookkeeping.*.v1`), `contracts.md` (Bookkeeping & Planning section), and `api-led/system-apis.md`'s Document Extraction adapter description. Confirm what the OCR adapter's actual interface/provider is (this hasn't been pinned down anywhere yet — flag it here rather than picking a vendor mid-task).
 
@@ -317,11 +327,11 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 ### Task 4.3 — Expense & Revenue CRUD + reconciliation
 
-**Depends on:** 4.2.
+**Depends on:** 4.2, 2.5a.
 
-**Implement:** `RecordExpense`/`UpdateExpense`/`DeleteExpense`, `RecordRevenue`/`UpdateRevenue`/`DeleteRevenue`, `ReconcileExpenseWithTransaction`/`ReconcileRevenueWithTransaction`, `ListExpenses`/`ListRevenues` from `contracts.md`. `import_source = manual` on all records created here. Publishes `bookkeeping.expense-recorded.v1` / `bookkeeping.revenue-recorded.v1` per `events.md`.
+**Implement:** `RecordExpense`/`UpdateExpense`/`DeleteExpense`, `RecordRevenue`/`UpdateRevenue`/`DeleteRevenue`, `ReconcileExpenseWithTransaction`/`ReconcileRevenueWithTransaction`, `ListExpenses`/`ListRevenues` from `contracts.md`. Reconciliation validates both the local Transaction replica and its matching Ledger claim from Task 2.5a. `import_source = manual` on all records created here. Publishes `bookkeeping.expense-recorded.v1` / `bookkeeping.revenue-recorded.v1` per `events.md`.
 
-**Automated tests:** unit tests for the reconciliation validation (reject fabricated/archived transaction); integration tests for CRUD + outbox.
+**Automated tests:** unit tests for the reconciliation validation (reject fabricated/archived transaction or missing/mismatched reconciliation claim); integration tests for CRUD + outbox.
 
 **What you can test:** via Swagger/curl, record an expense and a revenue manually, edit and delete one, reconcile an expense against a Phase 2 transaction.
 
@@ -482,10 +492,10 @@ Phase 6 is less uniformly "vertical slice, then Playwright" than Phases 1–5, s
 | Phase | Tasks | Notable join/fork points |
 |---|---|---|
 | 1. Foundation & Identity/Tenancy | 1.1–1.10 (10) | — |
-| 2. Financial Accounts & Ledger | 2.1–2.7 (7) | First inbox/replica proof (2.2) |
+| 2. Financial Accounts & Ledger | 2.1–2.7, 2.5a (8) | First inbox/replica proof (2.2); global reconciliation claims (2.5a) |
 | 3. Billing & Invoicing | 3.1–3.8 (8) | Can run parallel to Phase 4 from 3.1 onward |
 | 4. Bookkeeping & Planning | 4.1–4.7 (7) | Can run parallel to Phase 3 from 4.1 onward; 4.1/4.4 carry the open OCR-provider question |
 | 5. Reporting & Dashboards | 5.1–5.5 (5) | 5.1 depends on both 3.8 and 4.7 — the fork rejoins here |
 | 6. Hardening & Launch Readiness | 6.1–6.5 (5) | 6.1 and 6.4 need Gerardo's input, not just agent execution |
 
-**42 tasks total.** If Phases 3 and 4 genuinely run as two parallel agent workstreams once Phase 2 (2.7) is done, the critical path through the whole MVP is 1 → 2 → (3 or 4, whichever finishes later) → 5 → 6, i.e. roughly 10 + 7 + 8 + 5 + 5 = 35 tasks deep rather than 42 if fully serialized.
+**43 tasks total.** If Phases 3 and 4 genuinely run as two parallel agent workstreams once Phase 2 (including 2.5a) is done, the critical path through the whole MVP is 1 → 2 → (3 or 4, whichever finishes later) → 5 → 6, i.e. roughly 10 + 8 + 8 + 5 + 5 = 36 tasks deep rather than 43 if fully serialized.

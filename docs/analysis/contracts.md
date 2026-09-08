@@ -178,6 +178,10 @@ Screens: Financial Overview (accounts/cards section), Transactions.
 | `ImportTransactionsFromFile` | `POST /api/v1/transactions/import` | Transactions, Financial Overview |
 | `UpdateTransaction` | `PATCH /api/v1/transactions/{transactionId}` | Transactions |
 | `ArchiveTransaction` | `POST /api/v1/transactions/{transactionId}/archive` | Transactions |
+| `ReserveTransactionReconciliation` | `POST /api/v1/transactions/{transactionId}/reconciliation-claims` | Internal Experience API orchestration |
+| `ConfirmTransactionReconciliation` | `POST /api/v1/reconciliation-claims/{claimId}/confirm` | Internal Experience API orchestration |
+| `ReleaseTransactionReconciliation` | `DELETE /api/v1/reconciliation-claims/{claimId}` | Internal Experience API orchestration |
+| `ValidateTransactionReconciliation` | `POST /api/v1/reconciliation-claims/{claimId}/validate` | Internal Billing/Bookkeeping validation |
 
 #### `LinkBankAccount`
 
@@ -331,6 +335,60 @@ Soft-delete, not hard-delete, since Transaction becomes cross-service-referencea
 ```
 
 **Event:** `ledger.transaction-archived.v1`.
+
+#### Transaction Reconciliation Claim protocol
+
+These internal System API operations are used only by the Experience API reconciliation coordinator. They enforce the MVP invariant that a Transaction can reconcile with only one Payment, Expense, or Revenue. Each operation is tenant-scoped and requires the normal internal JWT and `Idempotency-Key`; claim-state updates also use `If-Match` when the current claim version is returned.
+
+`ReserveTransactionReconciliation` creates a short-lived reservation before the dependent service persists its reconciliation.
+
+**Route:** `POST /api/v1/transactions/{transactionId}/reconciliation-claims`
+
+**Request:**
+```
+{ "dependentType": "string — \"payment\" | \"expense\" | \"revenue\"", "dependentId": "guid" }
+```
+
+**Response:** `201 Created`
+```
+{ "claimId": "guid", "transactionId": "guid", "dependentType": "string", "dependentId": "guid", "status": "\"reserved\"", "expiresAt": "date-time", "version": "int" }
+```
+
+**Errors:** `422 Unprocessable Entity` if the Transaction is absent or archived; `409 Conflict` if it has a non-released claim for a different dependent record. A retry for the same dependent record and idempotency key returns the existing reservation.
+
+`ConfirmTransactionReconciliation` makes a reservation permanent after the dependent Payment, Expense, or Revenue persisted successfully.
+
+**Route:** `POST /api/v1/reconciliation-claims/{claimId}/confirm`
+
+**Request:** *(no body)*
+
+**Response:** `200 OK`
+```
+{ "claimId": "guid", "status": "\"confirmed\"", "confirmedAt": "date-time", "version": "int" }
+```
+
+**Errors:** `409 Conflict` if the reservation has expired or been released.
+
+`ReleaseTransactionReconciliation` releases an unconfirmed reservation after a durably recorded failed dependent write, or a confirmed Expense/Revenue claim after its dependent record is deleted. It is idempotent: releasing an already-released claim returns `204 No Content`.
+
+**Route:** `DELETE /api/v1/reconciliation-claims/{claimId}`
+
+**Response:** `204 No Content`
+
+An unconfirmed claim past `expiresAt` is never automatically released by Ledger, because the dependent write may have succeeded before a coordinator failure. The Experience API's durable reconciliation operation resolves the idempotent dependent write first, then confirms a successful reconciliation or releases a failed one. It retries failed confirmations and releases until complete.
+
+`ValidateTransactionReconciliation` is called by Billing or Bookkeeping during its reconciliation command handling. It verifies a still-reserved claim belongs to the authenticated tenant and exactly matches the supplied Transaction, dependent type, and dependent ID. This narrow synchronous call prevents a System API caller from supplying a claim ID reserved for a different record. Billing and Bookkeeping obtain this Ledger client through an application abstraction with timeout and resilience handling; the domain layer remains free of HTTP concerns.
+
+**Route:** `POST /api/v1/reconciliation-claims/{claimId}/validate`
+
+**Request:**
+```
+{ "transactionId": "guid", "dependentType": "string — \"payment\" | \"expense\" | \"revenue\"", "dependentId": "guid" }
+```
+
+**Response:** `204 No Content`
+
+**Errors:** `422 Unprocessable Entity` if the claim does not exactly match; `409 Conflict` if it has expired, been released, or is already confirmed.
 
 ### Queries
 
@@ -570,13 +628,13 @@ Draft only.
 
 #### `ReconcilePaymentWithTransaction`
 
-Validates `transactionId` against this service's local `transaction_replica` (per `services.md`'s Cross-Service Data Consistency Strategy).
+Validates `transactionId` against this service's local `transaction_replica` (per `services.md`'s Cross-Service Data Consistency Strategy) and requires a matching Ledger Transaction Reconciliation Claim to enforce the global one-to-one rule.
 
 **Route:** `POST /api/v1/payments/{paymentId}/reconcile`
 
 **Request:**
 ```
-{ "transactionId": "guid" }
+{ "transactionId": "guid", "reconciliationClaimId": "guid — supplied by the Experience API coordinator" }
 ```
 
 **Response:** `200 OK`
@@ -584,7 +642,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
 { "paymentId": "guid", "reconciledTransactionId": "guid", "updatedAt": "date-time", "version": "int" }
 ```
 
-**Errors:** `422 Unprocessable Entity` if `transactionId` isn't found (or is archived) in the local `transaction_replica`; `409 Conflict` if this payment is already reconciled against a different transaction (one-to-one only, per `scope-decisions.md`).
+**Errors:** `422 Unprocessable Entity` if `transactionId` isn't found (or is archived) in the local `transaction_replica`, or the claim does not match this Payment and Transaction; `409 Conflict` if this payment is already reconciled against a different transaction. The Experience API does not expose `reconciliationClaimId` to the browser: it reserves the claim, calls this System API with the claim ID, confirms it after success, and immediately releases it after failure.
 
 ### Queries
 
@@ -768,7 +826,7 @@ Manual entry — `importSource` and `confirmedAt` are set by the server, never a
 
 #### `DeleteExpense` / `DeleteRevenue`
 
-Hard delete — Expense/Revenue aren't referenced cross-service the way Project/Transaction are, so no soft-delete/tombstone is needed.
+Hard delete — Expense/Revenue aren't referenced cross-service the way Project/Transaction are, so no soft-delete/tombstone is needed. After deleting a reconciled record, the Experience API coordinates release of its confirmed Ledger Transaction Reconciliation Claim; if release fails, its durable reconciliation-operation retry record completes it. Keeping a stale claim temporarily is safe; releasing it before a failed delete could violate global uniqueness.
 
 **Routes:** `DELETE /api/v1/expenses/{expenseId}`, `DELETE /api/v1/revenues/{revenueId}`
 
@@ -776,13 +834,13 @@ Hard delete — Expense/Revenue aren't referenced cross-service the way Project/
 
 #### `ReconcileExpenseWithTransaction` / `ReconcileRevenueWithTransaction`
 
-Validates `transactionId` against this service's local `transaction_replica`.
+Validates `transactionId` against this service's local `transaction_replica` and requires a matching Ledger Transaction Reconciliation Claim to enforce the global one-to-one rule.
 
 **Routes:** `POST /api/v1/expenses/{expenseId}/reconcile`, `POST /api/v1/revenues/{revenueId}/reconcile`
 
 **Request:**
 ```
-{ "transactionId": "guid" }
+{ "transactionId": "guid", "reconciliationClaimId": "guid — supplied by the Experience API coordinator" }
 ```
 
 **Response:** `200 OK`
@@ -790,7 +848,7 @@ Validates `transactionId` against this service's local `transaction_replica`.
 { "expenseId": "guid" /* or revenueId */, "reconciledTransactionId": "guid", "updatedAt": "date-time", "version": "int" }
 ```
 
-**Errors:** `422 Unprocessable Entity` if `transactionId` isn't found/is archived in the local replica; `409 Conflict` if already reconciled against a different transaction.
+**Errors:** `422 Unprocessable Entity` if `transactionId` isn't found/is archived in the local replica, or the claim does not match this Expense/Revenue and Transaction; `409 Conflict` if already reconciled against a different transaction. The Experience API coordinates claim reservation, dependent persistence, confirmation, and compensating release; its durable retry record handles any failed release.
 
 #### `ImportExpenseFromDocument` / `ImportRevenueFromDocument`
 

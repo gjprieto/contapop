@@ -97,6 +97,22 @@ A Transaction represents a financial operation involving a bank account. It reco
 - `created_at`: Timestamp when the transaction was created.
 - `updated_at`: Timestamp when the transaction was last updated.
 
+### Transaction Reconciliation Claim
+
+A Transaction Reconciliation Claim is the Ledger-owned reservation that enforces the MVP's global one-to-one reconciliation rule. It records that one active Transaction is reserved for, or confirmed as reconciled with, exactly one externally owned Payment, Expense, or Revenue. **Decision (2026-09-08): strict global one-to-one reconciliation** — local Transaction replicas establish that a referenced Transaction exists and is active, while this Ledger aggregate is the single serialized authority that prevents two services from claiming the same Transaction.
+
+**Attributes:**
+- `id`: Unique identifier for the claim.
+- `tenant_id`: Identifier of the tenant that owns the Transaction and dependent record.
+- `transaction_id`: Identifier of the Ledger Transaction being reserved or reconciled; unique among non-released claims.
+- `dependent_type`: `payment`, `expense`, or `revenue`.
+- `dependent_id`: Identifier of the Payment, Expense, or Revenue that owns the reconciliation.
+- `status`: `reserved`, `confirmed`, or `released`.
+- `expires_at`: Timestamp after which an unconfirmed reservation must be resolved by the durable coordinator; it is never automatically released while the dependent-write outcome is unknown.
+- `created_at`: Timestamp when the claim was reserved.
+- `confirmed_at`: Timestamp when the dependent reconciliation was confirmed; null while reserved.
+- `released_at`: Timestamp when the claim was released; null unless released.
+
 ### Counterparty
 
 A Counterparty represents the customer or supplier on the other side of an Invoice or Ticket — the party being billed (for an outgoing invoice) or the party billing the tenant (for an incoming invoice/ticket). **Decision (2026-09-06): added as a first-class entity** to support the incoming/outgoing distinction and the search/filter behavior the Invoices screen requires.
@@ -256,6 +272,7 @@ A Planned Expense represents an anticipated financial outflow associated with a 
 - A Bank Account belongs to a Tenant or Project and is used to manage financial transactions.
 - A Credit or Debit Card belongs to a Tenant or Project and is used to manage financial transactions.
 - A Transaction is associated with a Bank Account and records financial operations. It may be referenced by an Expense, a Revenue, or a Payment as the bank-side record they were reconciled against.
+- A Transaction Reconciliation Claim belongs to a Transaction and reserves or confirms its one permitted cross-service reconciliation with a Payment, Expense, or Revenue.
 - An Invoice or Ticket belongs to a Tenant or Project, references a Counterparty (customer or supplier), has a direction (incoming or outgoing), and is associated with Transactions.
 - A Counterparty belongs to a Tenant and is referenced by Invoices as the customer or supplier on the other side of the billing relationship.
 - A Payment is related to an Invoice or Ticket and records financial transactions. It may optionally reference a reconciled Transaction.

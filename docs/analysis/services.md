@@ -18,7 +18,7 @@ The foundational service. Tenant, User, and Project share a lifecycle (created o
 ## Financial Accounts & Ledger Service
 
 **Hosts:** Bank Accounts, Payment Cards, and Transactions System APIs
-**Owns:** Bank Account, Credit or Debit Card, Transaction
+**Owns:** Bank Account, Credit or Debit Card, Transaction, Transaction Reconciliation Claim
 
 Manages the tenant's linked financial sources and the movement ledger fed by them. Bank Accounts and Payment Cards share a data owner and evolve together as real bank/card integrations mature; Transactions is the append-heavy stream those sources feed, whether from manual CSV/Excel import today or a live bank feed later. **Decision (2026-09-06): Payment Cards are metadata-only for the MVP** — a user-entered label only, no real card number stored — so there is no PCI scope to isolate for right now; this is revisited if real card processing is ever added. **Decision (2026-09-06): Transaction is now also a reference-data hub** — since Expense, Revenue, and Payment can be reconciled against it (see Cross-Service Data Consistency Strategy below), it publishes its own lifecycle events alongside Identity & Tenancy's Project events.
 
@@ -111,7 +111,7 @@ Each database gets its own EF Core migration history and its own dedicated datab
 
 1. The owning service publishes a versioned integration event through its transactional outbox on every relevant lifecycle change of the referenced entity (create, update, archive/soft-delete) — per the Domain Events and Outbox sections of `architecture-guidelines.md`.
 2. Each consuming service subscribes via its own inbox (idempotent, deduplicated by message ID, tolerant of out-of-order delivery by only applying an event if its aggregate version is newer than what the replica already has) and projects the event into a small local read-model table — only the fields that service actually needs, never the full aggregate.
-3. At write time, the consuming service validates the reference against this local table. No synchronous cross-service call is made in the write path.
+3. At write time, the consuming service validates the reference against this local table. No synchronous cross-service call is made in the write path, except for the narrowly defined Transaction Reconciliation Claim protocol below.
 
 ### Where this applies across the six services
 
@@ -128,6 +128,20 @@ References that stay inside one service (Invoice → Counterparty, Payment → I
 
 This gives every service a uniform, always-applied validation rule — a reference is never silently accepted without a check. What it does not give is linearizable freshness: there's an unavoidable propagation window between an event being emitted and a replica reflecting it, typically small under normal event-dispatch latency but non-zero. A Project created and immediately referenced from another service in the same user session is the scenario most likely to hit that window. Whether that window needs to be actively closed (e.g. by having the Experience API wait for propagation to be confirmed before allowing the dependent action) or just accepted is an open question for later.
 
+### Strict global Transaction reconciliation
+
+**Decision (2026-09-08):** an active Ledger Transaction can be reconciled with at most one Payment, Expense, or Revenue across all services. A local `transaction_replica` alone cannot enforce that invariant because Billing & Invoicing and Bookkeeping & Planning each see only their own records. Financial Accounts & Ledger therefore owns the `Transaction Reconciliation Claim` aggregate and is the single serialized authority for it.
+
+This is a deliberate, narrow exception to the otherwise asynchronous reference-validation strategy. It is not a cross-service database dependency: the Experience API coordinates authenticated System API calls, and no service reads or writes another service's database.
+
+1. The Experience API first durably records a reconciliation operation, then asks Ledger to reserve a Transaction for the target dependent type and ID. Ledger accepts only an active Transaction with no existing non-released claim, then durably creates a `reserved` claim with a short expiry.
+2. The Experience API calls Billing or Bookkeeping to persist the dependent record's reconciliation. That service still validates the Transaction against its local active replica and validates the Ledger-issued claim for the same tenant, Transaction, dependent type, and dependent ID through the protocol.
+3. After the dependent write succeeds, the Experience API records that success durably and confirms the claim with Ledger. A confirmed claim prevents all later reservations for that Transaction. If confirmation fails, the durable operation retries confirmation, never release.
+4. If the dependent write fails, the Experience API records that failure and immediately releases the reservation. If that release call fails, the durable operation retries it. A reservation past `expires_at` is a recovery signal, not permission for Ledger to release it automatically: the coordinator first resolves the idempotent dependent operation. If it succeeded, it confirms; if it did not, it releases. An uncertain outcome therefore temporarily blocks the Transaction rather than risking a duplicate reconciliation.
+5. When a reconciled Expense or Revenue is deleted, its service deletes the dependent record first and then releases its confirmed claim. If release fails, the durable operation retries it; the temporary stale claim preserves the uniqueness invariant. Payments have no delete or unreconcile command in MVP, so their confirmed claims remain. A future command that changes a reconciliation must reserve the replacement first, persist the change, confirm the new claim, and then release the old claim; it must use the same durable compensation protocol on failure.
+
+Claims are not published as a general synchronization event and are not copied into local replicas: they are short, invariant-enforcement state owned only by Ledger. Archiving a Transaction retains any existing confirmed claim so the historical reconciled reference does not dangle; no new claim can be reserved for an archived Transaction.
+
 ### Compensation mechanism — deferred
 
 Two situations this strategy doesn't resolve on its own, left as a named backlog item:
@@ -135,7 +149,7 @@ Two situations this strategy doesn't resolve on its own, left as a named backlog
 - A write is accepted against a reference that was valid in the local replica but has since been invalidated at the source (the owning entity was archived/deleted after the replica was read but before or shortly after the dependent write landed).
 - A replica has drifted from the source (missed event, bug, replay gap) and something references a value that never should have validated.
 
-Per `architecture-guidelines.md`'s Orchestrator Pattern, the intended shape of the fix is a Process-API-level saga (Dapr Workflow) triggered by a detected inconsistency — from the reconciliation/audit sweep discussed previously, or from a "reference no longer valid" event from the owning service — which then decides how to react (flag the dependent record for review, notify, or auto-remediate). Not designed further here; revisit once the core replication mechanism is running and real drift patterns are observed.
+Per `architecture-guidelines.md`'s Orchestrator Pattern, the intended shape of the remaining general fix is a Process-API-level saga (Dapr Workflow) triggered by a detected inconsistency — from the reconciliation/audit sweep discussed previously, or from a "reference no longer valid" event from the owning service — which then decides how to react (flag the dependent record for review, notify, or auto-remediate). The Transaction Reconciliation Claim protocol above is the one explicit MVP exception: it needs durable compensation now to enforce a global uniqueness invariant, but does not introduce a general-purpose saga for replica drift.
 
 ## Authentication & Authorization
 

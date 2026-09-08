@@ -163,7 +163,7 @@ These are the events that make the Cross-Service Data Consistency Strategy work.
 
 ## Other Anticipated Integration Events (first pass)
 
-These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need, so naming them now avoids each service inventing its own convention later. Payloads intentionally left undetailed until each service's contract is designed, except `identity.tenant-created.v1` below, which Task 1.4 (`ProvisionTenant`) needs fully specified now.
+These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need. Their payloads are specified when their producing service is ready to implement them: Identity and Ledger are already specified, Billing is specified by Task 3.1, and Bookkeeping & Planning remains deferred to Task 4.1.
 
 ### `identity.tenant-created.v1`
 
@@ -178,7 +178,67 @@ These aren't domain synchronization events — nothing replicates them into a lo
 | `owner_user_id` | The initial owner User created alongside the tenant |
 | `created_at` | |
 
-- **Billing & Invoicing:** `billing.invoice-issued.v1`, `billing.invoice-paid.v1`, `billing.invoice-overdue.v1`, `billing.payment-recorded.v1`
+### `billing.invoice-issued.v1`
+
+**Producer:** Billing & Invoicing, when `IssueInvoice` succeeds.
+**Consumers:** Reporting.
+
+| Payload field | Notes |
+|---|---|
+| `invoice_id` | |
+| `project_id` | |
+| `counterparty_id` | |
+| `direction` | `incoming` or `outgoing` |
+| `net_amount_minor` | EUR minor units |
+| `tax_rate` | Decimal rate, e.g. `0.21` |
+| `tax_amount_minor` | EUR minor units |
+| `total_amount_minor` | EUR minor units |
+| `date` | Invoice business date |
+| `due_date` | |
+| `issued_at` | |
+
+### `billing.payment-recorded.v1`
+
+**Producer:** Billing & Invoicing, when `RecordPayment` succeeds.
+**Consumers:** Reporting.
+
+| Payload field | Notes |
+|---|---|
+| `payment_id` | |
+| `invoice_id` | |
+| `project_id` | Copied from the associated invoice for projection convenience |
+| `amount_minor` | EUR minor units |
+| `date` | Payment business date |
+| `payment_method` | |
+| `recorded_at` | |
+
+### `billing.invoice-paid.v1`
+
+**Producer:** Billing & Invoicing, when accepted payments for an invoice first reach its `total_amount_minor` and the invoice transitions to `paid`.
+**Consumers:** Reporting.
+
+| Payload field | Notes |
+|---|---|
+| `invoice_id` | |
+| `project_id` | |
+| `direction` | `incoming` or `outgoing` |
+| `total_amount_minor` | Invoice amount now fully paid, in EUR minor units |
+| `paid_at` | |
+
+### `billing.invoice-overdue.v1`
+
+**Producer:** Billing & Invoicing, when `MarkInvoicesOverdue` transitions an issued invoice to `overdue`.
+**Consumers:** Reporting; Phase 6 notifications.
+
+| Payload field | Notes |
+|---|---|
+| `invoice_id` | |
+| `project_id` | |
+| `direction` | `incoming` or `outgoing` |
+| `total_amount_minor` | EUR minor units |
+| `due_date` | |
+| `overdue_at` | |
+
 - **Financial Accounts & Ledger:**
 
 ### `ledger.bank-account-linked.v1`
@@ -220,7 +280,7 @@ Examples: `InvoiceIssued`, `InvoiceMarkedPaid`, `ExpenseRecorded`, `BankAccountL
 
 ## Open Items
 
-1. The "Other Anticipated Integration Events" section is a placeholder outline — it should be expanded with full payloads as each service's System API contract is actually designed, rather than finalized speculatively now.
+1. The Bookkeeping & Planning anticipated integration events remain a placeholder outline and must receive full payload contracts during that service's Task 4.1 spec checkpoint. Identity, Ledger, and Billing events needed by their implemented/planned phases are fully specified above.
 2. If Bookkeeping & Planning ever references Counterparty directly (e.g. a supplier-tagged Expense), that would introduce a new cross-service candidate and a matching set of `billing.counterparty-*` synchronization events — not needed under the current domain model.
-3. Reconciliation (`reconciled_transaction_id`) is modeled as optional and one-to-one for MVP — a Transaction reconciles to at most one Expense, Revenue, or Payment, and vice versa. Split transactions or many-to-one reconciliation are not supported by this shape; revisit if that turns out to be needed.
+3. Reconciliation (`reconciled_transaction_id`) is modeled as optional and globally one-to-one for MVP — a Transaction reconciles to at most one Expense, Revenue, or Payment, and vice versa. Ledger-owned Transaction Reconciliation Claims enforce the cross-service side of this invariant; see `services.md`. Split transactions or many-to-one reconciliation are not supported by this shape; revisit if that turns out to be needed.
 4. `Expense`/`Revenue`'s new `import_source` (`manual` vs `pdf_ocr`) and the "draft pending confirmation" step for OCR-imported records (see `contracts.md`) don't currently raise a distinct event from `bookkeeping.expense-recorded.v1`/`bookkeeping.revenue-recorded.v1` — confirmation only happens once, after which it's an ordinary record. Revisit if Reporting or anything else needs to distinguish OCR-sourced records specifically.
