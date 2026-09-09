@@ -69,19 +69,21 @@ public static class InvoiceEndpoints
         var query = from invoice in database.Invoices.AsNoTracking()
                     join counterparty in database.Counterparties.AsNoTracking() on invoice.CounterpartyId equals counterparty.Id
                     where invoice.TenantId == tenantId
-                    select new InvoiceListItem(invoice.Id, invoice.CounterpartyId, counterparty.Name, invoice.Direction, invoice.Type, invoice.Status, invoice.NetAmountMinor, invoice.TaxAmountMinor, invoice.TotalAmountMinor, invoice.Date, invoice.DueDate);
-        if (status is not null) query = query.Where(item => item.Status == status);
-        if (direction is not null) query = query.Where(item => item.Direction == direction);
+                    select new { Invoice = invoice, CounterpartyName = counterparty.Name };
+        if (status is not null) query = query.Where(item => item.Invoice.Status == status);
+        if (direction is not null) query = query.Where(item => item.Invoice.Direction == direction);
         if (!string.IsNullOrWhiteSpace(search)) { var term = search.Trim(); query = query.Where(item => item.CounterpartyName.Contains(term)); }
         var total = await query.CountAsync(cancellationToken);
         var ordered = sort switch
         {
-            "date:asc" => query.OrderBy(item => item.Date).ThenBy(item => item.InvoiceId),
-            "amount:asc" => query.OrderBy(item => item.TotalAmountMinor).ThenBy(item => item.InvoiceId),
-            "amount:desc" => query.OrderByDescending(item => item.TotalAmountMinor).ThenByDescending(item => item.InvoiceId),
-            _ => query.OrderByDescending(item => item.Date).ThenByDescending(item => item.InvoiceId),
+            "date:asc" => query.OrderBy(item => item.Invoice.Date).ThenBy(item => item.Invoice.Id),
+            "amount:asc" => query.OrderBy(item => item.Invoice.TotalAmountMinor).ThenBy(item => item.Invoice.Id),
+            "amount:desc" => query.OrderByDescending(item => item.Invoice.TotalAmountMinor).ThenByDescending(item => item.Invoice.Id),
+            _ => query.OrderByDescending(item => item.Invoice.Date).ThenByDescending(item => item.Invoice.Id),
         };
-        var items = await ordered.Skip((actualPage - 1) * actualPageSize).Take(actualPageSize).ToListAsync(cancellationToken);
+        var items = await ordered.Skip((actualPage - 1) * actualPageSize).Take(actualPageSize)
+            .Select(item => new InvoiceListItem(item.Invoice.Id, item.Invoice.CounterpartyId, item.CounterpartyName, item.Invoice.Direction, item.Invoice.Type, item.Invoice.Status, item.Invoice.NetAmountMinor, item.Invoice.TaxAmountMinor, item.Invoice.TotalAmountMinor, item.Invoice.Date, item.Invoice.DueDate))
+            .ToListAsync(cancellationToken);
         return Results.Ok(new InvoicePagedResponse(items, actualPage, actualPageSize, total));
     }
 

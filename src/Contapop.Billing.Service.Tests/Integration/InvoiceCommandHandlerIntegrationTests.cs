@@ -30,6 +30,32 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Invoice_list_query_sorts_mapped_fields_before_projecting_its_response()
+    {
+        await using var database = await CreateDatabaseAsync();
+        var tenantId = Guid.NewGuid();
+        var counterparty = Counterparty.Create(tenantId, "customer", "Acme SL", null, null, null, DateTimeOffset.UtcNow);
+        var invoice = Invoice.Create(tenantId, Guid.NewGuid(), counterparty.Id, "outgoing", "service", [new CreateInvoiceLine("Consulting", 1, 10_000, 0.21m)], new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        database.AddRange(counterparty, invoice);
+        await database.SaveChangesAsync();
+
+        var items = await (from listedInvoice in database.Invoices.AsNoTracking()
+                           join listedCounterparty in database.Counterparties.AsNoTracking() on listedInvoice.CounterpartyId equals listedCounterparty.Id
+                           where listedInvoice.TenantId == tenantId
+                           select new { Invoice = listedInvoice, CounterpartyName = listedCounterparty.Name })
+            .OrderByDescending(item => item.Invoice.Date).ThenByDescending(item => item.Invoice.Id)
+            .Select(item => new { item.Invoice.Id, item.CounterpartyName, item.Invoice.Type })
+            .ToListAsync();
+
+        Assert.Collection(items, item =>
+        {
+            Assert.Equal(invoice.Id, item.Id);
+            Assert.Equal("Acme SL", item.CounterpartyName);
+            Assert.Equal("service", item.Type);
+        });
+    }
+
+    [Fact]
     public async Task Issue_persists_the_invoice_and_its_outbox_event_together()
     {
         await using var database = await CreateDatabaseAsync();
