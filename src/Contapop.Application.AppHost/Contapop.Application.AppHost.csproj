@@ -13,6 +13,7 @@
     <ProjectReference Include="..\Contapop.Experience.Api\Contapop.Experience.Api.csproj" />
     <ProjectReference Include="..\Contapop.Identity.Service\Contapop.Identity.Service.csproj" />
     <ProjectReference Include="..\Contapop.Ledger.Service\Contapop.Ledger.Service.csproj" />
+    <ProjectReference Include="..\Contapop.Billing.Service\Contapop.Billing.Service.csproj" />
     <ProjectReference Include="..\Contapop.Reconciliation.Service\Contapop.Reconciliation.Service.csproj" />
   </ItemGroup>
 

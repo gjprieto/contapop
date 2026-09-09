@@ -7,6 +7,10 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Contapop.Ledger.Service.Application.Commands;
 using Contapop.Ledger.Service.Infrastructure.Persistence.Interceptors;
+using Contapop.Ledger.Service.Application.Abstractions;
+using Contapop.Ledger.Service.Infrastructure.Messaging;
+using Contapop.Ledger.Service.Infrastructure.Outbox;
+using Dapr.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +25,21 @@ builder.Services.AddScoped<AccountCommandHandler>();
 builder.Services.AddScoped<TransactionCommandHandler>();
 builder.Services.AddScoped<TransactionFileImporter>();
 builder.Services.AddScoped<ReconciliationClaimCommandHandler>();
+builder.Services.AddDbContextFactory<LedgerDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("ledger")));
+builder.Services.AddSingleton<DaprClient>(serviceProvider =>
+{
+    var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+    var daprClientBuilder = new DaprClientBuilder();
+    if (configuration["DAPR_GRPC_PORT"] is { Length: > 0 } grpcPort)
+    {
+        daprClientBuilder.UseGrpcEndpoint($"http://127.0.0.1:{grpcPort}");
+    }
+
+    return daprClientBuilder.Build();
+});
+builder.Services.AddScoped<IIntegrationEventPublisher, DaprIntegrationEventPublisher>();
+builder.Services.AddScoped<OutboxDispatcher>();
+builder.Services.AddHostedService<OutboxDispatchService>();
 builder.Services.AddAuthentication().AddJwtBearer("InternalJwt", options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {

@@ -127,6 +127,10 @@ public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) :
             entity.Property(message => message.OccurredAt).HasColumnName("occurred_at").IsRequired();
             entity.Property(message => message.Payload).HasColumnName("payload").HasColumnType("jsonb").IsRequired();
             entity.Property(message => message.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.Property(message => message.PublishAttempts).HasColumnName("publish_attempts").IsRequired();
+            entity.Property(message => message.PublishedAt).HasColumnName("published_at");
+            entity.Property(message => message.LastError).HasColumnName("last_error").HasMaxLength(4_000);
+            entity.Property(message => message.LockedUntil).HasColumnName("locked_until");
             entity.HasIndex(message => new { message.Status, message.OccurredAt });
         });
 

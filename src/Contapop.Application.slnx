@@ -6,6 +6,8 @@
   <Project Path="Contapop.Identity.Service.Tests/Contapop.Identity.Service.Tests.csproj" />
   <Project Path="Contapop.Ledger.Service/Contapop.Ledger.Service.csproj" />
   <Project Path="Contapop.Ledger.Service.Tests/Contapop.Ledger.Service.Tests.csproj" />
+  <Project Path="Contapop.Billing.Service/Contapop.Billing.Service.csproj" />
+  <Project Path="Contapop.Billing.Service.Tests/Contapop.Billing.Service.Tests.csproj" />
   <Project Path="Contapop.Reconciliation.Service/Contapop.Reconciliation.Service.csproj" />
   <Project Path="frontend/frontend.esproj">
     <Build />

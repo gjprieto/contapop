@@ -8,7 +8,7 @@ var internalJwtSigningKey = builder.AddParameter("internal-jwt-signing-key", sec
 var postgres = builder.AddPostgres("postgres");
 var identityDatabase = postgres.AddDatabase("identity", "contapop_identity");
 var ledgerDatabase = postgres.AddDatabase("ledger", "contapop_ledger");
-postgres.AddDatabase("billing", "contapop_billing");
+var billingDatabase = postgres.AddDatabase("billing", "contapop_billing");
 postgres.AddDatabase("bookkeeping", "contapop_bookkeeping");
 postgres.AddDatabase("reporting", "contapop_reporting");
 var reconciliationDatabase = postgres.AddDatabase("reconciliation", "contapop_reconciliation");
@@ -38,6 +38,14 @@ var ledger = builder.AddProject<Projects.Contapop_Ledger_Service>("ledger-servic
     .WithHttpHealthCheck("/health")
     .WithDaprSidecar(sidecar => sidecar.WithReference(pubSub));
 
+var billing = builder.AddProject<Projects.Contapop_Billing_Service>("billing-service")
+    .WithReference(billingDatabase)
+    .WithEnvironment("InternalJwt__SigningKey", internalJwtSigningKey)
+    .WaitFor(billingDatabase)
+    .WithHttpEndpoint(port: 5115)
+    .WithHttpHealthCheck("/health")
+    .WithDaprSidecar(sidecar => sidecar.WithReference(pubSub));
+
 var reconciliation = builder.AddProject<Projects.Contapop_Reconciliation_Service>("reconciliation-service")
     .WithReference(reconciliationDatabase)
     .WaitFor(reconciliationDatabase)
@@ -47,6 +55,7 @@ var reconciliation = builder.AddProject<Projects.Contapop_Reconciliation_Service
 
 experienceApi.WithReference(identity).WaitFor(identity);
 experienceApi.WithReference(ledger).WaitFor(ledger);
+experienceApi.WithReference(billing).WaitFor(billing);
 experienceApi.WithReference(reconciliation).WaitFor(reconciliation);
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
