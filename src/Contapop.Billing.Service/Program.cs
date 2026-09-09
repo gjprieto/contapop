@@ -1,6 +1,7 @@
 using System.Text;
 using Contapop.Billing.Service.Api;
 using Contapop.Billing.Service.Application.Replication;
+using Contapop.Billing.Service.Application.Commands;
 using Contapop.Billing.Service.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ builder.Services.AddDbContext<BillingDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("billing")));
 builder.Services.AddScoped<ProjectReplicationConsumer>();
 builder.Services.AddScoped<TransactionReplicationConsumer>();
+builder.Services.AddScoped<CounterpartyCommandHandler>();
 builder.Services.AddAuthentication().AddJwtBearer("InternalJwt", options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -50,6 +52,7 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/health", () => Results.Ok());
 app.MapSubscribeHandler();
 app.MapReplicationEndpoints();
+app.MapCounterpartyEndpoints();
 
 app.Run();
 

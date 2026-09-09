@@ -46,6 +46,42 @@ public sealed class Counterparty
     public long Version { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
+
+    public static Counterparty Create(Guid tenantId, string type, string name, string? taxId, string? email, string? address, DateTimeOffset now) => new()
+    {
+        Id = Guid.NewGuid(),
+        TenantId = tenantId,
+        Type = type,
+        Name = name,
+        TaxId = taxId,
+        Email = email,
+        Address = address,
+        Status = "active",
+        Version = 1,
+        CreatedAt = now,
+        UpdatedAt = now,
+    };
+
+    public bool TryUpdate(int expectedVersion, string? name, string? taxId, string? email, string? address, DateTimeOffset now)
+    {
+        if (Status != "active" || Version != expectedVersion) return false;
+        if (name is not null) Name = name;
+        if (taxId is not null) TaxId = taxId;
+        if (email is not null) Email = email;
+        if (address is not null) Address = address;
+        Version++;
+        UpdatedAt = now;
+        return true;
+    }
+
+    public bool TryArchive(int expectedVersion, DateTimeOffset now)
+    {
+        if (Status != "active" || Version != expectedVersion) return false;
+        Status = "archived";
+        Version++;
+        UpdatedAt = now;
+        return true;
+    }
 }
 
 public sealed class InboxMessage
@@ -59,5 +95,23 @@ public sealed class InboxMessage
         EventId = eventId,
         ConsumerName = consumerName,
         ProcessedAt = processedAt,
+    };
+}
+
+public sealed class IdempotencyRecord
+{
+    public Guid TenantId { get; private set; }
+    public string Operation { get; private set; } = null!;
+    public string Key { get; private set; } = null!;
+    public string Result { get; private set; } = null!;
+    public DateTimeOffset CreatedAt { get; private set; }
+
+    public static IdempotencyRecord Create(Guid tenantId, string operation, string key, string result, DateTimeOffset createdAt) => new()
+    {
+        TenantId = tenantId,
+        Operation = operation,
+        Key = key,
+        Result = result,
+        CreatedAt = createdAt,
     };
 }

@@ -9,6 +9,7 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Counterparty> Counterparties => Set<Counterparty>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
     public DbSet<ProjectReplica> ProjectReplicas => Set<ProjectReplica>();
     public DbSet<TransactionReplica> TransactionReplicas => Set<TransactionReplica>();
 
@@ -78,6 +79,17 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
             entity.Property(message => message.ConsumerName).HasColumnName("consumer_name").HasMaxLength(200);
             entity.Property(message => message.EventId).HasColumnName("event_id");
             entity.Property(message => message.ProcessedAt).HasColumnName("processed_at").IsRequired();
+        });
+
+        modelBuilder.Entity<IdempotencyRecord>(entity =>
+        {
+            entity.ToTable("idempotency_records", "counterparties");
+            entity.HasKey(record => new { record.TenantId, record.Operation, record.Key });
+            entity.Property(record => record.TenantId).HasColumnName("tenant_id");
+            entity.Property(record => record.Operation).HasColumnName("operation").HasMaxLength(100);
+            entity.Property(record => record.Key).HasColumnName("key").HasMaxLength(200);
+            entity.Property(record => record.Result).HasColumnName("result").HasColumnType("jsonb").IsRequired();
+            entity.Property(record => record.CreatedAt).HasColumnName("created_at").IsRequired();
         });
 
         modelBuilder.Entity<ProjectReplica>(entity =>
