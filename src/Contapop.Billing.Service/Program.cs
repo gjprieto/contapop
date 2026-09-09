@@ -2,6 +2,8 @@ using System.Text;
 using Contapop.Billing.Service.Api;
 using Contapop.Billing.Service.Application.Replication;
 using Contapop.Billing.Service.Application.Commands;
+using Contapop.Billing.Service.Application.Abstractions;
+using Contapop.Billing.Service.Infrastructure.Reconciliation;
 using Contapop.Billing.Service.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +19,10 @@ builder.Services.AddScoped<ProjectReplicationConsumer>();
 builder.Services.AddScoped<TransactionReplicationConsumer>();
 builder.Services.AddScoped<CounterpartyCommandHandler>();
 builder.Services.AddScoped<InvoiceCommandHandler>();
+builder.Services.AddScoped<PaymentCommandHandler>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient<IReconciliationClaimValidator, LedgerReconciliationClaimValidator>(client =>
+    client.BaseAddress = new Uri(builder.Configuration["services:ledger-service:http:0"] ?? "http://localhost:5113"));
 builder.Services.AddAuthentication().AddJwtBearer("InternalJwt", options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -55,6 +61,7 @@ app.MapSubscribeHandler();
 app.MapReplicationEndpoints();
 app.MapCounterpartyEndpoints();
 app.MapInvoiceEndpoints();
+app.MapPaymentEndpoints();
 
 app.Run();
 

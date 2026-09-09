@@ -24,4 +24,15 @@ public sealed class InvoiceTests
         Assert.True(invoice.TryVoid(1, DateTimeOffset.UtcNow));
         Assert.False(invoice.TryIssue(2, DateTimeOffset.UtcNow));
     }
+
+    [Fact]
+    public void Mark_paid_transitions_an_issued_invoice_once()
+    {
+        var invoice = Invoice.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        Assert.True(invoice.TryIssue(1, DateTimeOffset.UtcNow));
+
+        Assert.True(invoice.TryMarkPaid(DateTimeOffset.UtcNow));
+        Assert.Equal("paid", invoice.Status);
+        Assert.False(invoice.TryMarkPaid(DateTimeOffset.UtcNow));
+    }
 }

@@ -47,6 +47,15 @@ public sealed class Invoice
         UpdatedAt = now;
         return true;
     }
+
+    public bool TryMarkPaid(DateTimeOffset now)
+    {
+        if (Status is not ("issued" or "overdue")) return false;
+        Status = "paid";
+        Version++;
+        UpdatedAt = now;
+        return true;
+    }
 }
 
 public sealed class Payment
@@ -61,6 +70,22 @@ public sealed class Payment
     public long Version { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
+
+    public static Payment Create(Guid tenantId, Guid invoiceId, long amountMinor, DateOnly date, string paymentMethod, DateTimeOffset now) => new()
+    {
+        Id = Guid.NewGuid(), TenantId = tenantId, InvoiceId = invoiceId, AmountMinor = amountMinor, Date = date,
+        PaymentMethod = paymentMethod, Version = 1, CreatedAt = now, UpdatedAt = now,
+    };
+
+    public bool TryReconcile(Guid transactionId, int expectedVersion, DateTimeOffset now)
+    {
+        if (Version != expectedVersion || (ReconciledTransactionId is not null && ReconciledTransactionId != transactionId)) return false;
+        if (ReconciledTransactionId == transactionId) return true;
+        ReconciledTransactionId = transactionId;
+        Version++;
+        UpdatedAt = now;
+        return true;
+    }
 }
 
 public sealed class Counterparty
