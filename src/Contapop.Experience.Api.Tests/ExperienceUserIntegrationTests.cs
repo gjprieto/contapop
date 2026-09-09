@@ -19,6 +19,7 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
     private const string SigningKey = "test-internal-jwt-signing-key-not-for-production-2026";
     private WebApplication _identityService = null!;
     private WebApplication _ledgerService = null!;
+    private WebApplication _billingService = null!;
     private WebApplicationFactory<Program> _experienceFactory = null!;
 
     [Fact]
@@ -73,6 +74,33 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
         var response = await client.SendAsync(request);
 
         Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Billing_invoice_list_forwards_the_internal_jwt_and_response()
+    {
+        using var client = _experienceFactory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
+        var login = await client.PostAsJsonAsync("/experience/v1/auth/login", new LoginRequest("ana@acme.test", "Password1"));
+        Assert.Equal(HttpStatusCode.NoContent, login.StatusCode);
+
+        var response = await client.GetAsync("/experience/v1/invoices?page=1&pageSize=100");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("{\"items\":[]}", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Billing_errors_are_not_reported_as_a_service_availability_failure()
+    {
+        _billingListStatusCode = StatusCodes.Status500InternalServerError;
+        using var client = _experienceFactory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
+        var login = await client.PostAsJsonAsync("/experience/v1/auth/login", new LoginRequest("ana@acme.test", "Password1"));
+        Assert.Equal(HttpStatusCode.NoContent, login.StatusCode);
+
+        var response = await client.GetAsync("/experience/v1/invoices?page=1&pageSize=100");
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal("{\"title\":\"Billing query failed\"}", await response.Content.ReadAsStringAsync());
     }
 
     [Fact]
@@ -155,6 +183,7 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        _billingListStatusCode = StatusCodes.Status200OK;
         var identityBuilder = WebApplication.CreateBuilder();
         identityBuilder.WebHost.UseTestServer();
         identityBuilder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -250,6 +279,26 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
         }).RequireAuthorization();
         await _ledgerService.StartAsync();
 
+        var billingBuilder = WebApplication.CreateBuilder();
+        billingBuilder.WebHost.UseTestServer();
+        billingBuilder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options => options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = false, ValidateAudience = false, ValidateLifetime = true, ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(SigningKey)),
+            });
+        billingBuilder.Services.AddAuthorization();
+        _billingService = billingBuilder.Build();
+        _billingService.UseAuthentication();
+        _billingService.UseAuthorization();
+        _billingService.MapGet("/api/v1/invoices", (HttpContext context) =>
+        {
+            Assert.True(context.User.Identity?.IsAuthenticated);
+            Assert.Equal("11111111-1111-1111-1111-111111111111", context.User.FindFirstValue("tenant_id"));
+            return Results.Content(_billingListStatusCode == StatusCodes.Status200OK ? "{\"items\":[]}" : "{\"title\":\"Billing query failed\"}", "application/json", statusCode: _billingListStatusCode);
+        }).RequireAuthorization();
+        await _billingService.StartAsync();
+
         _experienceFactory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Development");
@@ -259,9 +308,12 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
                 services.AddHttpClient("identity-service")
                     .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://identity-service"))
                     .ConfigurePrimaryHttpMessageHandler(() => _identityService.GetTestServer().CreateHandler())
-                    .Services.AddHttpClient("ledger-service")
-                    .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://ledger-service"))
-                    .ConfigurePrimaryHttpMessageHandler(() => _ledgerService.GetTestServer().CreateHandler()));
+                     .Services.AddHttpClient("ledger-service")
+                     .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://ledger-service"))
+                     .ConfigurePrimaryHttpMessageHandler(() => _ledgerService.GetTestServer().CreateHandler())
+                     .Services.AddHttpClient("billing-service")
+                     .ConfigureHttpClient(client => client.BaseAddress = new Uri("http://billing-service"))
+                     .ConfigurePrimaryHttpMessageHandler(() => _billingService.GetTestServer().CreateHandler()));
         });
     }
 
@@ -270,5 +322,8 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
         _experienceFactory.Dispose();
         await _identityService.DisposeAsync();
         await _ledgerService.DisposeAsync();
+        await _billingService.DisposeAsync();
     }
+
+    private static int _billingListStatusCode;
 }

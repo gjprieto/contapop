@@ -321,11 +321,16 @@ static async Task<IResult> ForwardServiceAsync(string service, HttpMethod method
     if (requiresIdempotencyKey) request.Headers.TryAddWithoutValidation("Idempotency-Key", key);
     if (requiresVersion) request.Headers.TryAddWithoutValidation("If-Match", version);
     if (body is not null) request.Content = JsonContent.Create(body);
-    using var response = await clients.CreateClient(service).SendAsync(request, ct);
-    var content = await response.Content.ReadAsStringAsync(ct);
-    return response.IsSuccessStatusCode || response.StatusCode is System.Net.HttpStatusCode.BadRequest or System.Net.HttpStatusCode.NotFound or System.Net.HttpStatusCode.Conflict or System.Net.HttpStatusCode.UnprocessableEntity
-        ? Results.Content(content, response.Content.Headers.ContentType?.MediaType ?? "application/json", statusCode: (int)response.StatusCode)
-        : Results.Problem(statusCode: StatusCodes.Status502BadGateway, title: $"{service} unavailable");
+    try
+    {
+        using var response = await clients.CreateClient(service).SendAsync(request, ct);
+        var content = await response.Content.ReadAsStringAsync(ct);
+        return Results.Content(content, response.Content.Headers.ContentType?.MediaType ?? "application/json", statusCode: (int)response.StatusCode);
+    }
+    catch (HttpRequestException)
+    {
+        return Results.Problem(statusCode: StatusCodes.Status502BadGateway, title: $"{service} unavailable");
+    }
 }
 
 static async Task<IResult> ForwardBillingDocumentAsync(Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwtIssuer, CancellationToken ct)
