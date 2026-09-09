@@ -6,6 +6,7 @@ namespace Contapop.Billing.Service.Infrastructure.Persistence;
 public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options) : DbContext(options)
 {
     public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Counterparty> Counterparties => Set<Counterparty>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
@@ -25,9 +26,9 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
             entity.Property(invoice => invoice.ProjectId).HasColumnName("project_id").IsRequired();
             entity.Property(invoice => invoice.CounterpartyId).HasColumnName("counterparty_id").IsRequired();
             entity.Property(invoice => invoice.Direction).HasColumnName("direction").HasMaxLength(20).IsRequired();
+            entity.Property(invoice => invoice.Type).HasColumnName("type").HasMaxLength(20).IsRequired();
             entity.Property(invoice => invoice.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
             entity.Property(invoice => invoice.NetAmountMinor).HasColumnName("net_amount_minor").IsRequired();
-            entity.Property(invoice => invoice.TaxRate).HasColumnName("tax_rate").HasPrecision(9, 6).IsRequired();
             entity.Property(invoice => invoice.TaxAmountMinor).HasColumnName("tax_amount_minor").IsRequired();
             entity.Property(invoice => invoice.TotalAmountMinor).HasColumnName("total_amount_minor").IsRequired();
             entity.Property(invoice => invoice.Date).HasColumnName("date").IsRequired();
@@ -36,6 +37,23 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
             entity.Property(invoice => invoice.CreatedAt).HasColumnName("created_at").IsRequired();
             entity.Property(invoice => invoice.UpdatedAt).HasColumnName("updated_at").IsRequired();
             entity.HasIndex(invoice => new { invoice.TenantId, invoice.ProjectId, invoice.Status });
+            entity.HasMany(invoice => invoice.Lines).WithOne().HasForeignKey(line => line.InvoiceId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<InvoiceLine>(entity =>
+        {
+            entity.ToTable("invoice_lines", "invoicing");
+            entity.HasKey(line => line.Id);
+            entity.Property(line => line.Id).HasColumnName("id");
+            entity.Property(line => line.InvoiceId).HasColumnName("invoice_id").IsRequired();
+            entity.Property(line => line.Description).HasColumnName("description").HasMaxLength(500).IsRequired();
+            entity.Property(line => line.Quantity).HasColumnName("quantity").IsRequired();
+            entity.Property(line => line.UnitPriceMinor).HasColumnName("unit_price_minor").IsRequired();
+            entity.Property(line => line.TaxRate).HasColumnName("tax_rate").HasPrecision(9, 6).IsRequired();
+            entity.Property(line => line.NetAmountMinor).HasColumnName("net_amount_minor").IsRequired();
+            entity.Property(line => line.TaxAmountMinor).HasColumnName("tax_amount_minor").IsRequired();
+            entity.Property(line => line.TotalAmountMinor).HasColumnName("total_amount_minor").IsRequired();
+            entity.HasIndex(line => line.InvoiceId);
         });
 
         modelBuilder.Entity<Payment>(entity =>

@@ -140,14 +140,29 @@ An Invoice or Ticket represents a billing or payment document associated with a 
 - `counterparty_id`: Identifier of the Counterparty — the customer being billed (outgoing) or the supplier billing the tenant (incoming).
 - `direction`: Whether the invoice is `outgoing` (tenant billing the counterparty) or `incoming` (counterparty billing the tenant).
 - `status`: `draft`, `issued`, `paid`, `overdue`, or `void`.
-- `net_amount`: Amount before tax.
-- `tax_rate`: VAT/IVA rate applied (e.g. 21%, 10%, 4%, or 0% for exempt).
-- `tax_amount`: Computed tax amount (`net_amount` × `tax_rate`), rounded to the nearest EUR minor unit using banker's rounding (MidpointRounding.ToEven).
-- `total_amount`: Amount actually due (`net_amount` + `tax_amount`). Currency is implicitly EUR for MVP — see `docs/analysis/mvp/scope-decisions.md`.
+- `type`: `service` or `product`, describing the invoice's billed offering.
+- `net_amount`: Computed sum of the invoice lines' net amounts.
+- `tax_amount`: Computed sum of every invoice line's VAT amount, each rounded to the nearest EUR minor unit using banker's rounding (MidpointRounding.ToEven).
+- `total_amount`: Computed amount due (`net_amount` + `tax_amount`). Currency is implicitly EUR for MVP — see `docs/analysis/mvp/scope-decisions.md`.
 - `date`: Date of the invoice or ticket.
 - `due_date`: Due date of the invoice or ticket.
 - `created_at`: Timestamp when the invoice or ticket was created.
 - `updated_at`: Timestamp when the invoice or ticket was last updated.
+
+### Invoice Line
+
+An Invoice Line is an immutable billed item belonging to an Invoice or Ticket. It records the description, quantity, unit price, and VAT rate used to derive the invoice's aggregate totals. Lines are created only while creating a draft invoice; MVP does not support editing issued or paid invoices.
+
+**Attributes:**
+- `id`: Unique identifier for the invoice line.
+- `invoice_id`: Identifier of the Invoice or Ticket it belongs to.
+- `description`: Description of the billed service or product.
+- `quantity`: Positive integer quantity.
+- `unit_price`: EUR minor-unit price per quantity.
+- `tax_rate`: VAT/IVA rate applied to this line (e.g. 21%, 10%, 4%, or 0% for exempt).
+- `net_amount`: Computed `quantity` × `unit_price` amount before VAT.
+- `tax_amount`: Computed `net_amount` × `tax_rate`, rounded to the nearest EUR minor unit using banker's rounding (MidpointRounding.ToEven).
+- `total_amount`: Computed `net_amount` + `tax_amount`.
 
 ### Payment
 
@@ -273,7 +288,8 @@ A Planned Expense represents an anticipated financial outflow associated with a 
 - A Credit or Debit Card belongs to a Tenant or Project and is used to manage financial transactions.
 - A Transaction is associated with a Bank Account and records financial operations. It may be referenced by an Expense, a Revenue, or a Payment as the bank-side record they were reconciled against.
 - A Transaction Reconciliation Claim belongs to a Transaction and reserves or confirms its one permitted cross-service reconciliation with a Payment, Expense, or Revenue.
-- An Invoice or Ticket belongs to a Tenant or Project, references a Counterparty (customer or supplier), has a direction (incoming or outgoing), and is associated with Transactions.
+- An Invoice or Ticket belongs to a Tenant or Project, references a Counterparty (customer or supplier), has a direction (incoming or outgoing), contains Invoice Lines, and is associated with Transactions.
+- An Invoice Line belongs to one Invoice or Ticket and supplies its itemized net/VAT/total calculation.
 - A Counterparty belongs to a Tenant and is referenced by Invoices as the customer or supplier on the other side of the billing relationship.
 - A Payment is related to an Invoice or Ticket and records financial transactions. It may optionally reference a reconciled Transaction.
 - A Report belongs to a Tenant or Project and provides financial analysis.

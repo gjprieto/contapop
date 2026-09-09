@@ -189,8 +189,8 @@ These aren't domain synchronization events — nothing replicates them into a lo
 | `project_id` | |
 | `counterparty_id` | |
 | `direction` | `incoming` or `outgoing` |
+| `type` | `service` or `product` |
 | `net_amount_minor` | EUR minor units |
-| `tax_rate` | Decimal rate, e.g. `0.21` |
 | `tax_amount_minor` | EUR minor units |
 | `total_amount_minor` | EUR minor units |
 | `date` | Invoice business date |

@@ -10,8 +10,12 @@ public sealed class ReconciliationRecoveryWorker(IServiceScopeFactory scopes, IL
         {
             await using var scope = scopes.CreateAsyncScope();
             var database = scope.ServiceProvider.GetRequiredService<ReconciliationDbContext>();
-            var blocked = await database.Operations.CountAsync(operation => operation.Status == "reserved" || operation.Status == "dependent-write-succeeded" || operation.Status == "dependent-write-failed", stoppingToken);
-            if (blocked > 0) logger.LogWarning("{Count} reconciliation operations require recovery.", blocked);
+            var operationIds = await database.Operations.AsNoTracking()
+                .Where(operation => operation.Status != "completed" && operation.NextAttemptAt <= DateTimeOffset.UtcNow)
+                .OrderBy(operation => operation.NextAttemptAt).Select(operation => operation.Id).Take(20).ToListAsync(stoppingToken);
+            if (operationIds.Count > 0) logger.LogWarning("Recovering {Count} reconciliation operations.", operationIds.Count);
+            var coordinator = scope.ServiceProvider.GetRequiredService<Reconciliation.PaymentReconciliationCoordinator>();
+            foreach (var operationId in operationIds) await coordinator.ExecuteAsync(operationId, stoppingToken);
             await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
     }

@@ -24,7 +24,7 @@ public static class InvoiceEndpoints
         if (!TryGetIdempotencyKey(context, out var key)) return MissingIdempotencyKey();
         var errors = ValidateCreate(request);
         if (errors.Count > 0) return Results.ValidationProblem(errors);
-        var result = await handler.CreateAsync(new(tenantId, key, request.ProjectId, request.CounterpartyId, request.Direction, request.NetAmountMinor, request.TaxRate, request.Date, request.DueDate), cancellationToken);
+        var result = await handler.CreateAsync(new(tenantId, key, request.ProjectId, request.CounterpartyId, request.Direction, request.Type, request.Lines.Select(line => new CreateInvoiceLineCommand(line.Description.Trim(), line.Quantity, line.UnitPriceMinor, line.TaxRate)).ToArray(), request.Date, request.DueDate), cancellationToken);
         return result.IsProjectUnavailable ? Unprocessable("Project is unavailable.")
             : result.IsCounterpartyUnavailable ? Unprocessable("Counterparty is unavailable.")
             : Results.Created($"/api/v1/invoices/{result.Value!.InvoiceId}", result.Value);
@@ -52,9 +52,12 @@ public static class InvoiceEndpoints
     {
         if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
         var invoice = await database.Invoices.AsNoTracking().Where(item => item.Id == invoiceId && item.TenantId == tenantId)
-            .Join(database.Counterparties.AsNoTracking(), invoice => invoice.CounterpartyId, counterparty => counterparty.Id, (invoice, counterparty) => new InvoiceDetailsResponse(invoice.Id, invoice.ProjectId, invoice.CounterpartyId, counterparty.Name, invoice.Direction, invoice.Status, invoice.NetAmountMinor, invoice.TaxRate, invoice.TaxAmountMinor, invoice.TotalAmountMinor, invoice.Date, invoice.DueDate, invoice.CreatedAt, invoice.UpdatedAt, (int)invoice.Version))
+            .Join(database.Counterparties.AsNoTracking(), invoice => invoice.CounterpartyId, counterparty => counterparty.Id, (invoice, counterparty) => new InvoiceDetailsResponse(invoice.Id, invoice.ProjectId, invoice.CounterpartyId, counterparty.Name, invoice.Direction, invoice.Type, invoice.Status, invoice.NetAmountMinor, invoice.TaxAmountMinor, invoice.TotalAmountMinor, invoice.Date, invoice.DueDate, invoice.CreatedAt, invoice.UpdatedAt, (int)invoice.Version))
             .SingleOrDefaultAsync(cancellationToken);
-        return invoice is null ? Results.NotFound() : Results.Ok(invoice);
+        if (invoice is null) return Results.NotFound();
+        var lines = await database.InvoiceLines.AsNoTracking().Where(line => line.InvoiceId == invoiceId).Select(line => new InvoiceLineResponse(line.Id, line.Description, line.Quantity, line.UnitPriceMinor, line.TaxRate, line.NetAmountMinor, line.TaxAmountMinor, line.TotalAmountMinor)).ToListAsync(cancellationToken);
+        var payments = await database.Payments.AsNoTracking().Where(payment => payment.InvoiceId == invoiceId).OrderByDescending(payment => payment.Date).Select(payment => new InvoicePaymentResponse(payment.Id, payment.AmountMinor, payment.Date, payment.PaymentMethod, payment.ReconciledTransactionId)).ToListAsync(cancellationToken);
+        return Results.Ok(invoice with { Lines = lines, Payments = payments });
     }
 
     private static async Task<IResult> ListAsync(string? status, string? direction, string? search, string? sort, int? page, int? pageSize, HttpContext context, BillingDbContext database, CancellationToken cancellationToken)
@@ -66,7 +69,7 @@ public static class InvoiceEndpoints
         var query = from invoice in database.Invoices.AsNoTracking()
                     join counterparty in database.Counterparties.AsNoTracking() on invoice.CounterpartyId equals counterparty.Id
                     where invoice.TenantId == tenantId
-                    select new InvoiceListItem(invoice.Id, invoice.CounterpartyId, counterparty.Name, invoice.Direction, invoice.Status, invoice.NetAmountMinor, invoice.TaxAmountMinor, invoice.TotalAmountMinor, invoice.Date, invoice.DueDate);
+                    select new InvoiceListItem(invoice.Id, invoice.CounterpartyId, counterparty.Name, invoice.Direction, invoice.Type, invoice.Status, invoice.NetAmountMinor, invoice.TaxAmountMinor, invoice.TotalAmountMinor, invoice.Date, invoice.DueDate);
         if (status is not null) query = query.Where(item => item.Status == status);
         if (direction is not null) query = query.Where(item => item.Direction == direction);
         if (!string.IsNullOrWhiteSpace(search)) { var term = search.Trim(); query = query.Where(item => item.CounterpartyName.Contains(term)); }
@@ -88,8 +91,9 @@ public static class InvoiceEndpoints
         if (request.ProjectId == Guid.Empty) errors["projectId"] = ["Project must be a non-empty GUID."];
         if (request.CounterpartyId == Guid.Empty) errors["counterpartyId"] = ["Counterparty must be a non-empty GUID."];
         if (request.Direction is not ("incoming" or "outgoing")) errors["direction"] = ["Direction must be incoming or outgoing."];
-        if (request.NetAmountMinor <= 0) errors["netAmountMinor"] = ["Net amount must be positive."];
-        if (request.TaxRate is < 0m or > 1m) errors["taxRate"] = ["Tax rate must be between 0 and 1."];
+        if (request.Type is not ("service" or "product")) errors["type"] = ["Type must be service or product."];
+        if (request.Lines.Count == 0) errors["lines"] = ["At least one invoice line is required."];
+        if (request.Lines.Any(line => string.IsNullOrWhiteSpace(line.Description) || line.Description.Length > 500 || line.Quantity <= 0 || line.UnitPriceMinor <= 0 || line.TaxRate is < 0m or > 1m)) errors["lines"] = ["Each line requires a description, positive quantity and unit price, and a VAT rate between 0 and 1."];
         if (request.DueDate < request.Date) errors["dueDate"] = ["Due date cannot be before the invoice date."];
         return errors;
     }
@@ -103,7 +107,11 @@ public static class InvoiceEndpoints
     private static IResult Conflict(string detail) => Results.Problem(statusCode: StatusCodes.Status409Conflict, title: "Conflict", detail: detail);
 }
 
-public sealed record CreateInvoiceRequest(Guid ProjectId, Guid CounterpartyId, string Direction, long NetAmountMinor, decimal TaxRate, DateOnly Date, DateOnly DueDate);
-public sealed record InvoiceListItem(Guid InvoiceId, Guid CounterpartyId, string CounterpartyName, string Direction, string Status, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate);
+public sealed record CreateInvoiceRequest(Guid ProjectId, Guid CounterpartyId, string Direction, string Type, IReadOnlyList<CreateInvoiceLineRequest> Lines, DateOnly Date, DateOnly DueDate);
+public sealed record CreateInvoiceLineRequest(string Description, int Quantity, long UnitPriceMinor, decimal TaxRate);
+public sealed record InvoiceListItem(Guid InvoiceId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate);
 public sealed record InvoicePagedResponse(IReadOnlyList<InvoiceListItem> Items, int Page, int PageSize, int TotalCount);
-public sealed record InvoiceDetailsResponse(Guid InvoiceId, Guid ProjectId, Guid CounterpartyId, string CounterpartyName, string Direction, string Status, long NetAmountMinor, decimal TaxRate, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version);
+public sealed record InvoiceDetailsResponse(Guid InvoiceId, Guid ProjectId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version)
+{ public IReadOnlyList<InvoiceLineResponse> Lines { get; init; } = []; public IReadOnlyList<InvoicePaymentResponse> Payments { get; init; } = []; }
+public sealed record InvoiceLineResponse(Guid InvoiceLineId, string Description, int Quantity, long UnitPriceMinor, decimal TaxRate, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor);
+public sealed record InvoicePaymentResponse(Guid PaymentId, long AmountMinor, DateOnly Date, string PaymentMethod, Guid? ReconciledTransactionId);

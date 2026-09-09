@@ -551,8 +551,15 @@ Creates a `draft` invoice — no event yet (only `IssueInvoice` fires one).
   "projectId": "guid",
   "counterpartyId": "guid",
   "direction": "string — \"incoming\" | \"outgoing\"",
-  "netAmountMinor": "int",
-  "taxRate": "decimal — e.g. 0.21 for 21%",
+  "type": "string — \"service\" | \"product\"",
+  "lines": [
+    {
+      "description": "string",
+      "quantity": "int — positive",
+      "unitPriceMinor": "int — positive EUR minor units",
+      "taxRate": "decimal — e.g. 0.21 for 21%"
+    }
+  ],
   "date": "date",
   "dueDate": "date"
 }
@@ -563,8 +570,8 @@ Creates a `draft` invoice — no event yet (only `IssueInvoice` fires one).
 {
   "invoiceId": "guid",
   "status": "\"draft\"",
-  "netAmountMinor": "int",
-  "taxAmountMinor": "int — computed as netAmountMinor * taxRate, rounded to the nearest EUR minor unit using banker's rounding (MidpointRounding.ToEven)",
+  "netAmountMinor": "int — computed as sum(quantity * unitPriceMinor)",
+  "taxAmountMinor": "int — computed as the sum of each line's banker's-rounded net amount * tax rate",
   "totalAmountMinor": "int — computed: netAmountMinor + taxAmountMinor",
   "createdAt": "date-time",
   "version": "int"
@@ -696,7 +703,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
   "items": [
     {
       "invoiceId": "guid", "counterpartyId": "guid", "counterpartyName": "string",
-      "direction": "string", "status": "string",
+      "direction": "string", "type": "string", "status": "string",
       "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int",
       "date": "date", "dueDate": "date"
     }
@@ -713,8 +720,11 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
 ```
 {
   "invoiceId": "guid", "projectId": "guid", "counterpartyId": "guid", "counterpartyName": "string",
-  "direction": "string", "status": "string",
-  "netAmountMinor": "int", "taxRate": "decimal", "taxAmountMinor": "int", "totalAmountMinor": "int",
+  "direction": "string", "type": "string", "status": "string",
+  "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int",
+  "lines": [
+    { "invoiceLineId": "guid", "description": "string", "quantity": "int", "unitPriceMinor": "int", "taxRate": "decimal", "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int" }
+  ],
   "date": "date", "dueDate": "date",
   "payments": [
     { "paymentId": "guid", "amountMinor": "int", "date": "date", "paymentMethod": "string", "reconciledTransactionId": "guid optional" }
@@ -1216,7 +1226,7 @@ Every other write action named in a service section above (creating an invoice, 
 
 **Still open:**
 
-8. **`ListUnreconciledTransactions`'s Experience-API-level composition** (item 3 above) is specified at the shape level here, but the exact mechanism for the Experience API to know a service's already-reconciled transaction IDs (a dedicated lightweight query on Billing/Bookkeeping, vs. deriving it from `ListPayments`/`ListExpenses`/`ListRevenues`'s existing `reconciledTransactionId` field) isn't chosen — the latter is simplest and needs no new endpoint, but flagging this as a decision point for whoever implements Task 2.6/3.7/4.6's composition logic.
+8. ~~`ListUnreconciledTransactions`'s Experience-API-level composition~~ — resolved 2026-09-09: the Experience API fetches the tenant's Payments through the documented paginated query and removes every non-null `reconciledTransactionId` from Ledger's active transactions before presenting the payment reconciliation picker. The MVP's pilot-scale data volume makes bounded pagination (maximum 100 per request, repeated until all pages are read) sufficient; a dedicated downstream query can replace it if volume requires it later.
 9. `GetFinancialOverview`'s and `GetPlanVsActual`'s exact trend-bucketing (monthly? weekly?) and category-grouping rules aren't pinned down — reasonable defaults are shown above (monthly trend, flat category list) but should be confirmed against the actual Financial Overview/Plans screen designs once those exist, per Task 5.1/4.1's spec-check step.
 10. The `skippedRows` shape on `ImportTransactionsFromFile`'s error response, and the equivalent for a malformed CSV, are illustrative — the exact validation-error vocabulary should be finalized during Task 2.5.
 11. ~~How Identity & Tenancy's own `POST /api/v1/auth/login` relates to the Experience API's `POST /experience/v1/auth/login`~~ — resolved in Task 1.6: the Experience API owns the browser session cookie. It validates credentials through Identity & Tenancy's internal `POST /api/v1/auth/validate-credentials` endpoint, which returns only the authenticated tenant/user/role claims; the browser never receives or forwards Identity's cookie.

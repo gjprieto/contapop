@@ -59,9 +59,9 @@ The Invoices Screen allows users to view, manage, and track their invoices. It p
 **Key Features:**
 - List of all invoices with search and filter options
 - Invoices categorized by status (e.g., paid, unpaid, overdue), type (e.g., service, product) and if it's incoming or outgoing
-- View detailed invoice information including items, amounts, and due dates
+- View detailed invoice information including service/product type, items, amounts, VAT, and due dates
 - Track payment status and history for each invoice
-- Create, edit, and delete invoices
+- Create, issue, and void draft invoices
 - Notifications and reminders for upcoming or overdue invoices
 - Navigation to related sections such as Payments and Financial Overview
 
@@ -73,7 +73,7 @@ The Payments Screen allows users to view, manage, and track their payments. It p
 - List of all payments with search and filter options
 - View detailed payment information including amounts, dates, and status
 - Track payment history for each transaction
-- Create, edit, and delete payments
+- Record and reconcile payments; payments are immutable after recording in the MVP
 - Notifications and reminders for upcoming or overdue payments
 - Navigation to related sections such as Invoices and Financial Overview
 

@@ -48,6 +48,9 @@ var billing = builder.AddProject<Projects.Contapop_Billing_Service>("billing-ser
 
 var reconciliation = builder.AddProject<Projects.Contapop_Reconciliation_Service>("reconciliation-service")
     .WithReference(reconciliationDatabase)
+    .WithReference(ledger)
+    .WithReference(billing)
+    .WithEnvironment("InternalJwt__SigningKey", internalJwtSigningKey)
     .WaitFor(reconciliationDatabase)
     .WithHttpEndpoint(port: 5114)
     .WithHttpHealthCheck("/health")

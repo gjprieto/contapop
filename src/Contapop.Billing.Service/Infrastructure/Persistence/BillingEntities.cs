@@ -7,9 +7,9 @@ public sealed class Invoice
     public Guid ProjectId { get; private set; }
     public Guid CounterpartyId { get; private set; }
     public string Direction { get; private set; } = null!;
+    public string Type { get; private set; } = null!;
     public string Status { get; private set; } = null!;
     public long NetAmountMinor { get; private set; }
-    public decimal TaxRate { get; private set; }
     public long TaxAmountMinor { get; private set; }
     public long TotalAmountMinor { get; private set; }
     public DateOnly Date { get; private set; }
@@ -17,18 +17,25 @@ public sealed class Invoice
     public long Version { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
+    public List<InvoiceLine> Lines { get; private set; } = [];
 
-    public static Invoice Create(Guid tenantId, Guid projectId, Guid counterpartyId, string direction, long netAmountMinor, decimal taxRate, DateOnly date, DateOnly dueDate, DateTimeOffset now)
+    public static Invoice Create(Guid tenantId, Guid projectId, Guid counterpartyId, string direction, string type, IReadOnlyList<CreateInvoiceLine> lines, DateOnly date, DateOnly dueDate, DateTimeOffset now)
     {
-        var taxAmountMinor = decimal.ToInt64(decimal.Round(netAmountMinor * taxRate, 0, MidpointRounding.ToEven));
+        var invoiceLines = lines.Select(line => InvoiceLine.Create(line.Description, line.Quantity, line.UnitPriceMinor, line.TaxRate)).ToList();
+        var netAmountMinor = invoiceLines.Sum(line => line.NetAmountMinor);
+        var taxAmountMinor = invoiceLines.Sum(line => line.TaxAmountMinor);
         return new()
         {
             Id = Guid.NewGuid(), TenantId = tenantId, ProjectId = projectId, CounterpartyId = counterpartyId,
-            Direction = direction, Status = "draft", NetAmountMinor = netAmountMinor, TaxRate = taxRate,
+            Direction = direction, Type = type, Status = "draft", NetAmountMinor = netAmountMinor,
             TaxAmountMinor = taxAmountMinor, TotalAmountMinor = checked(netAmountMinor + taxAmountMinor),
-            Date = date, DueDate = dueDate, Version = 1, CreatedAt = now, UpdatedAt = now,
+            Date = date, DueDate = dueDate, Version = 1, CreatedAt = now, UpdatedAt = now, Lines = invoiceLines,
         };
     }
+
+    // Retained for existing internal test fixtures that exercise invoice lifecycle independent of lines.
+    public static Invoice Create(Guid tenantId, Guid projectId, Guid counterpartyId, string direction, long netAmountMinor, decimal taxRate, DateOnly date, DateOnly dueDate, DateTimeOffset now) =>
+        Create(tenantId, projectId, counterpartyId, direction, "service", [new CreateInvoiceLine("Invoice amount", 1, netAmountMinor, taxRate)], date, dueDate, now);
 
     public bool TryIssue(int expectedVersion, DateTimeOffset now)
     {
@@ -66,6 +73,33 @@ public sealed class Invoice
         return true;
     }
 }
+
+public sealed class InvoiceLine
+{
+    public Guid Id { get; private set; }
+    public Guid InvoiceId { get; private set; }
+    public string Description { get; private set; } = null!;
+    public int Quantity { get; private set; }
+    public long UnitPriceMinor { get; private set; }
+    public decimal TaxRate { get; private set; }
+    public long NetAmountMinor { get; private set; }
+    public long TaxAmountMinor { get; private set; }
+    public long TotalAmountMinor { get; private set; }
+
+    public static InvoiceLine Create(string description, int quantity, long unitPriceMinor, decimal taxRate)
+    {
+        var netAmountMinor = checked(quantity * unitPriceMinor);
+        var taxAmountMinor = decimal.ToInt64(decimal.Round(netAmountMinor * taxRate, 0, MidpointRounding.ToEven));
+        return new()
+        {
+            Id = Guid.NewGuid(), Description = description, Quantity = quantity, UnitPriceMinor = unitPriceMinor,
+            TaxRate = taxRate, NetAmountMinor = netAmountMinor, TaxAmountMinor = taxAmountMinor,
+            TotalAmountMinor = checked(netAmountMinor + taxAmountMinor),
+        };
+    }
+}
+
+public sealed record CreateInvoiceLine(string Description, int Quantity, long UnitPriceMinor, decimal TaxRate);
 
 public sealed class Payment
 {
