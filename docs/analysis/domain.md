@@ -142,7 +142,7 @@ An Invoice or Ticket represents a billing or payment document associated with a 
 - `status`: `draft`, `issued`, `paid`, `overdue`, or `void`.
 - `net_amount`: Amount before tax.
 - `tax_rate`: VAT/IVA rate applied (e.g. 21%, 10%, 4%, or 0% for exempt).
-- `tax_amount`: Computed tax amount (`net_amount` × `tax_rate`).
+- `tax_amount`: Computed tax amount (`net_amount` × `tax_rate`), rounded to the nearest EUR minor unit using banker's rounding (MidpointRounding.ToEven).
 - `total_amount`: Amount actually due (`net_amount` + `tax_amount`). Currency is implicitly EUR for MVP — see `docs/analysis/mvp/scope-decisions.md`.
 - `date`: Date of the invoice or ticket.
 - `due_date`: Due date of the invoice or ticket.

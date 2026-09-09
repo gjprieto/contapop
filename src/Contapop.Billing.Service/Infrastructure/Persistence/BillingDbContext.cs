@@ -10,6 +10,7 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
     public DbSet<Counterparty> Counterparties => Set<Counterparty>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
     public DbSet<ProjectReplica> ProjectReplicas => Set<ProjectReplica>();
     public DbSet<TransactionReplica> TransactionReplicas => Set<TransactionReplica>();
 
@@ -90,6 +91,24 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
             entity.Property(record => record.Key).HasColumnName("key").HasMaxLength(200);
             entity.Property(record => record.Result).HasColumnName("result").HasColumnType("jsonb").IsRequired();
             entity.Property(record => record.CreatedAt).HasColumnName("created_at").IsRequired();
+        });
+
+        modelBuilder.Entity<OutboxMessage>(entity =>
+        {
+            entity.ToTable("outbox_messages", "invoicing");
+            entity.HasKey(message => message.EventId);
+            entity.Property(message => message.EventId).HasColumnName("event_id");
+            entity.Property(message => message.EventName).HasColumnName("event_name").HasMaxLength(200).IsRequired();
+            entity.Property(message => message.AggregateType).HasColumnName("aggregate_type").HasMaxLength(100).IsRequired();
+            entity.Property(message => message.AggregateId).HasColumnName("aggregate_id").IsRequired();
+            entity.Property(message => message.AggregateVersion).HasColumnName("aggregate_version").IsRequired();
+            entity.Property(message => message.TenantId).HasColumnName("tenant_id").IsRequired();
+            entity.Property(message => message.CorrelationId).HasColumnName("correlation_id");
+            entity.Property(message => message.CausationId).HasColumnName("causation_id");
+            entity.Property(message => message.OccurredAt).HasColumnName("occurred_at").IsRequired();
+            entity.Property(message => message.Payload).HasColumnName("payload").HasColumnType("jsonb").IsRequired();
+            entity.Property(message => message.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.HasIndex(message => new { message.Status, message.OccurredAt });
         });
 
         modelBuilder.Entity<ProjectReplica>(entity =>

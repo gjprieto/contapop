@@ -564,7 +564,7 @@ Creates a `draft` invoice — no event yet (only `IssueInvoice` fires one).
   "invoiceId": "guid",
   "status": "\"draft\"",
   "netAmountMinor": "int",
-  "taxAmountMinor": "int — computed: netAmountMinor * taxRate",
+  "taxAmountMinor": "int — computed as netAmountMinor * taxRate, rounded to the nearest EUR minor unit using banker's rounding (MidpointRounding.ToEven)",
   "totalAmountMinor": "int — computed: netAmountMinor + taxAmountMinor",
   "createdAt": "date-time",
   "version": "int"

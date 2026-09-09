@@ -16,6 +16,7 @@ builder.Services.AddDbContext<BillingDbContext>(options =>
 builder.Services.AddScoped<ProjectReplicationConsumer>();
 builder.Services.AddScoped<TransactionReplicationConsumer>();
 builder.Services.AddScoped<CounterpartyCommandHandler>();
+builder.Services.AddScoped<InvoiceCommandHandler>();
 builder.Services.AddAuthentication().AddJwtBearer("InternalJwt", options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -53,6 +54,7 @@ app.MapGet("/health", () => Results.Ok());
 app.MapSubscribeHandler();
 app.MapReplicationEndpoints();
 app.MapCounterpartyEndpoints();
+app.MapInvoiceEndpoints();
 
 app.Run();
 

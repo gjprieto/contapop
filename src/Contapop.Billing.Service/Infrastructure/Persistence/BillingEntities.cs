@@ -17,6 +17,36 @@ public sealed class Invoice
     public long Version { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
+
+    public static Invoice Create(Guid tenantId, Guid projectId, Guid counterpartyId, string direction, long netAmountMinor, decimal taxRate, DateOnly date, DateOnly dueDate, DateTimeOffset now)
+    {
+        var taxAmountMinor = decimal.ToInt64(decimal.Round(netAmountMinor * taxRate, 0, MidpointRounding.ToEven));
+        return new()
+        {
+            Id = Guid.NewGuid(), TenantId = tenantId, ProjectId = projectId, CounterpartyId = counterpartyId,
+            Direction = direction, Status = "draft", NetAmountMinor = netAmountMinor, TaxRate = taxRate,
+            TaxAmountMinor = taxAmountMinor, TotalAmountMinor = checked(netAmountMinor + taxAmountMinor),
+            Date = date, DueDate = dueDate, Version = 1, CreatedAt = now, UpdatedAt = now,
+        };
+    }
+
+    public bool TryIssue(int expectedVersion, DateTimeOffset now)
+    {
+        if (Status != "draft" || Version != expectedVersion) return false;
+        Status = "issued";
+        Version++;
+        UpdatedAt = now;
+        return true;
+    }
+
+    public bool TryVoid(int expectedVersion, DateTimeOffset now)
+    {
+        if (Status != "draft" || Version != expectedVersion) return false;
+        Status = "void";
+        Version++;
+        UpdatedAt = now;
+        return true;
+    }
 }
 
 public sealed class Payment
@@ -113,5 +143,27 @@ public sealed class IdempotencyRecord
         Key = key,
         Result = result,
         CreatedAt = createdAt,
+    };
+}
+
+public sealed class OutboxMessage
+{
+    public Guid EventId { get; private set; }
+    public string EventName { get; private set; } = null!;
+    public string AggregateType { get; private set; } = null!;
+    public Guid AggregateId { get; private set; }
+    public long AggregateVersion { get; private set; }
+    public Guid TenantId { get; private set; }
+    public Guid? CorrelationId { get; private set; }
+    public Guid? CausationId { get; private set; }
+    public DateTimeOffset OccurredAt { get; private set; }
+    public string Payload { get; private set; } = null!;
+    public string Status { get; private set; } = null!;
+
+    public static OutboxMessage Create(string eventName, string aggregateType, Guid aggregateId, long aggregateVersion, Guid tenantId, DateTimeOffset occurredAt, string payload, Guid? correlationId = null, Guid? causationId = null) => new()
+    {
+        EventId = Guid.NewGuid(), EventName = eventName, AggregateType = aggregateType, AggregateId = aggregateId,
+        AggregateVersion = aggregateVersion, TenantId = tenantId, CorrelationId = correlationId, CausationId = causationId,
+        OccurredAt = occurredAt, Payload = payload, Status = "pending",
     };
 }
