@@ -1,8 +1,11 @@
 using Contapop.Billing.Service.Application.Commands;
+using Contapop.Billing.Service.Application.BackgroundJobs;
 using Contapop.Billing.Service.Application.Abstractions;
 using Contapop.Billing.Service.Infrastructure.Persistence;
 using Contapop.Billing.Service.Infrastructure.Replication;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Testcontainers.PostgreSql;
 
 namespace Contapop.Billing.Service.Tests.Integration;
@@ -106,12 +109,42 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
         Assert.Equal("claim-unavailable", result.Error);
     }
 
+    [Fact]
+    public async Task Mark_overdue_marks_only_past_due_issued_invoices_and_writes_an_outbox_event()
+    {
+        await using var database = await CreateDatabaseAsync();
+        var now = new DateTimeOffset(2026, 9, 10, 12, 0, 0, TimeSpan.Zero);
+        var overdueInvoice = Invoice.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 1), new DateOnly(2026, 9, 9), now);
+        var currentInvoice = Invoice.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 1), new DateOnly(2026, 9, 10), now);
+        Assert.True(overdueInvoice.TryIssue(1, now));
+        Assert.True(currentInvoice.TryIssue(1, now));
+        database.Invoices.AddRange(overdueInvoice, currentInvoice);
+        await database.SaveChangesAsync();
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddDbContext<BillingDbContext>(options => options.UseNpgsql(_postgres.GetConnectionString()));
+        await using var provider = services.BuildServiceProvider();
+        var job = new MarkInvoicesOverdueJob(provider.GetRequiredService<IServiceScopeFactory>(), new FixedTimeProvider(now), provider.GetRequiredService<ILogger<MarkInvoicesOverdueJob>>());
+
+        Assert.Equal(1, await job.RunAsync(CancellationToken.None));
+
+        await using var verification = new BillingDbContext(CreateOptions());
+        Assert.Equal("overdue", await verification.Invoices.Where(invoice => invoice.Id == overdueInvoice.Id).Select(invoice => invoice.Status).SingleAsync());
+        Assert.Equal("issued", await verification.Invoices.Where(invoice => invoice.Id == currentInvoice.Id).Select(invoice => invoice.Status).SingleAsync());
+        var @event = await verification.OutboxMessages.SingleAsync(message => message.EventName == "billing.invoice-overdue.v1");
+        Assert.Equal(overdueInvoice.Id, @event.AggregateId);
+        Assert.Contains("\"due_date\": \"2026-09-09\"", @event.Payload);
+    }
+
     private async Task<BillingDbContext> CreateDatabaseAsync()
     {
-        var database = new BillingDbContext(new DbContextOptionsBuilder<BillingDbContext>().UseNpgsql(_postgres.GetConnectionString()).Options);
+        var database = new BillingDbContext(CreateOptions());
         await database.Database.MigrateAsync();
         return database;
     }
+
+    private DbContextOptions<BillingDbContext> CreateOptions() => new DbContextOptionsBuilder<BillingDbContext>().UseNpgsql(_postgres.GetConnectionString()).Options;
 
     public Task InitializeAsync() => _postgres.StartAsync();
     public Task DisposeAsync() => _postgres.DisposeAsync().AsTask();
@@ -124,5 +157,10 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
     private sealed class RejectClaim : IReconciliationClaimValidator
     {
         public Task<bool> IsValidAsync(Guid claimId, Guid transactionId, Guid paymentId, CancellationToken cancellationToken) => Task.FromResult(false);
+    }
+
+    private sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
     }
 }

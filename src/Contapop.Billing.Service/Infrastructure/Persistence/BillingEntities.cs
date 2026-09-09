@@ -56,6 +56,15 @@ public sealed class Invoice
         UpdatedAt = now;
         return true;
     }
+
+    public bool TryMarkOverdue(DateOnly currentDate, DateTimeOffset now)
+    {
+        if (Status != "issued" || DueDate >= currentDate) return false;
+        Status = "overdue";
+        Version++;
+        UpdatedAt = now;
+        return true;
+    }
 }
 
 public sealed class Payment

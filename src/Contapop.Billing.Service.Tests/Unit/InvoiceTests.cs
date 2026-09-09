@@ -35,4 +35,20 @@ public sealed class InvoiceTests
         Assert.Equal("paid", invoice.Status);
         Assert.False(invoice.TryMarkPaid(DateTimeOffset.UtcNow));
     }
+
+    [Fact]
+    public void Mark_overdue_transitions_only_an_unpaid_issued_invoice_past_its_due_date()
+    {
+        var now = new DateTimeOffset(2026, 9, 10, 12, 0, 0, TimeSpan.Zero);
+        var overdueInvoice = Invoice.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 1), new DateOnly(2026, 9, 9), now);
+        var paidInvoice = Invoice.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 1), new DateOnly(2026, 9, 9), now);
+        Assert.True(paidInvoice.TryIssue(1, now));
+        Assert.True(paidInvoice.TryMarkPaid(now));
+        Assert.True(overdueInvoice.TryIssue(1, now));
+
+        Assert.True(overdueInvoice.TryMarkOverdue(DateOnly.FromDateTime(now.UtcDateTime), now));
+        Assert.Equal("overdue", overdueInvoice.Status);
+        Assert.False(paidInvoice.TryMarkOverdue(DateOnly.FromDateTime(now.UtcDateTime), now));
+        Assert.Equal("paid", paidInvoice.Status);
+    }
 }
