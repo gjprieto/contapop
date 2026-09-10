@@ -82,7 +82,7 @@ public static class InvoiceEndpoints
             _ => query.OrderByDescending(item => item.Invoice.Date).ThenByDescending(item => item.Invoice.Id),
         };
         var items = await ordered.Skip((actualPage - 1) * actualPageSize).Take(actualPageSize)
-            .Select(item => new InvoiceListItem(item.Invoice.Id, item.Invoice.CounterpartyId, item.CounterpartyName, item.Invoice.Direction, item.Invoice.Type, item.Invoice.Status, item.Invoice.NetAmountMinor, item.Invoice.TaxAmountMinor, item.Invoice.TotalAmountMinor, item.Invoice.Date, item.Invoice.DueDate))
+            .Select(item => new InvoiceListItem(item.Invoice.Id, item.Invoice.CounterpartyId, item.CounterpartyName, item.Invoice.Direction, item.Invoice.Type, item.Invoice.Status, item.Invoice.NetAmountMinor, item.Invoice.TaxAmountMinor, item.Invoice.TotalAmountMinor, item.Invoice.Date, item.Invoice.DueDate, (int)item.Invoice.Version))
             .ToListAsync(cancellationToken);
         return Results.Ok(new InvoicePagedResponse(items, actualPage, actualPageSize, total));
     }
@@ -111,7 +111,7 @@ public static class InvoiceEndpoints
 
 public sealed record CreateInvoiceRequest(Guid ProjectId, Guid CounterpartyId, string Direction, string Type, IReadOnlyList<CreateInvoiceLineRequest> Lines, DateOnly Date, DateOnly DueDate);
 public sealed record CreateInvoiceLineRequest(string Description, int Quantity, long UnitPriceMinor, decimal TaxRate);
-public sealed record InvoiceListItem(Guid InvoiceId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate);
+public sealed record InvoiceListItem(Guid InvoiceId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, int Version);
 public sealed record InvoicePagedResponse(IReadOnlyList<InvoiceListItem> Items, int Page, int PageSize, int TotalCount);
 public sealed record InvoiceDetailsResponse(Guid InvoiceId, Guid ProjectId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version)
 { public IReadOnlyList<InvoiceLineResponse> Lines { get; init; } = []; public IReadOnlyList<InvoicePaymentResponse> Payments { get; init; } = []; }

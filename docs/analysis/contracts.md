@@ -705,7 +705,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
       "invoiceId": "guid", "counterpartyId": "guid", "counterpartyName": "string",
       "direction": "string", "type": "string", "status": "string",
       "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int",
-      "date": "date", "dueDate": "date"
+      "date": "date", "dueDate": "date", "version": "int"
     }
   ],
   "page": "int", "pageSize": "int", "totalCount": "int"

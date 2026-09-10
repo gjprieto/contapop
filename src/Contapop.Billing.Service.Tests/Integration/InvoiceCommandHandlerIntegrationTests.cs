@@ -44,7 +44,7 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
                            where listedInvoice.TenantId == tenantId
                            select new { Invoice = listedInvoice, CounterpartyName = listedCounterparty.Name })
             .OrderByDescending(item => item.Invoice.Date).ThenByDescending(item => item.Invoice.Id)
-            .Select(item => new { item.Invoice.Id, item.CounterpartyName, item.Invoice.Type })
+            .Select(item => new { item.Invoice.Id, item.CounterpartyName, item.Invoice.Type, item.Invoice.Version })
             .ToListAsync();
 
         Assert.Collection(items, item =>
@@ -52,6 +52,7 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
             Assert.Equal(invoice.Id, item.Id);
             Assert.Equal("Acme SL", item.CounterpartyName);
             Assert.Equal("service", item.Type);
+            Assert.Equal(1, item.Version);
         });
     }
 
