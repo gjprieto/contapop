@@ -101,6 +101,24 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Payment_list_query_returns_the_current_payment_version_for_reconciliation()
+    {
+        await using var database = await CreateDatabaseAsync();
+        var tenantId = Guid.NewGuid();
+        var payment = Payment.Create(tenantId, Guid.NewGuid(), 12_100, new DateOnly(2026, 9, 10), "bank_transfer", DateTimeOffset.UtcNow);
+        database.Payments.Add(payment);
+        await database.SaveChangesAsync();
+
+        var listed = await database.Payments.AsNoTracking()
+            .Where(item => item.TenantId == tenantId)
+            .Select(item => new { item.Id, item.Version })
+            .SingleAsync();
+
+        Assert.Equal(payment.Id, listed.Id);
+        Assert.Equal(1, listed.Version);
+    }
+
+    [Fact]
     public async Task Reconcile_rejects_an_archived_transaction_before_validating_the_claim()
     {
         await using var database = await CreateDatabaseAsync();

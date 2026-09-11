@@ -751,7 +751,7 @@ Read-only — not a state change, per the original note.
 ```
 {
   "items": [
-    { "paymentId": "guid", "invoiceId": "guid", "amountMinor": "int", "date": "date", "paymentMethod": "string", "reconciledTransactionId": "guid optional" }
+    { "paymentId": "guid", "invoiceId": "guid", "amountMinor": "int", "date": "date", "paymentMethod": "string", "reconciledTransactionId": "guid optional", "version": "int" }
   ],
   "page": "int", "pageSize": "int", "totalCount": "int"
 }

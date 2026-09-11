@@ -53,7 +53,7 @@ public static class PaymentEndpoints
             "amount:asc" => query.OrderBy(item => item.AmountMinor).ThenBy(item => item.Id),
             "amount:desc" => query.OrderByDescending(item => item.AmountMinor).ThenByDescending(item => item.Id),
             _ => query.OrderByDescending(item => item.Date).ThenByDescending(item => item.Id),
-        }).Skip((actualPage - 1) * actualPageSize).Select(item => new PaymentListItem(item.Id, item.InvoiceId, item.AmountMinor, item.Date, item.PaymentMethod, item.ReconciledTransactionId)).Take(actualPageSize).ToListAsync(cancellationToken);
+        }).Skip((actualPage - 1) * actualPageSize).Select(item => new PaymentListItem(item.Id, item.InvoiceId, item.AmountMinor, item.Date, item.PaymentMethod, item.ReconciledTransactionId, (int)item.Version)).Take(actualPageSize).ToListAsync(cancellationToken);
         return Results.Ok(new PaymentPagedResponse(items, actualPage, actualPageSize, total));
     }
 
@@ -75,5 +75,5 @@ public static class PaymentEndpoints
 
 public sealed record RecordPaymentRequest(Guid InvoiceId, long AmountMinor, DateOnly Date, string PaymentMethod);
 public sealed record ReconcilePaymentRequest(Guid TransactionId, Guid ReconciliationClaimId);
-public sealed record PaymentListItem(Guid PaymentId, Guid InvoiceId, long AmountMinor, DateOnly Date, string PaymentMethod, Guid? ReconciledTransactionId);
+public sealed record PaymentListItem(Guid PaymentId, Guid InvoiceId, long AmountMinor, DateOnly Date, string PaymentMethod, Guid? ReconciledTransactionId, int Version);
 public sealed record PaymentPagedResponse(IReadOnlyList<PaymentListItem> Items, int Page, int PageSize, int TotalCount);
