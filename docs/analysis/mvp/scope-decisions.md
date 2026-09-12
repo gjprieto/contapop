@@ -66,11 +66,11 @@ This document records scope cut-lines for the MVP — decisions about how much o
 
 ## PDF Invoice/Receipt Import
 
-**Decision (2026-09-06):** full OCR extraction is in MVP scope, reversing the earlier "later phase" framing in `docs/analysis/api-led/system-apis.md`. The Document Extraction System API is implemented as an Infrastructure-layer adapter inside Bookkeeping & Planning (not a standalone deployable, since it has one consuming service for now).
+**Decision (2026-09-06, clarified 2026-09-12):** full OCR extraction is in MVP scope, reversing the earlier "later phase" framing in `docs/analysis/api-led/system-apis.md`. Bookkeeping & Planning owns an application-facing `IDocumentExtractionAdapter` abstraction, with Azure AI Document Intelligence selected as its production Infrastructure implementation. The adapter is not a standalone deployable because it currently has one consuming service.
 
 **Why:** `screens-and-features.md` already listed this as a key feature of the Expenses and Revenues screens; bringing the underlying integration forward avoids shipping a screen feature the backend doesn't support.
 
-**Consequence:** `Expense` and `Revenue` gained an `import_source` field (`manual` or `pdf_ocr`). An OCR-imported record is created as a draft that a user must explicitly confirm (`ConfirmImportedExpense`/`ConfirmImportedRevenue` in `docs/analysis/contracts.md`) before it counts toward any report — OCR accuracy isn't assumed to be perfect, so nothing silently enters the books unreviewed.
+**Consequence:** `Expense` and `Revenue` gained an `import_source` field (`manual` or `pdf_ocr`). An OCR-imported record is created as a draft that a user must explicitly confirm (`ConfirmImportedExpense`/`ConfirmImportedRevenue` in `docs/analysis/contracts.md`) before it counts toward any report — OCR accuracy isn't assumed to be perfect, so nothing silently enters the books unreviewed. The adapter returns optional extracted amount, date, category, confidence, and diagnostics; an absent amount creates an empty, reviewable draft with `201 Created`, not an error. `422 Unprocessable Entity` is reserved for an invalid PDF upload or an extraction request the provider cannot process. Azure endpoint and credential configuration are secrets: local development uses .NET user secrets and deployed environments use the hosting platform's secret store. Automated tests use a deterministic fake adapter, never Azure.
 
 ## MVP Audience & Onboarding
 
@@ -101,4 +101,4 @@ Gerardo guides development directly; most implementation is carried out by AI co
 | Test rigor | Critical paths only (E2E + unit) | N/A |
 | Hosting target | Not yet decided | N/A |
 | Transaction reconciliation | Full reconciliation (globally one-to-one), in MVP | Yes — `domain.md`'s Payment/Expense/Revenue/Transaction Reconciliation Claim |
-| PDF invoice/receipt import | Full OCR extraction, in MVP | Yes — `domain.md`'s Expense/Revenue (`import_source`) |
+| PDF invoice/receipt import | Azure AI Document Intelligence behind a service-owned adapter; missing fields create a reviewable draft | Yes — `domain.md`'s Expense/Revenue (`import_source`) |

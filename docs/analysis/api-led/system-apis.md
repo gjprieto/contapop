@@ -91,7 +91,7 @@ Core operations: CRUD plan, CRUD planned revenue/expense line items under a plan
 Both MVP screens (Financial Overview, Expenses, Revenues) call out import from CSV/Excel and PDF invoice import. CSV/Excel import is a file-upload/parsing flow orchestrated within Financial Accounts & Ledger, not a separate System API. Two external system integrations are worth naming as their own boundary:
 
 - **Bank Feed Integration System API (later phase)** — wraps a PSD2/open-banking aggregator (e.g. GoCardless Bank Account Data, Tink, Plaid) to pull live balances/transactions, feeding System API #2/#4. Still deferred — not needed for MVP.
-- **Document Extraction System API (Decision 2026-09-06: in MVP scope)** — wraps an OCR/document-intelligence provider (e.g. Azure AI Document Intelligence) to extract structured data from uploaded PDF invoices/receipts, feeding the Expenses and Revenues System APIs (#7, #8). Brought forward from "later phase" into MVP per the reconciliation/import scope decisions in `docs/analysis/contracts.md`. Implemented as an Infrastructure-layer adapter inside Bookkeeping & Planning (per the Service Grouping section below), not a standalone deployable, since it currently has one consuming service. Extracted fields populate a *draft* Expense/Revenue (`import_source = pdf_ocr`) that a user must confirm before it counts toward reports — OCR accuracy isn't assumed to be perfect.
+- **Document Extraction System API (Decision 2026-09-12: in MVP scope)** — wraps Azure AI Document Intelligence behind Bookkeeping & Planning's application-owned `IDocumentExtractionAdapter`, extracting optional amount, date, category, confidence, and diagnostics from uploaded PDF invoices/receipts for the Expenses and Revenues System APIs (#7, #8). It is an Infrastructure-layer adapter inside Bookkeeping & Planning (per the Service Grouping section below), not a standalone deployable, since it currently has one consumer. A deterministic fake implements the same interface in tests. Extracted fields populate a *draft* Expense/Revenue (`import_source = pdf_ocr`) that a user must confirm before it counts toward reports. If no amount is extracted, the service still creates an empty reviewable draft; it never auto-confirms data or discards the upload.
 
 Both are classic API-led "System API as insulation layer" cases: the underlying vendor can be swapped without Process/Experience APIs or the frontend noticing.
 
@@ -111,7 +111,7 @@ Both are classic API-led "System API as insulation layer" cases: the underlying 
 | — | Counterparties | Customer/Supplier | fills the "Clients System API" gap |
 | — | Reports (thin, optional) | saved report metadata only | actual reporting is a Process API |
 | 10 | Bank Feed Integration (future) | external bank data | wraps aggregator |
-| 11 | Document Extraction (future) | external OCR | wraps document AI |
+| 11 | Document Extraction | Azure AI Document Intelligence adapter | Bookkeeping & Planning Infrastructure; in MVP |
 
 ## Open Questions — Resolved 2026-09-06
 

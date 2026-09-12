@@ -163,7 +163,7 @@ These are the events that make the Cross-Service Data Consistency Strategy work.
 
 ## Other Anticipated Integration Events (first pass)
 
-These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need. Their payloads are specified when their producing service is ready to implement them: Identity and Ledger are already specified, Billing is specified by Task 3.1, and Bookkeeping & Planning remains deferred to Task 4.1. Billing publishes no integration event for attachment uploads, replacements, or removals, and publishes no event when it permanently deletes a draft Invoice: attachments and drafts are not Reporting facts and never have a Reporting projection to remove.
+These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need. Their payloads are specified when their producing service is ready to implement them: Identity, Ledger, Billing, and Bookkeeping & Planning are specified. Billing publishes no integration event for attachment uploads, replacements, or removals, and publishes no event when it permanently deletes a draft Invoice: attachments and drafts are not Reporting facts and never have a Reporting projection to remove.
 
 ### `identity.tenant-created.v1`
 
@@ -283,7 +283,69 @@ These aren't domain synchronization events — nothing replicates them into a lo
 | `label` | Metadata only; never a real card number |
 | `created_at` | |
 
-- **Bookkeeping & Planning:** `bookkeeping.expense-recorded.v1`, `bookkeeping.revenue-recorded.v1`, `bookkeeping.plan-created.v1`, `bookkeeping.planned-expense-added.v1`, `bookkeeping.planned-revenue-added.v1`
+### `bookkeeping.expense-recorded.v1`
+
+**Producer:** Bookkeeping & Planning, when a manual Expense is recorded or an OCR-imported Expense is confirmed.
+**Consumers:** Reporting.
+
+| Payload field | Notes |
+|---|---|
+| `expense_id` | |
+| `project_id` | |
+| `amount_minor` | EUR minor units |
+| `date` | Expense business date |
+| `category` | |
+| `recurring` | |
+| `recurring_interval` | Optional; present only when recurring |
+| `recorded_at` | Manual creation or OCR confirmation timestamp |
+
+### `bookkeeping.revenue-recorded.v1`
+
+**Producer:** Bookkeeping & Planning, when a manual Revenue is recorded or an OCR-imported Revenue is confirmed.
+**Consumers:** Reporting.
+
+| Payload field | Notes |
+|---|---|
+| `revenue_id` | |
+| `project_id` | |
+| `amount_minor` | EUR minor units |
+| `date` | Revenue business date |
+| `category` | |
+| `recurring` | |
+| `recurring_interval` | Optional; present only when recurring |
+| `recorded_at` | Manual creation or OCR confirmation timestamp |
+
+### `bookkeeping.plan-created.v1`
+
+**Producer:** Bookkeeping & Planning, when `CreatePlan` succeeds.
+**Consumers:** Reporting.
+
+| Payload field | Notes |
+|---|---|
+| `plan_id` | |
+| `project_id` | |
+| `title` | |
+| `allocated_amount_minor` | Optional EUR minor units |
+| `start_date` | |
+| `end_date` | |
+| `created_at` | |
+
+### `bookkeeping.planned-expense-added.v1` / `bookkeeping.planned-revenue-added.v1`
+
+**Producer:** Bookkeeping & Planning, when the corresponding planned line is added.
+**Consumers:** Reporting.
+
+| Payload field | Notes |
+|---|---|
+| `planned_expense_id` / `planned_revenue_id` | Event-specific planned line ID |
+| `plan_id` | |
+| `project_id` | |
+| `amount_minor` | EUR minor units |
+| `date` | Planned business date |
+| `category` | |
+| `recurring` | |
+| `recurring_interval` | Optional; present only when recurring |
+| `created_at` | |
 
 ## Domain Events (internal, not public contracts — examples only)
 
@@ -293,7 +355,6 @@ Examples: `InvoiceIssued`, `InvoiceMarkedPaid`, `ExpenseRecorded`, `BankAccountL
 
 ## Open Items
 
-1. The Bookkeeping & Planning anticipated integration events remain a placeholder outline and must receive full payload contracts during that service's Task 4.1 spec checkpoint. Identity, Ledger, and Billing events needed by their implemented/planned phases are fully specified above.
-2. If Bookkeeping & Planning ever references Counterparty directly (e.g. a supplier-tagged Expense), that would introduce a new cross-service candidate and a matching set of `billing.counterparty-*` synchronization events — not needed under the current domain model.
-3. Reconciliation (`reconciled_transaction_id`) is modeled as optional and globally one-to-one for MVP — a Transaction reconciles to at most one Expense, Revenue, or Payment, and vice versa. Ledger-owned Transaction Reconciliation Claims enforce the cross-service side of this invariant; see `services.md`. Split transactions or many-to-one reconciliation are not supported by this shape; revisit if that turns out to be needed.
-4. `Expense`/`Revenue`'s new `import_source` (`manual` vs `pdf_ocr`) and the "draft pending confirmation" step for OCR-imported records (see `contracts.md`) don't currently raise a distinct event from `bookkeeping.expense-recorded.v1`/`bookkeeping.revenue-recorded.v1` — confirmation only happens once, after which it's an ordinary record. Revisit if Reporting or anything else needs to distinguish OCR-sourced records specifically.
+1. If Bookkeeping & Planning ever references Counterparty directly (e.g. a supplier-tagged Expense), that would introduce a new cross-service candidate and a matching set of `billing.counterparty-*` synchronization events — not needed under the current domain model.
+2. Reconciliation (`reconciled_transaction_id`) is modeled as optional and globally one-to-one for MVP — a Transaction reconciles to at most one Expense, Revenue, or Payment, and vice versa. Ledger-owned Transaction Reconciliation Claims enforce the cross-service side of this invariant; see `services.md`. Split transactions or many-to-one reconciliation are not supported by this shape; revisit if that turns out to be needed.
+3. `Expense`/`Revenue`'s `import_source` (`manual` vs `pdf_ocr`) and draft-confirmation step do not raise a distinct event: a confirmed OCR record is an ordinary `bookkeeping.expense-recorded.v1` or `bookkeeping.revenue-recorded.v1` fact. Revisit only if Reporting or another consumer needs OCR provenance.

@@ -419,11 +419,11 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 2.7, 2.5a.
 
-**Implement:** no code. Re-read `domain.md` (Expense, Revenue, Plan, Planned Revenue, Planned Expense), `services.md` (Bookkeeping & Planning section), `events.md` (`bookkeeping.*.v1`), `contracts.md` (Bookkeeping & Planning section), and `api-led/system-apis.md`'s Document Extraction adapter description. Confirm what the OCR adapter's actual interface/provider is (this hasn't been pinned down anywhere yet — flag it here rather than picking a vendor mid-task).
+**Implement:** no code. Re-read `domain.md` (Expense, Revenue, Plan, Planned Revenue, Planned Expense), `services.md` (Bookkeeping & Planning section), `events.md` (`bookkeeping.*.v1`), `contracts.md` (Bookkeeping & Planning section), and `api-led/system-apis.md`'s Document Extraction adapter description. Confirm the selected Azure AI Document Intelligence production adapter remains behind Bookkeeping & Planning's application-owned `IDocumentExtractionAdapter`, with deterministic fakes in tests. Confirm that extraction with missing fields creates a `201 Created` reviewable draft rather than a failed import.
 
 **Automated tests:** none.
 
-**What you can test:** review the agent's confirmation or raised gap — this is the most likely phase to surface a real open question (the OCR provider choice), so expect this checkpoint to matter more than the others.
+**What you can test:** review the resolved specification: Azure is the provider, callers use only the application-owned adapter interface, automated tests use a deterministic fake, and missing extracted fields leave a reviewable draft for the user to complete.
 
 ### Task 4.2 — Bookkeeping & Planning service: schema + Project/Transaction inbox
 
@@ -447,7 +447,7 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 ### Task 4.4 — PDF-OCR import + draft/confirm flow
 
-**Depends on:** 4.3, 4.1 (needs the OCR provider question resolved).
+**Depends on:** 4.3, 4.1.
 
 **Implement:** `ImportExpenseFromDocument`/`ImportRevenueFromDocument` (calls the Document Extraction adapter, creates a draft record with `import_source = pdf_ocr`) and `ConfirmImportedExpense`/`ConfirmImportedRevenue` from `contracts.md`. A draft never counts toward reports until confirmed — enforce this as a hard invariant (e.g. a query flag or separate draft state), not just a UI convention.
 
@@ -604,7 +604,7 @@ Phase 6 is less uniformly "vertical slice, then Playwright" than Phases 1–5, s
 | 1. Foundation & Identity/Tenancy | 1.1–1.10 (10) | — |
 | 2. Financial Accounts & Ledger | 2.1–2.7, 2.5a (8) | First inbox/replica proof (2.2); global reconciliation claims (2.5a) |
 | 3. Billing & Invoicing | 3.1–3.8, 3.7a–3.7k (19) | Can run parallel to Phase 4 from 3.1 onward |
-| 4. Bookkeeping & Planning | 4.1–4.7 (7) | Can run parallel to Phase 3 from 4.1 onward; 4.1/4.4 carry the open OCR-provider question |
+| 4. Bookkeeping & Planning | 4.1–4.7 (7) | Can run parallel to Phase 3 from 4.1 onward |
 | 5. Reporting & Dashboards | 5.1–5.5 (5) | 5.1 depends on both 3.8 and 4.7 — the fork rejoins here |
 | 6. Hardening & Launch Readiness | 6.1–6.5 (5) | 6.1 and 6.4 need Gerardo's input, not just agent execution |
 

@@ -973,7 +973,7 @@ Validates `transactionId` against this service's local `transaction_replica` and
 
 #### `ImportExpenseFromDocument` / `ImportRevenueFromDocument`
 
-Calls the Document Extraction adapter (`api-led/system-apis.md`) and creates a **draft** record — `confirmedAt` is left null.
+Calls Bookkeeping & Planning's `IDocumentExtractionAdapter`, whose production Infrastructure implementation uses Azure AI Document Intelligence (`api-led/system-apis.md`), and creates a **draft** record — `confirmedAt` is left null. The application-facing adapter result contains optional `amountMinor`, `date`, `category`, `confidence`, and diagnostics; callers and tests do not depend on Azure SDK types.
 
 **Routes:** `POST /api/v1/expenses/import-document`, `POST /api/v1/revenues/import-document` (`multipart/form-data`)
 
@@ -990,7 +990,7 @@ projectId: guid
   "importSource": "\"pdf_ocr\"",
   "confirmedAt": "null",
   "extracted": {
-    "amountMinor": "int — OCR best guess",
+    "amountMinor": "int optional — OCR best guess; null when no amount was extracted",
     "date": "date optional — OCR best guess",
     "category": "string optional — OCR best guess",
     "confidence": "decimal optional — 0.0-1.0, if the adapter provides one"
@@ -1000,7 +1000,9 @@ projectId: guid
 }
 ```
 
-**Errors:** `422 Unprocessable Entity` if the OCR adapter can't extract a usable amount at all (still worth creating an empty draft for manual fill-in — this is a UX call for the frontend to make, not a hard failure).
+**Behavior when no amount is extracted:** return `201 Created` with an empty reviewable draft (`extracted.amountMinor` is null). The user can supply the amount and any other missing values during confirmation; the record remains excluded from report-facing queries until then.
+
+**Errors:** `422 Unprocessable Entity` for an invalid or unsupported PDF upload, or when the Document Extraction provider cannot process the request. An extraction that succeeds but omits one or more fields is not an error.
 
 **Note:** no event fires here — only `ConfirmImportedExpense`/`ConfirmImportedRevenue` does.
 
