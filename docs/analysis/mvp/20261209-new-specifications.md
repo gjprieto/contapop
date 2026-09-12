@@ -41,3 +41,8 @@ I found some new requirements and clarifications that emerged after completing T
     - Allow one or more item lines when creating an invoice.
     - Allow editing only while an invoice is a draft. Counterparty, direction, and type remain immutable; invoice date, due date, and item lines can change.
     - Provide an edit action from invoice details, a cancel path that persists nothing, and a save path that recalculates all line and invoice totals.
+- Task 3.7j: Specify uploaded invoice documents and other attachments:
+    - Stop generating invoice PDFs automatically when an invoice is registered or issued.
+    - Before a file is selected while no invoice document exists, ask whether it is an `Invoice` or `Other type of attachment`.
+    - If an invoice document exists, the document-icon action opens that uploaded document; hide the action when no invoice document is attached.
+    - Allow other attachments in addition to the one optional invoice document. Once an invoice document exists, later uploads are other attachments without another type choice. Removing the invoice document restores the type choice for the next upload.

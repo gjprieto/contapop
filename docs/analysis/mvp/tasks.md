@@ -379,11 +379,31 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **What you can test:** create an invoice with multiple items and verify the displayed net/VAT/total. Open a draft invoice, edit its dates and line collection, save, and confirm the details and list totals refresh. Confirm the Edit action is absent after issuing, voiding, paying, overdue transition, or archiving.
 
+### Task 3.7j — Specify uploaded invoice documents and other attachments
+
+**Depends on:** 3.7a, 3.7e.
+
+**Implement:** no code. Remove generated-invoice-PDF behavior from the MVP specification: registering or issuing an Invoice must not generate a document, and `GenerateInvoiceDocument` must be removed from the System and Experience API contracts. Replace the current one-per-invoice `InvoiceAttachment` model with an attachment collection in which an Invoice has zero or one attachment of type `invoice` and zero or more attachments of type `other`. Before the user selects a file while no `invoice` attachment exists, require them to choose `Invoice` or `Other type of attachment`; persist that choice with the attachment metadata. Once an `invoice` attachment exists, subsequent uploads must be recorded as `other` without prompting for a type. If the `invoice` attachment is removed, prompt for a type again on the next upload. The existing document-icon row action must open the uploaded `invoice` attachment in a new browser tab and must be hidden when no `invoice` attachment exists. Other attachments remain manageable from invoice details and must not make that row action visible. Define the revised upload, download, replace, and removal routes and responses, including how a specific attachment is addressed; retain tenant isolation, file validation, Blob cleanup, idempotency, and archive/delete cleanup guarantees. Update every affected authoritative specification: `domain.md`, `services.md`, `events.md`, `contracts.md`, `screens-and-features.md`, `scope-decisions.md`, and `workplan.md` as applicable. Also update this task breakdown and `20261209-new-specifications.md` so no generated-PDF or single-attachment requirement remains.
+
+**Automated tests:** none; this task is complete only when the documentation consistently defines the attachment collection, its type-selection state machine, and the conditional document-icon behavior, making the follow-up implementation independently implementable.
+
+**What you can test:** review the approved specification and verify these cases are unambiguous: no attachment means the document icon is hidden; first upload requires a type; uploading an invoice document makes the icon open that file; later uploads need no type choice and are other attachments; removing the invoice document hides the icon and restores the type choice for the next upload.
+
+### Task 3.7k — Implement uploaded invoice documents and other attachments
+
+**Depends on:** 3.7j.
+
+**Implement:** implement the attachment model and UI specified by Task 3.7j. Remove generated-invoice-PDF generation and its System/Experience API endpoints. Migrate Billing from one attachment per invoice to a collection that permits zero or one `invoice` attachment and zero or more `other` attachments, with each attachment's type persisted and the invoice-type uniqueness enforced transactionally. Implement the revised attachment upload, download, replace, and removal contracts, addressing each attachment explicitly and preserving authenticated tenant isolation, PDF/PNG/JPEG signature and size validation, idempotent removal, and durable Blob cleanup. Update archive and draft-deletion cleanup to remove every attachment and blob. In the frontend, prompt for `Invoice` or `Other type of attachment` before file selection whenever the invoice has no invoice attachment; after one exists, upload later documents as `other` without a type prompt; restore the prompt after it is removed. Replace the generated-PDF document-icon action with a conditional action that opens the uploaded invoice attachment in a new tab and is absent when none exists. Display and manage all attachments from invoice details, without exposing other attachments through the row action. Invalidate invoice list/detail queries after every attachment mutation.
+
+**Automated tests:** Billing migration and integration tests for attachment-type persistence, one-invoice-attachment enforcement, multiple other attachments, type-selection transitions after removal, tenant isolation, file validation, download/replace/remove behavior, and archive/draft-deletion cleanup. Experience API forwarding coverage. Frontend component tests for the type prompt, conditional document-icon visibility and browser-tab opening, automatic other-attachment uploads, attachment management, confirmation, validation feedback, and cache refresh. Update the Phase 3 Playwright flow to cover these scenarios and confirm no generated PDF endpoint is invoked.
+
+**What you can test:** attach an `Other type of attachment` document first and confirm the document icon remains hidden; then attach an `Invoice` document and open it from the icon in a new tab. Upload another document and confirm it is automatically classified as other without a prompt. Remove the invoice document, confirm the icon disappears, then upload another document and confirm the type choice is offered again.
+
 ### Task 3.8 — Phase 3 Playwright E2E
 
-**Depends on:** 3.7a, 3.7b, 3.7c, 3.7d, 3.7e, 3.7f, 3.7g, 3.7i.
+**Depends on:** 3.7a, 3.7b, 3.7c, 3.7d, 3.7e, 3.7f, 3.7g, 3.7i, 3.7j, 3.7k.
 
-**Implement:** the Phase 3 Playwright test from `workplan.md`: create a counterparty and multi-line draft invoice; edit its dates and line collection and confirm recalculated totals; filter and open its details; attach, view, replace, and remove a source document; issue it; record and reconcile a payment against a Phase 2 transaction; watch the invoice flip to paid; confirm archive is unavailable; and open the generated PDF through its document icon. Include a second payment-free invoice to exercise confirmed archival and the archived filter, plus a separate accidental draft to exercise confirmed permanent deletion.
+**Implement:** the Phase 3 Playwright test from `workplan.md`: create a counterparty and multi-line draft invoice; edit its dates and line collection and confirm recalculated totals; filter and open its details; attach an other document first and confirm the document icon is hidden; attach an invoice document and open it through the icon; upload another document without a type prompt; remove the invoice document and confirm the type prompt returns; issue the invoice; record and reconcile a payment against a Phase 2 transaction; watch the invoice flip to paid; and confirm archive is unavailable. Include a second payment-free invoice to exercise confirmed archival and the archived filter, plus a separate accidental draft to exercise confirmed permanent deletion.
 
 **Automated tests:** the Playwright spec itself.
 
@@ -583,9 +603,9 @@ Phase 6 is less uniformly "vertical slice, then Playwright" than Phases 1–5, s
 |---|---|---|
 | 1. Foundation & Identity/Tenancy | 1.1–1.10 (10) | — |
 | 2. Financial Accounts & Ledger | 2.1–2.7, 2.5a (8) | First inbox/replica proof (2.2); global reconciliation claims (2.5a) |
-| 3. Billing & Invoicing | 3.1–3.8 (8) | Can run parallel to Phase 4 from 3.1 onward |
+| 3. Billing & Invoicing | 3.1–3.8, 3.7a–3.7k (19) | Can run parallel to Phase 4 from 3.1 onward |
 | 4. Bookkeeping & Planning | 4.1–4.7 (7) | Can run parallel to Phase 3 from 4.1 onward; 4.1/4.4 carry the open OCR-provider question |
 | 5. Reporting & Dashboards | 5.1–5.5 (5) | 5.1 depends on both 3.8 and 4.7 — the fork rejoins here |
 | 6. Hardening & Launch Readiness | 6.1–6.5 (5) | 6.1 and 6.4 need Gerardo's input, not just agent execution |
 
-**43 tasks total.** If Phases 3 and 4 genuinely run as two parallel agent workstreams once Phase 2 (including 2.5a) is done, the critical path through the whole MVP is 1 → 2 → (3 or 4, whichever finishes later) → 5 → 6, i.e. roughly 10 + 8 + 8 + 5 + 5 = 36 tasks deep rather than 43 if fully serialized.
+**54 tasks total.** If Phases 3 and 4 genuinely run as two parallel agent workstreams once Phase 2 (including 2.5a) is done, the critical path through the whole MVP is 1 → 2 → (3 or 4, whichever finishes later) → 5 → 6, i.e. roughly 10 + 8 + 19 + 5 + 5 = 47 tasks deep rather than 54 if fully serialized.
