@@ -60,10 +60,10 @@ public static class InvoiceEndpoints
         return Results.Ok(invoice with { Lines = lines, Payments = payments });
     }
 
-    private static async Task<IResult> ListAsync(string? status, string? direction, string? search, string? sort, int? page, int? pageSize, HttpContext context, BillingDbContext database, CancellationToken cancellationToken)
+    private static async Task<IResult> ListAsync(string? status, string? direction, string? type, DateOnly? dateFrom, DateOnly? dateTo, long? totalAmountMinMinor, long? totalAmountMaxMinor, string? search, string? sort, int? page, int? pageSize, HttpContext context, BillingDbContext database, CancellationToken cancellationToken)
     {
         if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
-        if (status is not null && status is not ("draft" or "issued" or "paid" or "overdue" or "void") || direction is not null && direction is not ("incoming" or "outgoing") || sort is not null && sort is not ("date:asc" or "date:desc" or "amount:asc" or "amount:desc")) return Results.ValidationProblem(new Dictionary<string, string[]> { ["query"] = ["One or more query parameters are invalid."] });
+        if (status is not null && status is not ("draft" or "issued" or "paid" or "overdue" or "void" or "archived") || direction is not null && direction is not ("incoming" or "outgoing") || type is not null && type is not ("service" or "product") || dateFrom > dateTo || totalAmountMinMinor is < 0 || totalAmountMaxMinor is < 0 || totalAmountMinMinor > totalAmountMaxMinor || sort is not null && sort is not ("date:asc" or "date:desc" or "amount:asc" or "amount:desc")) return Results.ValidationProblem(new Dictionary<string, string[]> { ["query"] = ["One or more query parameters are invalid."] });
         var actualPage = Math.Max(page ?? 1, 1);
         var actualPageSize = Math.Clamp(pageSize ?? 25, 1, 100);
         var query = from invoice in database.Invoices.AsNoTracking()
@@ -71,7 +71,13 @@ public static class InvoiceEndpoints
                     where invoice.TenantId == tenantId
                     select new { Invoice = invoice, CounterpartyName = counterparty.Name };
         if (status is not null) query = query.Where(item => item.Invoice.Status == status);
+        else query = query.Where(item => item.Invoice.Status != "archived");
         if (direction is not null) query = query.Where(item => item.Invoice.Direction == direction);
+        if (type is not null) query = query.Where(item => item.Invoice.Type == type);
+        if (dateFrom is not null) query = query.Where(item => item.Invoice.Date >= dateFrom);
+        if (dateTo is not null) query = query.Where(item => item.Invoice.Date <= dateTo);
+        if (totalAmountMinMinor is not null) query = query.Where(item => item.Invoice.TotalAmountMinor >= totalAmountMinMinor);
+        if (totalAmountMaxMinor is not null) query = query.Where(item => item.Invoice.TotalAmountMinor <= totalAmountMaxMinor);
         if (!string.IsNullOrWhiteSpace(search)) { var term = search.Trim(); query = query.Where(item => item.CounterpartyName.Contains(term)); }
         var total = await query.CountAsync(cancellationToken);
         var ordered = sort switch
