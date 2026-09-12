@@ -27,9 +27,9 @@ Manages the tenant's linked financial sources and the movement ledger fed by the
 ## Billing & Invoicing Service
 
 **Hosts:** Invoicing and Payments System APIs, plus a Counterparties (Customer/Supplier) System API
-**Owns:** Invoice or Ticket, Payment, Counterparty (Customer/Supplier)
+**Owns:** Invoice or Ticket, Invoice Attachment, Payment, Counterparty (Customer/Supplier)
 
-Invoice status derives from payment activity, and both need a bill-to/bill-from party. **Decision (2026-09-06): Counterparty is added to `domain.md`** as a first-class entity, referenced by Invoice via `counterparty_id` plus a `direction` field for the incoming/outgoing distinction the Invoices screen needs. This also fills the "Clients System API" already named as an example in `architecture-guidelines.md` with no backing entity. Keeping Invoicing, Payments, and Counterparties together avoids a synchronous cross-service round trip every time an invoice is closed. **Decision (2026-09-06): full reconciliation is in MVP scope** — Payment can be matched against a Financial Accounts & Ledger Transaction, a new cross-service reference this service must validate (see the Data Consistency Strategy below).
+Invoice status derives from payment activity, and both need a bill-to/bill-from party. **Decision (2026-09-06): Counterparty is added to `domain.md`** as a first-class entity, referenced by Invoice via `counterparty_id` plus a `direction` field for the incoming/outgoing distinction the Invoices screen needs. This also fills the "Clients System API" already named as an example in `architecture-guidelines.md` with no backing entity. Keeping Invoicing, Payments, and Counterparties together avoids a synchronous cross-service round trip every time an invoice is closed. **Decision (2026-09-06): full reconciliation is in MVP scope** — Payment can be matched against a Financial Accounts & Ledger Transaction, a new cross-service reference this service must validate (see the Data Consistency Strategy below). **Decision (2026-09-12): invoice attachments belong to Billing** — Billing stores one attachment's metadata per invoice in PostgreSQL and its bytes in a private Azure Blob Storage container, using Azurite through the Aspire integration locally. Blob names are tenant-scoped and downloads are authorized through Billing; the frontend never receives storage credentials or a durable public blob URL.
 
 **Split trigger:** Counterparties becomes genuine shared reference data needed independently by other bounded contexts.
 
@@ -75,7 +75,7 @@ This internal Process API coordinates the narrow strict-global-reconciliation pr
 |---|---|---|
 | Identity & Tenancy | Identity & Tenancy | Tenant, User, Project |
 | Financial Accounts & Ledger | Bank Accounts, Payment Cards, Transactions | Bank Account, Credit/Debit Card, Transaction |
-| Billing & Invoicing | Invoicing, Payments, Counterparties | Invoice/Ticket, Payment, Counterparty |
+| Billing & Invoicing | Invoicing, Payments, Counterparties | Invoice/Ticket, Invoice Attachment, Payment, Counterparty |
 | Bookkeeping & Planning | Expenses, Revenues, Planning | Expense, Revenue, Plan, Planned Revenue, Planned Expense |
 | Reporting | none (Process/read-model) | projections; optionally Report metadata |
 | Experience API | none (Experience layer) | none — aggregates the above |
@@ -113,6 +113,8 @@ Each database gets its own EF Core migration history and its own dedicated datab
 **First candidate to split onto its own server instance:** Financial Accounts & Ledger, once real bank-feed ingestion volume needs its own scaling/reliability profile, or card handling reaches a compliance scope that calls for network-level isolation.
 
 **Redis** stays a single shared instance across all services (as already provisioned), since its only uses per `architecture-guidelines.md` — output caching, distributed locks, outbox/inbox pub-sub — are explicitly non-authoritative. Namespace keys per service to avoid collisions; do not use it as the only copy of any financial data.
+
+**Azure Blob Storage** stores invoice attachment bytes in a private Billing-owned container. Local development uses Aspire's Azure Storage integration with the Azurite emulator; production uses an Azure Storage account. Billing PostgreSQL remains authoritative for attachment ownership and metadata. All upload, download, replace, and removal operations go through authenticated Billing endpoints that enforce `tenant_id`; clients never access blobs through public URLs.
 
 ## Cross-Service Data Consistency Strategy
 

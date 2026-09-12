@@ -239,6 +239,19 @@ These aren't domain synchronization events — nothing replicates them into a lo
 | `due_date` | |
 | `overdue_at` | |
 
+### `billing.invoice-archived.v1`
+
+**Producer:** Billing & Invoicing, when `ArchiveInvoice` succeeds for an invoice with no Payment records.
+**Consumers:** Reporting; Phase 6 notifications remove any pending reminder for the invoice.
+
+| Payload field | Notes |
+|---|---|
+| `invoice_id` | |
+| `project_id` | |
+| `direction` | `incoming` or `outgoing` |
+| `previous_status` | `draft`, `issued`, `overdue`, or `void` |
+| `archived_at` | |
+
 - **Financial Accounts & Ledger:**
 
 ### `ledger.bank-account-linked.v1`

@@ -289,11 +289,61 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **What you can test:** in the browser, create a counterparty and issue an invoice, see it listed with correct status/type/direction filters, record a payment against it, reconcile that payment against a transaction from Phase 2, see the invoice flip to paid, download the PDF.
 
-### Task 3.8 — Phase 3 Playwright E2E
+### Task 3.7a — Generated-document row action icon
 
 **Depends on:** 3.7.
 
-**Implement:** the Phase 3 Playwright test from `workplan.md`: create a counterparty, issue an invoice with a VAT rate, record a payment, reconcile against a Phase 2 transaction, watch the invoice flip to paid, download the generated PDF.
+**Implement:** replace the invoice row's text-labelled `PDF` action with the established document icon while preserving `GenerateInvoiceDocument` behavior exactly: fetch the generated PDF and open it in a new browser tab. Give the icon-only control an accessible name and tooltip such as "Open generated invoice PDF"; this is not the uploaded attachment introduced in Task 3.7e.
+
+**Automated tests:** update the invoice-list component test to locate the control by accessible name and assert that activating it opens the generated PDF in a new tab.
+
+**What you can test:** click the document icon on an invoice row and confirm the generated PDF still opens in another browser tab.
+
+### Task 3.7b — Invoice list filtering
+
+**Depends on:** 3.7.
+
+**Implement:** extend Billing's `ListInvoices`, its Experience API pass-through, and the invoice frontend query/types with the filtering contract in `contracts.md`: status, direction, type, inclusive `dateFrom`/`dateTo`, inclusive `totalAmountMinMinor`/`totalAmountMaxMinor`, search, date/amount sort, and pagination. Reuse the Transactions screen's URL-backed filter layout and behavior; expose EUR amount inputs converted to integer minor units at the API boundary, include every filter in the TanStack Query key, reset to page 1 when a filter changes, and add an explicit clear-filters action that restores the default non-archived list.
+
+**Automated tests:** Billing integration tests for combined status/date/total-amount bounds and archived-by-default exclusion; frontend component tests for URL/query synchronization, minor-unit conversion, page reset, filtered results, and clearing all filters.
+
+**What you can test:** combine status, invoice-date, and total-amount filters; sort and paginate the matching rows; then clear filters and see the default full non-archived invoice list.
+
+### Task 3.7c — Archive invoices
+
+**Depends on:** 3.7b.
+
+**Implement:** add the `archived` Invoice status and `ArchiveInvoice` command from `domain.md`/`contracts.md`, including its migration, Experience API pass-through, and `billing.invoice-archived.v1` outbox event. This is a soft removal: retain the invoice and lines, exclude archived invoices from the default list, and reject archiving when the invoice is `paid` or has any Payment record. Return the server-computed `canArchive` flag from invoice list/details queries so the frontend does not duplicate the payment-eligibility rule. Add a row action alongside Issue/Void only for eligible invoices, require an accessible confirmation dialog, invalidate invoice list/detail queries after success, and ensure visible counts/totals refresh. Task 3.7e extends this flow to clean up an existing attachment.
+
+**Automated tests:** domain tests for eligible statuses and rejection of paid/payment-linked invoices; integration tests proving soft deletion, default-list exclusion, idempotency, and the outbox event; component tests for action visibility, cancel/confirm behavior, and query invalidation.
+
+**What you can test:** archive a draft or unpaid invoice with no payments after confirming, verify it leaves the default list but appears under the archived filter, and verify an invoice with a payment has no archive action and is rejected by the API.
+
+### Task 3.7d — Invoice details view
+
+**Depends on:** 3.7c.
+
+**Implement:** add a dedicated `/invoices/:invoiceId` frontend route backed by the existing `GetInvoiceById` System/Experience API contract. Add an eye-icon row action alongside Issue/Void/Archive with an accessible name. Display counterparty, direction, type, dates, status, every line item, net/VAT/total amounts, payment history and reconciliation state, plus attachment metadata once Task 3.7e lands. Provide an explicit return to the invoice list that preserves its URL-backed filters. Use a dedicated invoice-detail TanStack query and invalidate/update it after invoice status, payment, or attachment mutations so it never remains stale after a successful change.
+
+**Automated tests:** component tests for the complete details rendering, loading/not-found/error states, filter-preserving back navigation, and cache refresh after a status/payment mutation; retain the existing Experience API integration coverage for `GetInvoiceById` and extend it only if the response mapping is incomplete.
+
+**What you can test:** open an invoice through the eye icon, inspect all lines/totals/status/payment history, change its status or payment state, confirm the details refresh, and return to the same filtered invoice list.
+
+### Task 3.7e — Invoice attachment
+
+**Depends on:** 3.7d.
+
+**Implement:** add the one-per-invoice `InvoiceAttachment` entity and migration plus `AttachInvoiceDocument`, `RemoveInvoiceDocument`, and `GetInvoiceAttachment` from `domain.md`/`contracts.md`. Add an Aspire Azure Storage resource configured to use Azurite locally and inject its private Billing-owned Blob container into Billing; production uses Azure Blob Storage. Store only tenant-scoped metadata/reference data in Billing PostgreSQL. Accept PDF, PNG, or JPEG up to 10 MB, validating declared type and file signature. Add a paperclip row action and details-view controls to upload, open, replace, or remove the attachment; distinguish it clearly from the generated invoice PDF. Replacements must make the new blob/metadata durable before scheduling old-blob cleanup, removals are idempotent, cleanup failures are retried, and all blob operations enforce the authenticated tenant. Extend `ArchiveInvoice` to remove an existing attachment through the same durable cleanup path.
+
+**Automated tests:** migration and Billing integration tests using Azurite for upload/download/replace/remove, tenant isolation, invalid signature/type, empty file, over-10-MB rejection, and archive cleanup; frontend component tests for the paperclip action, attachment metadata, validation feedback, and replace/remove confirmation/cache refresh.
+
+**What you can test:** attach a PDF, PNG, or JPEG from the row action; view it in invoice details; replace and remove it; verify unsupported or oversized files are rejected and the generated-PDF document action remains independent.
+
+### Task 3.8 — Phase 3 Playwright E2E
+
+**Depends on:** 3.7a, 3.7b, 3.7c, 3.7d, 3.7e.
+
+**Implement:** the Phase 3 Playwright test from `workplan.md`: create a counterparty and invoice with a VAT rate; filter and open its details; attach, view, replace, and remove a source document; issue it; record and reconcile a payment against a Phase 2 transaction; watch the invoice flip to paid; confirm archive is unavailable; and open the generated PDF through its document icon. Include a second payment-free invoice to exercise confirmed archival and the archived filter.
 
 **Automated tests:** the Playwright spec itself.
 
@@ -393,7 +443,7 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 5.1.
 
-**Implement:** create `src/Contapop.Reporting.Service/` with read-model projection tables in `contapop_reporting` (per `services.md`, populated only from events — never queries other services' databases directly). Subscribe to every integration event published so far: `identity.project-*.v1`, `ledger.transaction-*.v1`, `billing.invoice-issued.v1`/`-paid.v1`/`-overdue.v1`/`payment-recorded.v1`, `bookkeeping.expense-recorded.v1`/`revenue-recorded.v1`/`plan-created.v1`/`planned-expense-added.v1`/`planned-revenue-added.v1`. Project each into the read models `GetFinancialOverview` needs (totals, trends by period).
+**Implement:** create `src/Contapop.Reporting.Service/` with read-model projection tables in `contapop_reporting` (per `services.md`, populated only from events — never queries other services' databases directly). Subscribe to every integration event published so far: `identity.project-*.v1`, `ledger.transaction-*.v1`, `billing.invoice-issued.v1`/`-paid.v1`/`-overdue.v1`/`-archived.v1`/`payment-recorded.v1`, `bookkeeping.expense-recorded.v1`/`revenue-recorded.v1`/`plan-created.v1`/`planned-expense-added.v1`/`planned-revenue-added.v1`. Project each into the read models `GetFinancialOverview` needs (totals, trends by period); an archived invoice must no longer contribute to invoice totals.
 
 **Automated tests:** a projection-correctness integration test per event type — publish a fabricated event, assert the projection updates correctly; a re-delivery test proving idempotency across all of them.
 

@@ -40,6 +40,7 @@ The following additions are the selected stack for the product features. They ar
 | Tests: frontend | Vitest, React Testing Library, and MSW | Component, interaction, and API-boundary tests without depending on a live backend. |
 | End-to-end tests | Playwright | Validate critical workflows: sign-in, creating a client, issuing an invoice, recording an expense, and viewing balances. |
 | Database operations | Aspire PostgreSQL integration for local development; managed PostgreSQL in production | Run the development database alongside the API and Redis. Production database backups, encryption, and upgrades are managed by the hosting provider. |
+| Object storage | Azure Blob Storage; Aspire Azure Storage integration with Azurite locally | Store private invoice attachment bytes outside PostgreSQL while Billing retains authoritative attachment metadata and tenant ownership. |
 | Deployment | Containerized ASP.NET Core API with the Vite build published to `wwwroot` | Align with the existing `PublishWithContainerFiles` configuration and deploy the API as a single web workload. |
 | CI | GitHub Actions | Restore dependencies, run linting and tests, build the frontend and backend, and publish deployable artifacts. |
 

@@ -45,13 +45,13 @@ Per `docs/analysis/mvp/scope-decisions.md`'s test-rigor decision, only the money
 **Depends on:** Phase 1 (Project) and Phase 2 (Transaction, for reconciliation).
 
 **Delivers:**
-- Counterparty CRUD, Invoice (VAT breakdown, direction, counterparty reference), `IssueInvoice`, `VoidInvoice`, `RecordPayment`, `ReconcilePaymentWithTransaction` (second proof of the event backbone — this service replicating Financial Accounts & Ledger's Transaction), `GenerateInvoiceDocument` (PDF), the `MarkInvoicesOverdue` background job.
-- Publishing `billing.invoice-issued.v1`, `billing.invoice-paid.v1`, `billing.invoice-overdue.v1`, `billing.payment-recorded.v1` for Phase 5's Reporting to consume.
-- Frontend: Invoices screen, Payments screen.
+- Counterparty CRUD, Invoice (VAT breakdown, direction, counterparty reference), `IssueInvoice`, `VoidInvoice`, `ArchiveInvoice`, invoice filtering/details and one Blob-backed attachment, `RecordPayment`, `ReconcilePaymentWithTransaction` (second proof of the event backbone — this service replicating Financial Accounts & Ledger's Transaction), `GenerateInvoiceDocument` (PDF), the `MarkInvoicesOverdue` background job.
+- Publishing `billing.invoice-issued.v1`, `billing.invoice-paid.v1`, `billing.invoice-overdue.v1`, `billing.invoice-archived.v1`, `billing.payment-recorded.v1` for Phase 5's Reporting to consume.
+- Frontend: Invoices list/details screens, Payments screen.
 
-**E2E test:** create a counterparty, issue an invoice with a VAT rate, record a payment, reconcile that payment against a Phase 2 transaction, watch the invoice flip to paid, download the generated PDF.
+**E2E test:** create a counterparty, issue an invoice with a VAT rate, filter and open its details, attach/view/replace/remove a source document, record a payment, reconcile that payment against a Phase 2 transaction, watch the invoice flip to paid, confirm it can no longer be archived, and download the generated PDF.
 
-**Spec basis:** `domain.md` (Counterparty, Invoice/Ticket, Payment), `services.md` (Billing & Invoicing section), `events.md` (`billing.*.v1`), `contracts.md` (Billing & Invoicing section).
+**Spec basis:** `domain.md` (Counterparty, Invoice/Ticket, Invoice Attachment, Payment), `services.md` (Billing & Invoicing section and Blob Storage), `events.md` (`billing.*.v1`), `contracts.md` (Billing & Invoicing section).
 
 ## Phase 4 — Bookkeeping & Planning
 

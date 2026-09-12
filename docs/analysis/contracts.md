@@ -484,7 +484,7 @@ Live bank feed integration (the Bank Feed Integration System API named in `api-l
 
 Screens: Invoices, Payments.
 
-**Resolved here:** the original note that "creation and issuing may be the same step" is settled — `CreateInvoice` creates a `draft`, `IssueInvoice` transitions it to `issued` and fires the event, and `VoidInvoice` only accepts a `draft`. This mirrors the `status` enum added to `domain.md`'s Invoice entity and matches the Invoices screen's need to show draft invoices before they're sent.
+**Resolved here:** the original note that "creation and issuing may be the same step" is settled — `CreateInvoice` creates a `draft`, `IssueInvoice` transitions it to `issued` and fires the event, and `VoidInvoice` only accepts a `draft`. This mirrors the `status` enum added to `domain.md`'s Invoice entity and matches the Invoices screen's need to show draft invoices before they're sent. Invoice removal is the `ArchiveInvoice` status transition rather than a hard delete; it is allowed only when no Payment records reference the invoice and the invoice is not `paid`.
 
 ### Commands
 
@@ -496,6 +496,9 @@ Screens: Invoices, Payments.
 | `CreateInvoice` | `POST /api/v1/invoices` | Invoices |
 | `IssueInvoice` | `POST /api/v1/invoices/{invoiceId}/issue` | Invoices |
 | `VoidInvoice` | `POST /api/v1/invoices/{invoiceId}/void` | Invoices |
+| `ArchiveInvoice` | `POST /api/v1/invoices/{invoiceId}/archive` | Invoices |
+| `AttachInvoiceDocument` | `PUT /api/v1/invoices/{invoiceId}/attachment` | Invoices |
+| `RemoveInvoiceDocument` | `DELETE /api/v1/invoices/{invoiceId}/attachment` | Invoices |
 | `RecordPayment` | `POST /api/v1/payments` | Payments |
 | `ReconcilePaymentWithTransaction` | `POST /api/v1/payments/{paymentId}/reconcile` | Payments |
 
@@ -610,6 +613,44 @@ Draft only.
 
 **Errors:** `409 Conflict` if the invoice isn't currently `draft`.
 
+#### `ArchiveInvoice`
+
+Soft-removes an invoice from the default list. This never deletes the Invoice, its lines, or its audit history. Archiving also removes the invoice's attachment, if present, using the attachment blob-cleanup retry behavior defined in `domain.md`.
+
+**Route:** `POST /api/v1/invoices/{invoiceId}/archive`
+
+**Request:** *(no body)*
+
+**Response:** `200 OK`
+```
+{ "invoiceId": "guid", "status": "\"archived\"", "updatedAt": "date-time", "version": "int" }
+```
+
+**Errors:** `409 Conflict` if the invoice is `paid` or any Payment record references it. Already archived requests are idempotent and return the current archived representation.
+
+**Event:** `billing.invoice-archived.v1`, written to the outbox in the same transaction as the status change so Reporting can remove an invoice that had previously been issued.
+
+#### `AttachInvoiceDocument`
+
+Creates or replaces the invoice's single attachment. This uploaded source document is independent from the generated PDF returned by `GenerateInvoiceDocument`.
+
+**Route:** `PUT /api/v1/invoices/{invoiceId}/attachment` (`multipart/form-data`)
+
+**Request:** `file` binary, required. Accepted types are PDF, PNG, and JPEG (`application/pdf`, `image/png`, `image/jpeg`); maximum size is 10 MB (10,485,760 bytes). The service validates the file signature as well as the declared media type and sanitizes the display filename.
+
+**Response:** `200 OK` when replacing, `201 Created` when attaching for the first time.
+```
+{ "attachmentId": "guid", "invoiceId": "guid", "fileName": "string", "contentType": "string", "sizeBytes": "long", "createdAt": "date-time", "updatedAt": "date-time" }
+```
+
+**Errors:** `413 Content Too Large` above 10 MB; `422 Unprocessable Entity` for an empty file, unsupported type, or mismatched file signature; `409 Conflict` if the invoice is archived.
+
+#### `RemoveInvoiceDocument`
+
+**Route:** `DELETE /api/v1/invoices/{invoiceId}/attachment`
+
+**Response:** `204 No Content`. Repeated removal is idempotent.
+
 #### `RecordPayment`
 
 **Route:** `POST /api/v1/payments`
@@ -629,7 +670,7 @@ Draft only.
 { "paymentId": "guid", "invoiceId": "guid", "amountMinor": "int", "date": "date", "paymentMethod": "string", "createdAt": "date-time", "version": "int" }
 ```
 
-**Errors:** `409 Conflict` if the invoice is `draft` or `void` (a payment can only be recorded against an `issued`, `paid`, or `overdue` invoice).
+**Errors:** `409 Conflict` if the invoice is `draft`, `void`, or `archived` (a payment can only be recorded against an `issued`, `paid`, or `overdue` invoice).
 
 **Events:** `billing.payment-recorded.v1`; also `billing.invoice-paid.v1` once this invoice's payments sum to its `totalAmountMinor`.
 
@@ -660,6 +701,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
 | `ListInvoices` | `GET /api/v1/invoices` | Invoices |
 | `GetInvoiceById` | `GET /api/v1/invoices/{invoiceId}` | Invoices |
 | `GenerateInvoiceDocument` | `GET /api/v1/invoices/{invoiceId}/document` | Invoices |
+| `GetInvoiceAttachment` | `GET /api/v1/invoices/{invoiceId}/attachment` | Invoices |
 | `ListPayments` | `GET /api/v1/payments` | Payments |
 
 #### `ListCounterparties`
@@ -695,7 +737,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
 
 **Route:** `GET /api/v1/invoices`
 
-**Query params:** `status` optional (`draft` \| `issued` \| `paid` \| `overdue` \| `void`), `direction` optional (`incoming` \| `outgoing`), plus shared `search`/`sort`/`page`/`pageSize`.
+**Query params:** `status` optional (`draft` \| `issued` \| `paid` \| `overdue` \| `void` \| `archived`; archived invoices are excluded when omitted), `direction` optional (`incoming` \| `outgoing`), `type` optional (`service` \| `product`), `dateFrom`/`dateTo` optional inclusive invoice-date bounds, `totalAmountMinMinor`/`totalAmountMaxMinor` optional inclusive non-negative EUR minor-unit bounds, plus shared `search`/`sort`/`page`/`pageSize`. Supported sorts include `date:asc`, `date:desc`, `amount:asc`, and `amount:desc`.
 
 **Response:** `200 OK`
 ```
@@ -703,7 +745,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
   "items": [
     {
       "invoiceId": "guid", "counterpartyId": "guid", "counterpartyName": "string",
-      "direction": "string", "type": "string", "status": "string",
+      "direction": "string", "type": "string", "status": "string", "canArchive": "bool",
       "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int",
       "date": "date", "dueDate": "date", "version": "int"
     }
@@ -720,7 +762,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
 ```
 {
   "invoiceId": "guid", "projectId": "guid", "counterpartyId": "guid", "counterpartyName": "string",
-  "direction": "string", "type": "string", "status": "string",
+  "direction": "string", "type": "string", "status": "string", "canArchive": "bool",
   "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int",
   "lines": [
     { "invoiceLineId": "guid", "description": "string", "quantity": "int", "unitPriceMinor": "int", "taxRate": "decimal", "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int" }
@@ -729,6 +771,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
   "payments": [
     { "paymentId": "guid", "amountMinor": "int", "date": "date", "paymentMethod": "string", "reconciledTransactionId": "guid optional" }
   ],
+  "attachment": { "attachmentId": "guid", "fileName": "string", "contentType": "string", "sizeBytes": "long", "createdAt": "date-time", "updatedAt": "date-time" } /* optional */,
   "createdAt": "date-time", "updatedAt": "date-time", "version": "int"
 }
 ```
@@ -740,6 +783,12 @@ Read-only — not a state change, per the original note.
 **Route:** `GET /api/v1/invoices/{invoiceId}/document`
 
 **Response:** `200 OK`, `Content-Type: application/pdf` — the rendered invoice PDF as the response body (not JSON).
+
+#### `GetInvoiceAttachment`
+
+**Route:** `GET /api/v1/invoices/{invoiceId}/attachment`
+
+**Response:** `200 OK`, with the stored `Content-Type`, a safe `Content-Disposition` filename, and the attachment bytes streamed from private Blob Storage. Returns `404 Not Found` when the invoice has no attachment. The endpoint authorizes the invoice's `tenant_id` before reading its tenant-scoped blob.
 
 #### `ListPayments`
 
@@ -1219,7 +1268,7 @@ Every other write action named in a service section above (creating an invoice, 
 1. ~~Every command/query lacked a concrete HTTP verb, route, request shape, and response shape~~ — resolved: fully specified above, service by service.
 2. ~~`CreateInvoice`/`IssueInvoice` — "may be the same step" was left unresolved~~ — resolved: they're two explicit steps (`draft` → `issued`), matching the `status` enum now on `domain.md`'s Invoice entity.
 3. ~~`ListUnreconciledTransactions` implied Financial Accounts & Ledger could see foreign-service reconciliation, which it can't~~ — resolved: it returns all active transactions; the actual cross-service "unreconciled" diff happens at the Experience API composition layer for the Expenses/Revenues/Payments reconciliation picker.
-4. ~~Invoice, Counterparty, Bank Account, and Plan had archive/status-transition commands but no status field in `domain.md`~~ — resolved: `domain.md` updated with a `status` field on each (Invoice gets a full `draft`/`issued`/`paid`/`overdue`/`void` enum; the other three get the existing `active`/`archived` pattern).
+4. ~~Invoice, Counterparty, Bank Account, and Plan had archive/status-transition commands but no status field in `domain.md`~~ — resolved: `domain.md` updated with a `status` field on each (Invoice gets a full `draft`/`issued`/`paid`/`overdue`/`void`/`archived` enum; the other three get the existing `active`/`archived` pattern).
 5. ~~User preferences (theme, language, notifications) had no home in `domain.md`~~ — resolved: added directly to the User entity.
 6. ~~Report's `content` field contradicted the "always computed fresh, never frozen" decision~~ — resolved: `domain.md`'s Report entity now stores `criteria`, not `content`.
 7. ~~Expense/Revenue's OCR "draft until confirmed" rule had no field to enforce it~~ — resolved: added `confirmed_at` to both in `domain.md`.

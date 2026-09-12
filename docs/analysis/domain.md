@@ -131,7 +131,7 @@ A Counterparty represents the customer or supplier on the other side of an Invoi
 
 ### Invoice or Ticket
 
-An Invoice or Ticket represents a billing or payment document associated with a tenant or project. It records details such as the amount, date, due date, and associated transactions within the system. **Decision (2026-09-06): added `counterparty_id` and `direction`** — the Invoices screen distinguishes incoming and outgoing invoices, which requires knowing which party (Counterparty) is on the other side and in which direction the money flows. **Decision (2026-09-06): basic VAT/IVA breakdown for MVP** — `amount` is replaced with a net/tax/total breakdown, the minimum needed for a usable Spanish invoice. Full Facturae/SII/Verifactu compliance is explicitly deferred past MVP (see `docs/analysis/mvp/scope-decisions.md`). **Decision (2026-09-06): added a stored `status`** — `IssueInvoice`, `VoidInvoice`, `RecordPayment`, and the `MarkInvoicesOverdue` background job (`docs/analysis/contracts.md`) all transition it, and the Invoices screen filters by it.
+An Invoice or Ticket represents a billing or payment document associated with a tenant or project. It records details such as the amount, date, due date, and associated transactions within the system. **Decision (2026-09-06): added `counterparty_id` and `direction`** — the Invoices screen distinguishes incoming and outgoing invoices, which requires knowing which party (Counterparty) is on the other side and in which direction the money flows. **Decision (2026-09-06): basic VAT/IVA breakdown for MVP** — `amount` is replaced with a net/tax/total breakdown, the minimum needed for a usable Spanish invoice. Full Facturae/SII/Verifactu compliance is explicitly deferred past MVP (see `docs/analysis/mvp/scope-decisions.md`). **Decision (2026-09-06): added a stored `status`** — `IssueInvoice`, `VoidInvoice`, `RecordPayment`, and the `MarkInvoicesOverdue` background job (`docs/analysis/contracts.md`) all transition it, and the Invoices screen filters by it. **Decision (2026-09-12): invoice removal is archival, never hard deletion** — an invoice can transition to `archived` only while it has no Payment records and is not `paid`; this preserves issued-invoice history and allows downstream projections to remove it through `billing.invoice-archived.v1`.
 
 **Attributes:**
 - `id`: Unique identifier for the invoice or ticket.
@@ -139,7 +139,7 @@ An Invoice or Ticket represents a billing or payment document associated with a 
 - `project_id`: Identifier of the project the invoice or ticket belongs to (if applicable).
 - `counterparty_id`: Identifier of the Counterparty — the customer being billed (outgoing) or the supplier billing the tenant (incoming).
 - `direction`: Whether the invoice is `outgoing` (tenant billing the counterparty) or `incoming` (counterparty billing the tenant).
-- `status`: `draft`, `issued`, `paid`, `overdue`, or `void`.
+- `status`: `draft`, `issued`, `paid`, `overdue`, `void`, or `archived`.
 - `type`: `service` or `product`, describing the invoice's billed offering.
 - `net_amount`: Computed sum of the invoice lines' net amounts.
 - `tax_amount`: Computed sum of every invoice line's VAT amount, each rounded to the nearest EUR minor unit using banker's rounding (MidpointRounding.ToEven).
@@ -148,6 +148,23 @@ An Invoice or Ticket represents a billing or payment document associated with a 
 - `due_date`: Due date of the invoice or ticket.
 - `created_at`: Timestamp when the invoice or ticket was created.
 - `updated_at`: Timestamp when the invoice or ticket was last updated.
+
+### Invoice Attachment
+
+An Invoice Attachment is the single user-uploaded source document associated with an Invoice or Ticket. Billing owns its metadata while file bytes live in tenant-isolated Azure Blob Storage (Azurite in local development). It is distinct from the generated invoice PDF returned by `GenerateInvoiceDocument`.
+
+**Attributes:**
+- `id`: Unique identifier for the attachment.
+- `invoice_id`: Identifier of the Invoice or Ticket it belongs to; unique, so an invoice has at most one attachment.
+- `tenant_id`: Identifier of the tenant that owns the attachment and its blob namespace.
+- `blob_name`: Opaque, server-generated blob identifier; never derived directly from the uploaded filename.
+- `original_file_name`: Sanitized filename supplied by the user for display and download.
+- `content_type`: Validated media type: `application/pdf`, `image/png`, or `image/jpeg`.
+- `size_bytes`: Validated file size, greater than zero and no more than 10 MB (10,485,760 bytes).
+- `created_at`: Timestamp when the current attachment was stored.
+- `updated_at`: Timestamp when the attachment was last replaced.
+
+Replacing an attachment updates the single attachment and removes the superseded blob after the new blob and metadata are durable. Removing an attachment deletes its metadata and blob. Blob cleanup failures are retried and must not expose another tenant's file.
 
 ### Invoice Line
 
@@ -288,8 +305,9 @@ A Planned Expense represents an anticipated financial outflow associated with a 
 - A Credit or Debit Card belongs to a Tenant or Project and is used to manage financial transactions.
 - A Transaction is associated with a Bank Account and records financial operations. It may be referenced by an Expense, a Revenue, or a Payment as the bank-side record they were reconciled against.
 - A Transaction Reconciliation Claim belongs to a Transaction and reserves or confirms its one permitted cross-service reconciliation with a Payment, Expense, or Revenue.
-- An Invoice or Ticket belongs to a Tenant or Project, references a Counterparty (customer or supplier), has a direction (incoming or outgoing), contains Invoice Lines, and is associated with Transactions.
+- An Invoice or Ticket belongs to a Tenant or Project, references a Counterparty (customer or supplier), has a direction (incoming or outgoing), contains Invoice Lines, may have one Invoice Attachment, and is associated with Transactions.
 - An Invoice Line belongs to one Invoice or Ticket and supplies its itemized net/VAT/total calculation.
+- An Invoice Attachment belongs to one Invoice or Ticket; its metadata is stored by Billing and its bytes are stored in tenant-isolated Azure Blob Storage.
 - A Counterparty belongs to a Tenant and is referenced by Invoices as the customer or supplier on the other side of the billing relationship.
 - A Payment is related to an Invoice or Ticket and records financial transactions. It may optionally reference a reconciled Transaction.
 - A Report belongs to a Tenant or Project and provides financial analysis.
