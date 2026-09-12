@@ -168,7 +168,7 @@ Replacing an attachment updates the single attachment and removes the superseded
 
 ### Invoice Line
 
-An Invoice Line is a billed item belonging to an Invoice or Ticket. It records the description, quantity, unit price, and VAT rate used to derive the invoice's aggregate totals. Lines can be replaced only while the parent Invoice is a draft; MVP does not support editing issued, paid, overdue, void, or archived invoices.
+An Invoice Line is a billed item belonging to an Invoice or Ticket. It records the description, quantity, unit price, and VAT rate used to derive the invoice's aggregate totals. Every Invoice has one or more lines. Lines can be replaced only while the parent Invoice is a draft; a replacement atomically removes the complete prior collection and persists the submitted collection with newly computed amounts. MVP does not support editing issued, paid, overdue, void, or archived invoices.
 
 **Attributes:**
 - `id`: Unique identifier for the invoice line.

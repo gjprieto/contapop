@@ -363,7 +363,7 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 3.7d.
 
-**Implement:** no code. Define `UpdateDraftInvoice` in the authoritative specifications. Confirm that `counterpartyId`, `direction`, and `type` are immutable after creation; a draft's invoice date, due date, and complete line-item collection are mutable; submitted lines replace the complete persisted collection atomically; totals use the established banker's-rounding rule; only drafts are editable; and no integration event is needed because drafts have not entered Reporting. Specify the frontend requirements for multi-line creation/editing, a draft-only details Edit action, a dedicated prepopulated edit route, cancellation without persistence, and query refresh after saving.
+**Implement:** no code. Define `UpdateDraftInvoice` in the authoritative specifications. Confirm that `counterpartyId`, `direction`, and `type` are immutable after creation; a draft's invoice date, due date, and complete line-item collection are mutable; submitted lines replace the complete persisted collection atomically; every Invoice has at least one line; totals use the established banker's-rounding rule; only drafts are editable; and no integration event is needed because drafts have not entered Reporting. Specify the frontend requirements for multi-line creation/editing, a draft-only details Edit action, a dedicated prepopulated edit route, cancellation without persistence, and query refresh after saving.
 
 **Automated tests:** none; this task is complete only when `domain.md`, `contracts.md`, screen scope, workplan, and this task breakdown are internally consistent and make Task 3.7i independently implementable.
 

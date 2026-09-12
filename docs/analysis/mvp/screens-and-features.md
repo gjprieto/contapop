@@ -61,7 +61,9 @@ The Invoices Screen allows users to view, manage, and track their invoices. It p
 - Invoices categorized by status (e.g., paid, unpaid, overdue), type (e.g., service, product) and if it's incoming or outgoing
 - View detailed invoice information including service/product type, items, amounts, VAT, and due dates
 - Track payment status and history for each invoice
-- Create, edit, issue, and void draft invoices; editing retains counterparty, direction, and type, while allowing invoice/due dates and the complete itemized line collection to change
+- Create a draft invoice with one or more itemized lines; show live line and aggregate net/VAT/total previews, with the server as the authoritative calculation on save
+- Edit only a draft invoice through a prepopulated dedicated form reached from its details view; retain counterparty, direction, and type as immutable context while allowing invoice/due dates and complete itemized line collection to change
+- Add and remove draft line items in the creation/edit form; cancellation returns without persistence, and a successful save refreshes invoice list and detail data
 - Delete an accidental draft invoice after confirmation only when it has no attached Payment; this permanently removes the draft and is distinct from archival
 - Archive an issued, overdue, or void invoice after confirmation only when it is not paid and has no attached Payment; archived invoices are hidden by default
 - Open the generated invoice PDF from a document-icon row action in a new browser tab

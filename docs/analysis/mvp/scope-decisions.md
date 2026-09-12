@@ -24,6 +24,14 @@ This document records scope cut-lines for the MVP — decisions about how much o
 
 **Consequence:** `DeleteDraftInvoice` removes the Invoice, all Invoice Lines, and attachment metadata transactionally. Its blob is queued for durable retry cleanup; no draft-deletion integration event is needed because Reporting receives Invoice data only from `billing.invoice-issued.v1` onward.
 
+## Draft Invoice Lines and Editing
+
+**Decision (2026-09-12):** MVP invoice creation supports one or more itemized lines. Only a draft can be edited: counterparty, direction, and type remain immutable after creation, while invoice date, due date, and the complete line collection are mutable. An edit replaces all persisted lines atomically; it does not patch individual lines.
+
+**Why:** retaining those three identity fields prevents a draft from silently becoming a different commercial document after creation, while complete line replacement keeps the editing model small and makes the server the single source of truth for VAT and aggregate recalculation. An incorrectly selected immutable value is corrected by deleting the payment-free draft and creating a new one.
+
+**Consequence:** each submitted line must have a description, positive integer quantity, positive EUR minor-unit price, and VAT rate. The service recomputes each line's net, banker's-rounded VAT, and total, then the Invoice aggregates; client-side calculations are previews only. No integration event is emitted for creation or editing of a draft because Reporting has no draft projection.
+
 ## Project Scope: Single Implicit Project
 
 **Decision (2026-09-06):** every tenant gets exactly one Project, auto-created behind the scenes when the tenant is provisioned. There is no Projects management screen, no project switcher, and no user-facing CRUD for Project in the MVP. This matches the fact that none of the 11 MVP screens in `screens-and-features.md` mention Projects at all.
