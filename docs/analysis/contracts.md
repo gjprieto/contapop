@@ -499,8 +499,9 @@ Screens: Invoices, Payments.
 | `VoidInvoice` | `POST /api/v1/invoices/{invoiceId}/void` | Invoices |
 | `ArchiveInvoice` | `POST /api/v1/invoices/{invoiceId}/archive` | Invoices |
 | `DeleteDraftInvoice` | `DELETE /api/v1/invoices/{invoiceId}` | Invoices |
-| `AttachInvoiceDocument` | `PUT /api/v1/invoices/{invoiceId}/attachment` | Invoices |
-| `RemoveInvoiceDocument` | `DELETE /api/v1/invoices/{invoiceId}/attachment` | Invoices |
+| `AttachInvoiceDocument` | `POST /api/v1/invoices/{invoiceId}/attachments` | Invoices |
+| `ReplaceInvoiceAttachment` | `PUT /api/v1/invoices/{invoiceId}/attachments/{attachmentId}` | Invoices |
+| `RemoveInvoiceAttachment` | `DELETE /api/v1/invoices/{invoiceId}/attachments/{attachmentId}` | Invoices |
 | `RecordPayment` | `POST /api/v1/payments` | Payments |
 | `ReconcilePaymentWithTransaction` | `POST /api/v1/payments/{paymentId}/reconcile` | Payments |
 
@@ -647,7 +648,7 @@ Draft only.
 
 #### `ArchiveInvoice`
 
-Soft-removes an invoice from the default list. This never deletes the Invoice, its lines, or its audit history. It removes an existing attachment through the durable cleanup path.
+Soft-removes an invoice from the default list. This never deletes the Invoice, its lines, or its audit history. It removes every attachment through the durable cleanup path.
 
 **Route:** `POST /api/v1/invoices/{invoiceId}/archive`
 
@@ -666,7 +667,7 @@ Soft-removes an invoice from the default list. This never deletes the Invoice, i
 
 #### `DeleteDraftInvoice`
 
-Permanently removes an accidental draft before it enters the financial workflow. The command is allowed only when the Invoice is currently `draft` and has no Payment records. It deletes the Invoice and all of its Invoice Lines in one database transaction. If an attachment exists, the same transaction deletes its Billing metadata and writes a durable blob-cleanup work record; physical deletion of the private blob is retried until it succeeds. The command never makes another tenant's attachment addressable and never reports success before the metadata and cleanup work are durable.
+Permanently removes an accidental draft before it enters the financial workflow. The command is allowed only when the Invoice is currently `draft` and has no Payment records. It deletes the Invoice and all of its Invoice Lines in one database transaction. The same transaction deletes every attachment's Billing metadata and writes durable blob-cleanup work records; physical deletion of each private blob is retried until it succeeds. The command never makes another tenant's attachment addressable and never reports success before the metadata and cleanup work are durable.
 
 **Route:** `DELETE /api/v1/invoices/{invoiceId}`
 
@@ -682,24 +683,42 @@ Permanently removes an accidental draft before it enters the financial workflow.
 
 #### `AttachInvoiceDocument`
 
-Creates or replaces the invoice's single attachment. This uploaded source document is independent from the generated PDF returned by `GenerateInvoiceDocument`.
+Creates one uploaded attachment. Billing does not generate invoice PDFs. When the invoice has no attachment of type `invoice`, the caller must send `attachmentType` as either `invoice` or `other`. Once an `invoice` attachment exists, the caller must omit `attachmentType`; Billing creates the new attachment as `other`. A request that supplies `attachmentType` after an invoice attachment exists is rejected so the UI cannot accidentally reintroduce a type choice. Billing enforces the single-`invoice` invariant transactionally.
 
-**Route:** `PUT /api/v1/invoices/{invoiceId}/attachment` (`multipart/form-data`)
+**Route:** `POST /api/v1/invoices/{invoiceId}/attachments` (`multipart/form-data`)
 
-**Request:** `file` binary, required. Accepted types are PDF, PNG, and JPEG (`application/pdf`, `image/png`, `image/jpeg`); maximum size is 10 MB (10,485,760 bytes). The service validates the file signature as well as the declared media type and sanitizes the display filename.
+**Request:** `file` binary, required; `attachmentType` string, conditionally required as described above (`invoice` | `other`). Accepted types are PDF, PNG, and JPEG (`application/pdf`, `image/png`, `image/jpeg`); maximum size is 10 MB (10,485,760 bytes). The service validates the file signature as well as the declared media type and sanitizes the display filename.
 
-**Response:** `200 OK` when replacing, `201 Created` when attaching for the first time.
+**Headers:** `Idempotency-Key` (required GUID).
+
+**Response:** `201 Created`.
 ```
-{ "attachmentId": "guid", "invoiceId": "guid", "fileName": "string", "contentType": "string", "sizeBytes": "long", "createdAt": "date-time", "updatedAt": "date-time" }
+{ "attachmentId": "guid", "invoiceId": "guid", "type": "string — \"invoice\" | \"other\"", "fileName": "string", "contentType": "string", "sizeBytes": "long", "createdAt": "date-time", "updatedAt": "date-time", "version": "int" }
 ```
 
-**Errors:** `413 Content Too Large` above 10 MB; `422 Unprocessable Entity` for an empty file, unsupported type, or mismatched file signature; `409 Conflict` if the invoice is archived.
+**Errors:** `413 Content Too Large` above 10 MB; `422 Unprocessable Entity` for an empty file, unsupported type, mismatched file signature, missing required type choice, or an unexpected type choice after an invoice attachment exists; `409 Conflict` if the invoice is archived or a concurrent request has already created its invoice attachment. Replaying the same `Idempotency-Key` returns the original attachment representation without storing another blob.
 
-#### `RemoveInvoiceDocument`
+#### `ReplaceInvoiceAttachment`
 
-**Route:** `DELETE /api/v1/invoices/{invoiceId}/attachment`
+Replaces the explicitly addressed attachment while preserving its type. It cannot change an `other` attachment into the invoice attachment or vice versa.
 
-**Response:** `204 No Content`. Repeated removal is idempotent.
+**Route:** `PUT /api/v1/invoices/{invoiceId}/attachments/{attachmentId}` (`multipart/form-data`)
+
+**Request:** `file` binary, required. The same PDF/PNG/JPEG, 10 MB, declared-type, signature, and filename validation as `AttachInvoiceDocument` applies.
+
+**Headers:** `Idempotency-Key` (required GUID), `If-Match` (required quoted current attachment version).
+
+**Response:** `200 OK`, using the attachment response shape above.
+
+**Errors:** `404 Not Found` if the Invoice or addressed attachment is not visible to the tenant; `409 Conflict` if the invoice is archived or `If-Match` is stale; `413`/`422` for the same file-validation failures as upload. The new blob and updated metadata must be durable before the superseded blob is queued for retry cleanup. Replaying the same `Idempotency-Key` returns the original replacement representation.
+
+#### `RemoveInvoiceAttachment`
+
+**Route:** `DELETE /api/v1/invoices/{invoiceId}/attachments/{attachmentId}`
+
+**Headers:** `Idempotency-Key` (required GUID).
+
+**Response:** `204 No Content`. Removal deletes only the addressed attachment metadata and durably queues its blob cleanup. Repeating the request with the same `Idempotency-Key` returns `204 No Content` without rescheduling cleanup; a different key after successful removal returns `404 Not Found`. Removing the sole `invoice` attachment makes the next upload require `attachmentType` again.
 
 #### `RecordPayment`
 
@@ -750,8 +769,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
 | `GetCounterpartyById` | `GET /api/v1/counterparties/{counterpartyId}` | Invoices |
 | `ListInvoices` | `GET /api/v1/invoices` | Invoices |
 | `GetInvoiceById` | `GET /api/v1/invoices/{invoiceId}` | Invoices |
-| `GenerateInvoiceDocument` | `GET /api/v1/invoices/{invoiceId}/document` | Invoices |
-| `GetInvoiceAttachment` | `GET /api/v1/invoices/{invoiceId}/attachment` | Invoices |
+| `GetInvoiceAttachment` | `GET /api/v1/invoices/{invoiceId}/attachments/{attachmentId}` | Invoices |
 | `ListPayments` | `GET /api/v1/payments` | Payments |
 
 #### `ListCounterparties`
@@ -795,7 +813,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
   "items": [
     {
       "invoiceId": "guid", "counterpartyId": "guid", "counterpartyName": "string",
-      "direction": "string", "type": "string", "status": "string", "canArchive": "bool", "canDeleteDraft": "bool",
+      "direction": "string", "type": "string", "status": "string", "canArchive": "bool", "canDeleteDraft": "bool", "invoiceAttachmentId": "guid optional",
       "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int",
       "date": "date", "dueDate": "date", "version": "int"
     }
@@ -821,24 +839,18 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
   "payments": [
     { "paymentId": "guid", "amountMinor": "int", "date": "date", "paymentMethod": "string", "reconciledTransactionId": "guid optional" }
   ],
-  "attachment": { "attachmentId": "guid", "fileName": "string", "contentType": "string", "sizeBytes": "long", "createdAt": "date-time", "updatedAt": "date-time" } /* optional */,
+  "attachments": [
+    { "attachmentId": "guid", "type": "string — \"invoice\" | \"other\"", "fileName": "string", "contentType": "string", "sizeBytes": "long", "createdAt": "date-time", "updatedAt": "date-time", "version": "int" }
+  ],
   "createdAt": "date-time", "updatedAt": "date-time", "version": "int"
 }
 ```
 
-#### `GenerateInvoiceDocument`
-
-Read-only — not a state change, per the original note.
-
-**Route:** `GET /api/v1/invoices/{invoiceId}/document`
-
-**Response:** `200 OK`, `Content-Type: application/pdf` — the rendered invoice PDF as the response body (not JSON).
-
 #### `GetInvoiceAttachment`
 
-**Route:** `GET /api/v1/invoices/{invoiceId}/attachment`
+**Route:** `GET /api/v1/invoices/{invoiceId}/attachments/{attachmentId}`
 
-**Response:** `200 OK`, with the stored `Content-Type`, a safe `Content-Disposition` filename, and the attachment bytes streamed from private Blob Storage. Returns `404 Not Found` when the invoice has no attachment. The endpoint authorizes the invoice's `tenant_id` before reading its tenant-scoped blob.
+**Response:** `200 OK`, with the stored `Content-Type`, a safe `Content-Disposition` filename, and the attachment bytes streamed from private Blob Storage. Returns `404 Not Found` when the Invoice or addressed attachment is not visible to the tenant. The endpoint authorizes the Invoice's `tenant_id` before reading its tenant-scoped blob.
 
 #### `ListPayments`
 
@@ -1301,7 +1313,7 @@ No commands or queries of its own — every endpoint here composes calls to the 
 | Financial Overview | `GET /experience/v1/financial-overview` | Reporting's `GetFinancialOverview` + Ledger's `ListBankAccounts`/`ListPaymentCards` | `POST /experience/v1/financial-overview/transactions/import` → Ledger's `ImportTransactionsFromFile` |
 | Expenses | `GET /experience/v1/expenses` | Bookkeeping's `ListExpenses` | `GET /experience/v1/expenses/unreconciled-transactions` → composes Ledger's `ListUnreconciledTransactions` minus this tenant's already-reconciled `reconciled_transaction_id`s (fetched from Bookkeeping) — the cross-service diff described in the Financial Accounts & Ledger section above |
 | Revenues | `GET /experience/v1/revenues` | Bookkeeping's `ListRevenues` | Same reconciliation-picker composition as Expenses |
-| Invoices | `GET /experience/v1/invoices` | Billing's `ListInvoices` + `ListCounterparties` | `PATCH /experience/v1/invoices/{invoiceId}` → Billing's `UpdateDraftInvoice`; `DELETE /experience/v1/invoices/{invoiceId}` → Billing's `DeleteDraftInvoice` |
+| Invoices | `GET /experience/v1/invoices` | Billing's `ListInvoices` + `ListCounterparties` | `PATCH /experience/v1/invoices/{invoiceId}` → Billing's `UpdateDraftInvoice`; `DELETE /experience/v1/invoices/{invoiceId}` → Billing's `DeleteDraftInvoice`; attachment upload, replacement, removal, and download forward the matching attachment routes below |
 | Payments | `GET /experience/v1/payments` | Billing's `ListPayments` | `GET /experience/v1/payments/unreconciled-transactions` → same composition pattern as Expenses/Revenues |
 | Transactions | `GET /experience/v1/transactions` | Ledger's `ListTransactions` | — |
 | Reports | `GET /experience/v1/reports` | Reporting's `ListReports`/`GetReportById` | — |
@@ -1309,7 +1321,7 @@ No commands or queries of its own — every endpoint here composes calls to the 
 | Settings | `GET /experience/v1/settings` | Identity & Tenancy's `GetCurrentUser` (preferences fields) | `PATCH /experience/v1/settings` → `UpdateUserPreferences`; `POST /experience/v1/settings/change-password` → `ChangePassword` |
 | User | `GET /experience/v1/user` | Identity & Tenancy's `GetCurrentUser` (profile fields) | `PATCH /experience/v1/user` → `UpdateUserProfile` |
 
-Every other write action named in a service section above (creating an invoice, recording an expense, linking a bank account, and so on) is exposed at the Experience API under the matching screen's route prefix (e.g. `POST /experience/v1/invoices` forwards to Billing's `CreateInvoice` with the same request/response shape) — these aren't re-listed individually since they're pure pass-throughs, not compositions.
+Every other write action named in a service section above (creating an invoice, recording an expense, linking a bank account, and so on) is exposed at the Experience API under the matching screen's route prefix with the same HTTP verb, path suffix, request, response, headers, and error semantics (for example, `POST /experience/v1/invoices/{invoiceId}/attachments`, `PUT /experience/v1/invoices/{invoiceId}/attachments/{attachmentId}`, `DELETE /experience/v1/invoices/{invoiceId}/attachments/{attachmentId}`, and `GET /experience/v1/invoices/{invoiceId}/attachments/{attachmentId}` forward their Billing counterparts). These pure pass-throughs are not re-listed individually because they are not compositions.
 
 ## Open Items
 

@@ -66,8 +66,8 @@ The Invoices Screen allows users to view, manage, and track their invoices. It p
 - Add and remove draft line items in the creation/edit form; cancellation returns without persistence, and a successful save refreshes invoice list and detail data
 - Delete an accidental draft invoice after confirmation only when it has no attached Payment; this permanently removes the draft and is distinct from archival
 - Archive an issued, overdue, or void invoice after confirmation only when it is not paid and has no attached Payment; archived invoices are hidden by default
-- Open the generated invoice PDF from a document-icon row action in a new browser tab
-- Attach, view, replace, or remove one PDF, PNG, or JPEG source document (maximum 10 MB) from the invoice details view
+- Open the uploaded `invoice` attachment from a document-icon row action in a new browser tab; hide the action when no such attachment exists
+- Attach, view, replace, or remove PDF, PNG, or JPEG documents (maximum 10 MB) from invoice details: at most one `invoice` attachment and any number of `other` attachments. Before the first upload while no invoice attachment exists, choose `Invoice` or `Other type of attachment`; after an invoice attachment exists, later uploads are automatically `other` until it is removed
 - Notifications and reminders for upcoming or overdue invoices
 - Navigation to related sections such as Payments and Financial Overview
 

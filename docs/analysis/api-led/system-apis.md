@@ -47,7 +47,7 @@ Core operations: create transaction (manual or bulk import), query/list by accou
 
 Matches the "Invoicing System API" example already named in the architecture guidelines.
 
-Core operations: CRUD invoice, transition status (draft/sent/paid/overdue), list/filter by status and direction, generate invoice document.
+Core operations: CRUD invoice, transition status (draft/sent/paid/overdue), list/filter by status and direction, and manage uploaded invoice attachments. The earlier generated-invoice-document operation is superseded by `domain.md` and `contracts.md`.
 
 **Resolved (2026-09-06):** `Counterparty` (customer/supplier) is now a first-class entity in `domain.md`, owned by this same service, referenced from Invoice via `counterparty_id` plus a `direction` field. This fills the "Clients System API" example already sitting in the architecture guidelines with nothing in the domain analysis to back it. Expense and Revenue do not reference it — `domain.md` doesn't model that link today.
 

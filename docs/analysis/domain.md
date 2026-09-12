@@ -151,20 +151,21 @@ An Invoice or Ticket represents a billing or payment document associated with a 
 
 ### Invoice Attachment
 
-An Invoice Attachment is the single user-uploaded source document associated with an Invoice or Ticket. Billing owns its metadata while file bytes live in tenant-isolated Azure Blob Storage (Azurite in local development). It is distinct from the generated invoice PDF returned by `GenerateInvoiceDocument`.
+An Invoice Attachment is a user-uploaded document associated with an Invoice or Ticket. An Invoice has zero or one attachment of type `invoice` and zero or more attachments of type `other`. Billing owns attachment metadata while file bytes live in tenant-isolated Azure Blob Storage (Azurite in local development). Billing never generates an invoice PDF for an Invoice.
 
 **Attributes:**
 - `id`: Unique identifier for the attachment.
-- `invoice_id`: Identifier of the Invoice or Ticket it belongs to; unique, so an invoice has at most one attachment.
+- `invoice_id`: Identifier of the Invoice or Ticket it belongs to; not unique, because an invoice can have multiple attachments.
 - `tenant_id`: Identifier of the tenant that owns the attachment and its blob namespace.
+- `type`: `invoice` or `other`. At most one attachment for an Invoice may have type `invoice`; any number may have type `other`.
 - `blob_name`: Opaque, server-generated blob identifier; never derived directly from the uploaded filename.
 - `original_file_name`: Sanitized filename supplied by the user for display and download.
 - `content_type`: Validated media type: `application/pdf`, `image/png`, or `image/jpeg`.
 - `size_bytes`: Validated file size, greater than zero and no more than 10 MB (10,485,760 bytes).
-- `created_at`: Timestamp when the current attachment was stored.
-- `updated_at`: Timestamp when the attachment was last replaced.
+- `created_at`: Timestamp when the attachment was stored.
+- `updated_at`: Timestamp when this attachment was last replaced.
 
-Replacing an attachment updates the single attachment and removes the superseded blob after the new blob and metadata are durable. Removing an attachment deletes its metadata and blob. `ArchiveInvoice` and `DeleteDraftInvoice` remove any attachment through the same durable cleanup path. Blob cleanup failures are retried and must not expose another tenant's file.
+The `(invoice_id, type = invoice)` uniqueness invariant is enforced transactionally. Before the first upload while no `invoice` attachment exists, the user chooses whether the new attachment is `invoice` or `other`; after an `invoice` attachment exists, subsequent uploads are always `other` and need no type choice. Removing the `invoice` attachment restores the type choice for the next upload. Replacing one attachment updates that attachment only and removes its superseded blob after the new blob and metadata are durable. Removing an attachment deletes its metadata and blob. `ArchiveInvoice` and `DeleteDraftInvoice` remove every attachment through the same durable cleanup path. Blob cleanup failures are retried and must not expose another tenant's file.
 
 ### Invoice Line
 
@@ -305,7 +306,7 @@ A Planned Expense represents an anticipated financial outflow associated with a 
 - A Credit or Debit Card belongs to a Tenant or Project and is used to manage financial transactions.
 - A Transaction is associated with a Bank Account and records financial operations. It may be referenced by an Expense, a Revenue, or a Payment as the bank-side record they were reconciled against.
 - A Transaction Reconciliation Claim belongs to a Transaction and reserves or confirms its one permitted cross-service reconciliation with a Payment, Expense, or Revenue.
-- An Invoice or Ticket belongs to a Tenant or Project, references a Counterparty (customer or supplier), has a direction (incoming or outgoing), contains Invoice Lines, may have one Invoice Attachment, and is associated with Transactions.
+- An Invoice or Ticket belongs to a Tenant or Project, references a Counterparty (customer or supplier), has a direction (incoming or outgoing), contains Invoice Lines, may have zero or more Invoice Attachments (at most one of type `invoice`), and is associated with Transactions.
 - An Invoice Line belongs to one Invoice or Ticket and supplies its itemized net/VAT/total calculation.
 - An Invoice Attachment belongs to one Invoice or Ticket; its metadata is stored by Billing and its bytes are stored in tenant-isolated Azure Blob Storage.
 - A Counterparty belongs to a Tenant and is referenced by Invoices as the customer or supplier on the other side of the billing relationship.

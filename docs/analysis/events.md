@@ -163,7 +163,7 @@ These are the events that make the Cross-Service Data Consistency Strategy work.
 
 ## Other Anticipated Integration Events (first pass)
 
-These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need. Their payloads are specified when their producing service is ready to implement them: Identity and Ledger are already specified, Billing is specified by Task 3.1, and Bookkeeping & Planning remains deferred to Task 4.1. Billing publishes no event when it permanently deletes a draft Invoice: drafts are not Reporting facts and never have a Reporting projection to remove.
+These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need. Their payloads are specified when their producing service is ready to implement them: Identity and Ledger are already specified, Billing is specified by Task 3.1, and Bookkeeping & Planning remains deferred to Task 4.1. Billing publishes no integration event for attachment uploads, replacements, or removals, and publishes no event when it permanently deletes a draft Invoice: attachments and drafts are not Reporting facts and never have a Reporting projection to remove.
 
 ### `identity.tenant-created.v1`
 

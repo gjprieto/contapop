@@ -22,7 +22,15 @@ This document records scope cut-lines for the MVP — decisions about how much o
 
 **Why:** an accidental draft has never become a reporting fact, so retaining it as financial history has no value. Once an Invoice has entered the financial workflow, archival preserves the owned record and produces the existing Reporting removal event.
 
-**Consequence:** `DeleteDraftInvoice` removes the Invoice, all Invoice Lines, and attachment metadata transactionally. Its blob is queued for durable retry cleanup; no draft-deletion integration event is needed because Reporting receives Invoice data only from `billing.invoice-issued.v1` onward.
+**Consequence:** `DeleteDraftInvoice` removes the Invoice, all Invoice Lines, and attachment metadata transactionally. Every attachment blob is queued for durable retry cleanup; no draft-deletion integration event is needed because Reporting receives Invoice data only from `billing.invoice-issued.v1` onward.
+
+## Invoice Attachments
+
+**Decision (2026-09-12):** Billing does not generate invoice PDFs. An Invoice can have zero or one uploaded attachment of type `invoice` and zero or more of type `other`; all accepted files are PDF, PNG, or JPEG up to 10 MB, with declared media type and signature validation.
+
+**Why:** the uploaded source document is the user-controlled artifact that should be accessible from an invoice row. Supporting documents remain manageable without making them look like the invoice itself.
+
+**Consequence:** when no invoice attachment exists, the UI asks the user to classify the next uploaded file as `invoice` or `other`. After one exists, later uploads are automatically `other`; removing it restores the classification prompt. Attachment bytes remain private to Billing and metadata is tenant-scoped. Replacing or removing an explicitly addressed attachment, archiving an invoice, and deleting a draft use the durable Blob cleanup path. Attachment mutations do not publish integration events or alter Reporting projections.
 
 ## Draft Invoice Lines and Editing
 

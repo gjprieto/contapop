@@ -263,11 +263,11 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 3.4, 3.2, 2.5a.
 
-**Implement:** `RecordPayment` (publishes `billing.payment-recorded.v1`, and `billing.invoice-paid.v1` once payments sum to `total_amount`), `ReconcilePaymentWithTransaction` (validates `transaction_id` against this service's `transaction_replica` from Task 3.2 and its matching Ledger claim from Task 2.5a — the second proof-point named in `workplan.md`), `ListPayments`, `GenerateInvoiceDocument` (PDF) from `contracts.md`.
+**Implement:** `RecordPayment` (publishes `billing.payment-recorded.v1`, and `billing.invoice-paid.v1` once payments sum to `total_amount`), `ReconcilePaymentWithTransaction` (validates `transaction_id` against this service's `transaction_replica` from Task 3.2 and its matching Ledger claim from Task 2.5a — the second proof-point named in `workplan.md`), and `ListPayments` from `contracts.md`. Invoice PDF generation was superseded by Task 3.7j and is not part of the MVP.
 
-**Automated tests:** unit test for the invoice-paid threshold logic; unit test rejecting reconciliation against a fabricated/archived transaction ID or missing/mismatched reconciliation claim; integration test for the PDF generation producing a well-formed file.
+**Automated tests:** unit test for the invoice-paid threshold logic; unit test rejecting reconciliation against a fabricated/archived transaction ID or missing/mismatched reconciliation claim.
 
-**What you can test:** record a payment against your issued invoice, reconcile it against a Phase 2 transaction, watch the invoice status flip to paid once fully covered, download the generated invoice PDF and open it.
+**What you can test:** record a payment against your issued invoice, reconcile it against a Phase 2 transaction, and watch the invoice status flip to paid once fully covered.
 
 ### Task 3.6 — `MarkInvoicesOverdue` background job
 
@@ -287,17 +287,17 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Automated tests:** component tests for invoice creation form validation (VAT calculation display) and payment recording/reconciliation UI states; Experience API integration tests per endpoint.
 
-**What you can test:** in the browser, create a counterparty and issue an invoice, see it listed with correct status/type/direction filters, record a payment against it, reconcile that payment against a transaction from Phase 2, see the invoice flip to paid, download the PDF.
+**What you can test:** in the browser, create a counterparty and issue an invoice, see it listed with correct status/type/direction filters, record a payment against it, reconcile that payment against a transaction from Phase 2, and see the invoice flip to paid.
 
-### Task 3.7a — Generated-document row action icon
+### Task 3.7a — Document row action icon
 
 **Depends on:** 3.7.
 
-**Implement:** replace the invoice row's text-labelled `PDF` action with the established document icon while preserving `GenerateInvoiceDocument` behavior exactly: fetch the generated PDF and open it in a new browser tab. Give the icon-only control an accessible name and tooltip such as "Open generated invoice PDF"; this is not the uploaded attachment introduced in Task 3.7e.
+**Superseded by Task 3.7j:** the document icon opens the uploaded `invoice` attachment, not a generated PDF. It is hidden when no invoice attachment exists; `other` attachments never make it visible.
 
-**Automated tests:** update the invoice-list component test to locate the control by accessible name and assert that activating it opens the generated PDF in a new tab.
+**Automated tests:** Task 3.7k updates the invoice-list component test to locate the control by accessible name and assert that it opens the uploaded invoice attachment in a new tab only when one exists.
 
-**What you can test:** click the document icon on an invoice row and confirm the generated PDF still opens in another browser tab.
+**What you can test:** covered by Task 3.7k's attachment scenarios.
 
 ### Task 3.7b — Invoice list filtering
 
@@ -333,11 +333,11 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 3.7d.
 
-**Implement:** add the one-per-invoice `InvoiceAttachment` entity and migration plus `AttachInvoiceDocument`, `RemoveInvoiceDocument`, and `GetInvoiceAttachment` from `domain.md`/`contracts.md`. Add an Aspire Azure Storage resource configured to use Azurite locally and inject its private Billing-owned Blob container into Billing; production uses Azure Blob Storage. Store only tenant-scoped metadata/reference data in Billing PostgreSQL. Accept PDF, PNG, or JPEG up to 10 MB, validating declared type and file signature. Add a paperclip row action and details-view controls to upload, open, replace, or remove the attachment; distinguish it clearly from the generated invoice PDF. Replacements must make the new blob/metadata durable before scheduling old-blob cleanup, removals are idempotent, cleanup failures are retried, and all blob operations enforce the authenticated tenant. Extend `ArchiveInvoice` to remove an existing attachment through the same durable cleanup path.
+**Superseded by Task 3.7j:** attachment handling is specified as a typed collection, not one attachment per invoice. Task 3.7k replaces this implementation with the authoritative collection model and removes generated-PDF behavior.
 
-**Automated tests:** migration and Billing integration tests using Azurite for upload/download/replace/remove, tenant isolation, invalid signature/type, empty file, over-10-MB rejection, and archive cleanup; frontend component tests for the paperclip action, attachment metadata, validation feedback, and replace/remove confirmation/cache refresh.
+**Automated tests:** superseded by Task 3.7k's attachment-collection test coverage.
 
-**What you can test:** attach a PDF, PNG, or JPEG from the row action; view it in invoice details; replace and remove it; verify unsupported or oversized files are rejected and the generated-PDF document action remains independent.
+**What you can test:** superseded by Task 3.7k's attachment-collection scenarios.
 
 ### Task 3.7f — Specify draft invoice removal
 
