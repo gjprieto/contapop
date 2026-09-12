@@ -79,24 +79,73 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Archive_soft_deletes_an_unpaid_invoice_and_writes_the_required_event()
+    public async Task Archive_soft_deletes_an_unpaid_issued_invoice_and_writes_the_required_event()
     {
         await using var database = await CreateDatabaseAsync();
         var tenantId = Guid.NewGuid();
         var counterparty = Counterparty.Create(tenantId, "customer", "Acme SL", null, null, null, DateTimeOffset.UtcNow);
         var invoice = Invoice.Create(tenantId, Guid.NewGuid(), counterparty.Id, "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
         database.AddRange(counterparty, invoice);
+        Assert.True(invoice.TryIssue(1, DateTimeOffset.UtcNow));
         await database.SaveChangesAsync();
 
-        var archived = await new InvoiceCommandHandler(database).ArchiveAsync(new(tenantId, Guid.NewGuid().ToString(), invoice.Id, 1), CancellationToken.None);
+        var archived = await new InvoiceCommandHandler(database).ArchiveAsync(new(tenantId, Guid.NewGuid().ToString(), invoice.Id, 2), CancellationToken.None);
 
         Assert.Equal("archived", archived.Value!.Status);
         Assert.Equal("archived", await database.Invoices.Where(item => item.Id == invoice.Id).Select(item => item.Status).SingleAsync());
         Assert.Equal(1, await database.InvoiceLines.CountAsync(line => line.InvoiceId == invoice.Id));
         var @event = await database.OutboxMessages.SingleAsync(message => message.EventName == "billing.invoice-archived.v1");
         Assert.Equal(invoice.Id, @event.AggregateId);
-        Assert.Contains("\"previous_status\":\"draft\"", @event.Payload);
+        Assert.Contains("\"previous_status\":\"issued\"", @event.Payload);
         Assert.Contains("\"project_id\"", @event.Payload);
+    }
+
+    [Fact]
+    public async Task Delete_draft_removes_its_lines_and_attachment_metadata_and_schedules_cleanup_once()
+    {
+        await using var database = await CreateDatabaseAsync();
+        var tenantId = Guid.NewGuid();
+        var invoice = Invoice.Create(tenantId, Guid.NewGuid(), Guid.NewGuid(), "outgoing", "service", [new CreateInvoiceLine("Consulting", 1, 100, 0.21m), new CreateInvoiceLine("Support", 1, 200, 0.21m)], new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        var attachment = InvoiceAttachment.Create(invoice.Id, tenantId, "tenant/draft.pdf", "draft.pdf", "application/pdf", 10, DateTimeOffset.UtcNow);
+        database.AddRange(invoice, attachment);
+        await database.SaveChangesAsync();
+        var handler = new InvoiceCommandHandler(database);
+        var key = Guid.NewGuid().ToString();
+
+        var deleted = await handler.DeleteDraftAsync(new(tenantId, key, invoice.Id, 1), CancellationToken.None);
+        var replay = await handler.DeleteDraftAsync(new(tenantId, key, invoice.Id, 1), CancellationToken.None);
+        var newKey = await handler.DeleteDraftAsync(new(tenantId, Guid.NewGuid().ToString(), invoice.Id, 1), CancellationToken.None);
+
+        Assert.NotNull(deleted.Value);
+        Assert.NotNull(replay.Value);
+        Assert.True(newKey.IsNotFound);
+        Assert.Equal(0, await database.Invoices.CountAsync(item => item.Id == invoice.Id));
+        Assert.Equal(0, await database.InvoiceLines.CountAsync(item => item.InvoiceId == invoice.Id));
+        Assert.Equal(0, await database.InvoiceAttachments.CountAsync(item => item.InvoiceId == invoice.Id));
+        var cleanup = await database.AttachmentCleanups.SingleAsync();
+        Assert.Equal("tenant/draft.pdf", cleanup.BlobName);
+        Assert.Equal(0, await database.OutboxMessages.CountAsync());
+    }
+
+    [Fact]
+    public async Task Delete_draft_rejects_payment_linked_and_non_draft_invoices_without_partial_changes()
+    {
+        await using var database = await CreateDatabaseAsync();
+        var tenantId = Guid.NewGuid();
+        var paymentLinked = Invoice.Create(tenantId, Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        var issued = Invoice.Create(tenantId, Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        Assert.True(issued.TryIssue(1, DateTimeOffset.UtcNow));
+        database.AddRange(paymentLinked, issued, Payment.Create(tenantId, paymentLinked.Id, 121, new DateOnly(2026, 9, 10), "bank_transfer", DateTimeOffset.UtcNow));
+        await database.SaveChangesAsync();
+        var handler = new InvoiceCommandHandler(database);
+
+        var paymentResult = await handler.DeleteDraftAsync(new(tenantId, Guid.NewGuid().ToString(), paymentLinked.Id, 1), CancellationToken.None);
+        var statusResult = await handler.DeleteDraftAsync(new(tenantId, Guid.NewGuid().ToString(), issued.Id, 2), CancellationToken.None);
+
+        Assert.True(paymentResult.IsConflict);
+        Assert.True(statusResult.IsConflict);
+        Assert.Equal(2, await database.Invoices.CountAsync());
+        Assert.Equal(0, await database.AttachmentCleanups.CountAsync());
     }
 
     [Fact]
@@ -107,13 +156,15 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
         var counterparty = Counterparty.Create(tenantId, "customer", "Acme SL", null, null, null, DateTimeOffset.UtcNow);
         var paidReference = Invoice.Create(tenantId, Guid.NewGuid(), counterparty.Id, "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
         var archiveable = Invoice.Create(tenantId, Guid.NewGuid(), counterparty.Id, "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        Assert.True(archiveable.TryIssue(1, DateTimeOffset.UtcNow));
         database.AddRange(counterparty, paidReference, archiveable, Payment.Create(tenantId, paidReference.Id, 121, new DateOnly(2026, 9, 10), "bank_transfer", DateTimeOffset.UtcNow));
         await database.SaveChangesAsync();
         var handler = new InvoiceCommandHandler(database);
 
         var rejected = await handler.ArchiveAsync(new(tenantId, Guid.NewGuid().ToString(), paidReference.Id, 1), CancellationToken.None);
-        var archived = await handler.ArchiveAsync(new(tenantId, Guid.NewGuid().ToString(), archiveable.Id, 1), CancellationToken.None);
-        var replay = await handler.ArchiveAsync(new(tenantId, Guid.NewGuid().ToString(), archiveable.Id, 1), CancellationToken.None);
+        var key = Guid.NewGuid().ToString();
+        var archived = await handler.ArchiveAsync(new(tenantId, key, archiveable.Id, 2), CancellationToken.None);
+        var replay = await handler.ArchiveAsync(new(tenantId, key, archiveable.Id, 2), CancellationToken.None);
 
         Assert.True(rejected.IsConflict);
         Assert.Equal("archived", archived.Value!.Status);

@@ -19,6 +19,7 @@ export type Invoice = {
   type: "service" | "product";
   status: string;
   canArchive: boolean;
+  canDelete?: boolean;
   netAmountMinor: number;
   taxAmountMinor: number;
   totalAmountMinor: number;

@@ -106,6 +106,21 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Billing_draft_invoice_delete_forwards_command_headers()
+    {
+        using var client = _experienceFactory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
+        var login = await client.PostAsJsonAsync("/experience/v1/auth/login", new LoginRequest("ana@acme.test", "Password1"));
+        Assert.Equal(HttpStatusCode.NoContent, login.StatusCode);
+        using var request = new HttpRequestMessage(HttpMethod.Delete, "/experience/v1/invoices/44444444-4444-4444-4444-444444444444");
+        request.Headers.TryAddWithoutValidation("Idempotency-Key", "55555555-5555-5555-5555-555555555555");
+        request.Headers.TryAddWithoutValidation("If-Match", "\"3\"");
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Billing_errors_are_not_reported_as_a_service_availability_failure()
     {
         _billingListStatusCode = StatusCodes.Status500InternalServerError;
@@ -320,6 +335,13 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
             Assert.Equal("55555555-5555-5555-5555-555555555555", context.Request.Headers["Idempotency-Key"].ToString());
             Assert.Equal("\"3\"", context.Request.Headers.IfMatch.ToString());
             return Results.Content("{\"title\":\"Invoice cannot be archived\"}", "application/json", statusCode: StatusCodes.Status409Conflict);
+        }).RequireAuthorization();
+        _billingService.MapDelete("/api/v1/invoices/{invoiceId:guid}", (HttpContext context) =>
+        {
+            Assert.True(context.User.Identity?.IsAuthenticated);
+            Assert.Equal("55555555-5555-5555-5555-555555555555", context.Request.Headers["Idempotency-Key"].ToString());
+            Assert.Equal("\"3\"", context.Request.Headers.IfMatch.ToString());
+            return Results.NoContent();
         }).RequireAuthorization();
         await _billingService.StartAsync();
 

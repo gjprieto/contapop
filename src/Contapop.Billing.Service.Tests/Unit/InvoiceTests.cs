@@ -53,7 +53,6 @@ public sealed class InvoiceTests
     }
 
     [Theory]
-    [InlineData("draft")]
     [InlineData("issued")]
     [InlineData("overdue")]
     [InlineData("void")]
@@ -67,6 +66,14 @@ public sealed class InvoiceTests
 
         Assert.True(invoice.TryArchive((int)invoice.Version, now));
         Assert.Equal("archived", invoice.Status);
+    }
+
+    [Fact]
+    public void Archive_rejects_a_draft_invoice()
+    {
+        var invoice = Invoice.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 1), new DateOnly(2026, 9, 9), DateTimeOffset.UtcNow);
+
+        Assert.False(invoice.TryArchive(1, DateTimeOffset.UtcNow));
     }
 
     [Fact]

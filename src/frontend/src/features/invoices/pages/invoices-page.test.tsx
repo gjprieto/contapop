@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   createInvoice: vi.fn(),
   changeInvoiceStatus: vi.fn(),
+  deleteDraftInvoice: vi.fn(),
   downloadInvoice: vi.fn(),
 }));
 vi.mock("../api/invoices-api", () => ({
@@ -20,7 +21,9 @@ vi.mock("../api/invoices-api", () => ({
   createInvoice: mocks.createInvoice,
   createCounterparty: vi.fn(),
   changeInvoiceStatus: mocks.changeInvoiceStatus,
+  deleteDraftInvoice: mocks.deleteDraftInvoice,
   downloadInvoice: mocks.downloadInvoice,
+  uploadInvoiceAttachment: vi.fn(),
 }));
 vi.mock("../../auth/api/auth-api", () => ({
   getCurrentUser: mocks.getCurrentUser,
@@ -272,5 +275,23 @@ describe("InvoicesPage", () => {
       archiveable,
       "archive",
     );
+  });
+
+  it("only offers draft deletion when allowed and deletes after confirmation", async () => {
+    const deletable: Invoice = {
+      invoiceId: "draft", counterpartyId: "counterparty-1", counterpartyName: "Draft Acme", direction: "outgoing", type: "service", status: "draft", canArchive: false, canDelete: true, netAmountMinor: 10000, taxAmountMinor: 2100, totalAmountMinor: 12100, date: "2026-09-09", dueDate: "2026-10-09", version: 3,
+    };
+    const paymentLinked = { ...deletable, invoiceId: "payment-linked", counterpartyName: "Paid Draft", canDelete: false };
+    mocks.deleteDraftInvoice.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderPage("/invoices", { items: [deletable, paymentLinked], page: 1, pageSize: 10, totalCount: 2 });
+
+    expect(await screen.findAllByRole("button", { name: "Delete" })).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(mocks.deleteDraftInvoice).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: "Delete invoice" }));
+    expect(mocks.deleteDraftInvoice).toHaveBeenCalledWith(deletable, expect.anything());
   });
 });

@@ -9,6 +9,7 @@ import {
   changeInvoiceStatus,
   createCounterparty,
   createInvoice,
+  deleteDraftInvoice,
   downloadInvoice,
   uploadInvoiceAttachment,
 } from "../api/invoices-api";
@@ -284,6 +285,7 @@ export function InvoicesPage() {
   const [invoiceToArchive, setInvoiceToArchive] = useState<Invoice | null>(
     null,
   );
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
   const uploadAttachment = useMutation({
     mutationFn: ({ invoiceId, file }: { invoiceId: string; file: File }) => uploadInvoiceAttachment(invoiceId, file),
     onSuccess: async () => { await cache.invalidateQueries({ queryKey: invoiceKeys.all }); },
@@ -299,6 +301,13 @@ export function InvoicesPage() {
     onSuccess: async () => {
       await cache.invalidateQueries({ queryKey: invoiceKeys.all });
       setInvoiceToArchive(null);
+    },
+  });
+  const deleteInvoice = useMutation({
+    mutationFn: deleteDraftInvoice,
+    onSuccess: async () => {
+      await cache.invalidateQueries({ queryKey: invoiceKeys.all });
+      setInvoiceToDelete(null);
     },
   });
   const updateFilter = (values: Record<string, string | undefined>) =>
@@ -508,7 +517,7 @@ export function InvoicesPage() {
                           </button>
                         </>
                       )}
-                      {invoice.canArchive && (
+                       {invoice.canArchive && (
                         <button
                           className="btn btn-sm"
                           type="button"
@@ -516,7 +525,16 @@ export function InvoicesPage() {
                         >
                           Archive
                         </button>
-                      )}
+                       )}
+                       {invoice.canDelete && (
+                         <button
+                           className="btn btn-sm"
+                           type="button"
+                           onClick={() => setInvoiceToDelete(invoice)}
+                         >
+                           Delete
+                         </button>
+                       )}
                       <Link
                         className="icon-btn"
                         to={`/invoices/${invoice.invoiceId}${searchParams.toString() ? `?${searchParams}` : ""}`}
@@ -643,6 +661,18 @@ export function InvoicesPage() {
               >
                 {lifecycle.isPending ? "Archiving..." : "Archive invoice"}
               </button>
+            </div>
+          </section>
+        </div>
+      )}
+      {invoiceToDelete && (
+        <div className="modal-backdrop" role="presentation">
+          <section className="modal" role="dialog" aria-modal="true" aria-labelledby="delete-invoice-title" aria-describedby="delete-invoice-description">
+            <div className="modal-head"><h2 id="delete-invoice-title">Delete draft invoice?</h2></div>
+            <div className="modal-body"><p id="delete-invoice-description">This permanently deletes the draft invoice and cannot be undone.</p></div>
+            <div className="modal-foot">
+              <button className="btn" type="button" disabled={deleteInvoice.isPending} onClick={() => setInvoiceToDelete(null)}>Cancel</button>
+              <button className="btn btn-primary" type="button" disabled={deleteInvoice.isPending} onClick={() => deleteInvoice.mutate(invoiceToDelete)}>{deleteInvoice.isPending ? "Deleting..." : "Delete invoice"}</button>
             </div>
           </section>
         </div>

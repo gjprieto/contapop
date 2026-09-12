@@ -1,4 +1,4 @@
-import { apiRequest } from "../../../shared/api/client";
+import { apiRequest, apiRequestVoid } from "../../../shared/api/client";
 import type {
   Counterparty,
   CreateInvoiceInput,
@@ -68,6 +68,14 @@ export const changeInvoiceStatus = (
       },
     },
   );
+export const deleteDraftInvoice = (invoice: Invoice) =>
+  apiRequestVoid(`/experience/v1/invoices/${invoice.invoiceId}`, {
+    method: "DELETE",
+    headers: {
+      "Idempotency-Key": crypto.randomUUID(),
+      "If-Match": `"${invoice.version}"`,
+    },
+  });
 export async function downloadInvoice(invoiceId: string) {
   const response = await fetch(
     `/experience/v1/invoices/${invoiceId}/document`,

@@ -57,7 +57,7 @@ public sealed class Invoice
 
     public bool TryArchive(int expectedVersion, DateTimeOffset now)
     {
-        if (Status is not ("draft" or "issued" or "overdue" or "void") || Version != expectedVersion) return false;
+        if (Status is not ("issued" or "overdue" or "void") || Version != expectedVersion) return false;
         Status = "archived";
         Version++;
         UpdatedAt = now;

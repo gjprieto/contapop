@@ -11,3 +11,4 @@ public sealed record CreateInvoiceLineCommand(string Description, int Quantity, 
 public sealed record IssueInvoiceCommand(Guid TenantId, string IdempotencyKey, Guid InvoiceId, int ExpectedVersion);
 public sealed record VoidInvoiceCommand(Guid TenantId, string IdempotencyKey, Guid InvoiceId, int ExpectedVersion);
 public sealed record ArchiveInvoiceCommand(Guid TenantId, string IdempotencyKey, Guid InvoiceId, int ExpectedVersion);
+public sealed record DeleteDraftInvoiceCommand(Guid TenantId, string IdempotencyKey, Guid InvoiceId, int ExpectedVersion);

@@ -56,7 +56,6 @@ public sealed class InvoiceCommandHandler(BillingDbContext database)
         if (replay is not null) return InvoiceCommandResult<InvoiceStatusResponse>.Success(replay);
         var invoice = await database.Invoices.SingleOrDefaultAsync(item => item.Id == command.InvoiceId && item.TenantId == command.TenantId, cancellationToken);
         if (invoice is null) return InvoiceCommandResult<InvoiceStatusResponse>.NotFound();
-        if (invoice.Status == "archived") return InvoiceCommandResult<InvoiceStatusResponse>.Success(new(invoice.Id, invoice.Status, invoice.UpdatedAt, (int)invoice.Version));
         if (invoice.Status == "paid" || await database.Payments.AnyAsync(payment => payment.TenantId == command.TenantId && payment.InvoiceId == command.InvoiceId, cancellationToken)) return InvoiceCommandResult<InvoiceStatusResponse>.Conflict();
 
         var previousStatus = invoice.Status;
@@ -75,6 +74,29 @@ public sealed class InvoiceCommandHandler(BillingDbContext database)
         return InvoiceCommandResult<InvoiceStatusResponse>.Success(result);
     }
 
+    public async Task<InvoiceCommandResult<DeletedInvoiceResponse>> DeleteDraftAsync(DeleteDraftInvoiceCommand command, CancellationToken cancellationToken)
+    {
+        var replay = await GetReplayAsync<DeletedInvoiceResponse>(command.TenantId, "delete-draft-invoice", command.IdempotencyKey, cancellationToken);
+        if (replay is not null) return InvoiceCommandResult<DeletedInvoiceResponse>.Success(replay);
+
+        var invoice = await database.Invoices.SingleOrDefaultAsync(item => item.Id == command.InvoiceId && item.TenantId == command.TenantId, cancellationToken);
+        if (invoice is null) return InvoiceCommandResult<DeletedInvoiceResponse>.NotFound();
+        if (invoice.Status != "draft" || invoice.Version != command.ExpectedVersion || await database.Payments.AnyAsync(payment => payment.TenantId == command.TenantId && payment.InvoiceId == command.InvoiceId, cancellationToken)) return InvoiceCommandResult<DeletedInvoiceResponse>.Conflict();
+
+        var now = DateTimeOffset.UtcNow;
+        var attachment = await database.InvoiceAttachments.SingleOrDefaultAsync(item => item.InvoiceId == invoice.Id, cancellationToken);
+        if (attachment is not null)
+        {
+            database.InvoiceAttachments.Remove(attachment);
+            database.AttachmentCleanups.Add(AttachmentCleanup.Create(invoice.TenantId, attachment.BlobName, now));
+        }
+        database.Invoices.Remove(invoice);
+        var result = new DeletedInvoiceResponse();
+        database.IdempotencyRecords.Add(IdempotencyRecord.Create(command.TenantId, "delete-draft-invoice", command.IdempotencyKey, JsonSerializer.Serialize(result), now));
+        await database.SaveChangesAsync(cancellationToken);
+        return InvoiceCommandResult<DeletedInvoiceResponse>.Success(result);
+    }
+
     private async Task<T?> GetReplayAsync<T>(Guid tenantId, string operation, string key, CancellationToken cancellationToken) where T : class
     {
         var result = await database.IdempotencyRecords.AsNoTracking().Where(record => record.TenantId == tenantId && record.Operation == operation && record.Key == key).Select(record => record.Result).SingleOrDefaultAsync(cancellationToken);
@@ -84,6 +106,7 @@ public sealed class InvoiceCommandHandler(BillingDbContext database)
 
 public sealed record CreatedInvoiceResponse(Guid InvoiceId, string Status, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateTimeOffset CreatedAt, int Version);
 public sealed record InvoiceStatusResponse(Guid InvoiceId, string Status, DateTimeOffset UpdatedAt, int Version);
+public sealed record DeletedInvoiceResponse;
 public sealed class InvoiceCommandResult<T> where T : class
 {
     public T? Value { get; private init; }
