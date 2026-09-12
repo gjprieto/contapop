@@ -90,31 +90,32 @@ export const deleteDraftInvoice = (invoice: Invoice) =>
       "If-Match": `"${invoice.version}"`,
     },
   });
-export async function downloadInvoice(invoiceId: string) {
-  const response = await fetch(
-    `/experience/v1/invoices/${invoiceId}/document`,
-    { credentials: "include" },
-  );
-  if (!response.ok) throw new Error("Could not download invoice.");
-  return response.blob();
-}
-export async function uploadInvoiceAttachment(invoiceId: string, file: File) {
+export async function uploadInvoiceAttachment(invoiceId: string, file: File, attachmentType?: "invoice" | "other") {
   const form = new FormData();
   form.append("file", file);
-  const response = await fetch(`/experience/v1/invoices/${invoiceId}/attachment`, {
-    method: "PUT",
+  if (attachmentType) form.append("attachmentType", attachmentType);
+  const response = await fetch(`/experience/v1/invoices/${invoiceId}/attachments`, {
+    method: "POST",
+    headers: { "Idempotency-Key": crypto.randomUUID() },
     body: form,
     credentials: "include",
   });
   if (!response.ok) throw new Error("Could not upload attachment.");
   return response.json();
 }
-export async function removeInvoiceAttachment(invoiceId: string) {
-  const response = await fetch(`/experience/v1/invoices/${invoiceId}/attachment`, { method: "DELETE", credentials: "include" });
+export async function replaceInvoiceAttachment(invoiceId: string, attachmentId: string, version: number, file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  const response = await fetch(`/experience/v1/invoices/${invoiceId}/attachments/${attachmentId}`, { method: "PUT", headers: { "Idempotency-Key": crypto.randomUUID(), "If-Match": `"${version}"` }, body: form, credentials: "include" });
+  if (!response.ok) throw new Error("Could not replace attachment.");
+  return response.json();
+}
+export async function removeInvoiceAttachment(invoiceId: string, attachmentId: string) {
+  const response = await fetch(`/experience/v1/invoices/${invoiceId}/attachments/${attachmentId}`, { method: "DELETE", headers: { "Idempotency-Key": crypto.randomUUID() }, credentials: "include" });
   if (!response.ok) throw new Error("Could not remove attachment.");
 }
-export async function downloadInvoiceAttachment(invoiceId: string) {
-  const response = await fetch(`/experience/v1/invoices/${invoiceId}/attachment`, { credentials: "include" });
+export async function downloadInvoiceAttachment(invoiceId: string, attachmentId: string) {
+  const response = await fetch(`/experience/v1/invoices/${invoiceId}/attachments/${attachmentId}`, { credentials: "include" });
   if (!response.ok) throw new Error("Could not download attachment.");
   return response.blob();
 }

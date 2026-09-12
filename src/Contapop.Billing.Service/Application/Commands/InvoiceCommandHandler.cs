@@ -87,12 +87,9 @@ public sealed class InvoiceCommandHandler(BillingDbContext database)
         var previousStatus = invoice.Status;
         var now = DateTimeOffset.UtcNow;
         if (!invoice.TryArchive(command.ExpectedVersion, now)) return InvoiceCommandResult<InvoiceStatusResponse>.Conflict();
-        var attachment = await database.InvoiceAttachments.SingleOrDefaultAsync(item => item.InvoiceId == invoice.Id, cancellationToken);
-        if (attachment is not null)
-        {
-            database.InvoiceAttachments.Remove(attachment);
-            database.AttachmentCleanups.Add(AttachmentCleanup.Create(invoice.TenantId, attachment.BlobName, now));
-        }
+        var attachments = await database.InvoiceAttachments.Where(item => item.InvoiceId == invoice.Id).ToListAsync(cancellationToken);
+        database.InvoiceAttachments.RemoveRange(attachments);
+        database.AttachmentCleanups.AddRange(attachments.Select(attachment => AttachmentCleanup.Create(invoice.TenantId, attachment.BlobName, now)));
         var result = new InvoiceStatusResponse(invoice.Id, invoice.Status, now, (int)invoice.Version);
         database.OutboxMessages.Add(OutboxMessage.Create("billing.invoice-archived.v1", "Invoice", invoice.Id, invoice.Version, invoice.TenantId, now, JsonSerializer.Serialize(new { invoice_id = invoice.Id, project_id = invoice.ProjectId, direction = invoice.Direction, previous_status = previousStatus, archived_at = now })));
         database.IdempotencyRecords.Add(IdempotencyRecord.Create(command.TenantId, "archive-invoice", command.IdempotencyKey, JsonSerializer.Serialize(result), now));
@@ -110,12 +107,9 @@ public sealed class InvoiceCommandHandler(BillingDbContext database)
         if (invoice.Status != "draft" || invoice.Version != command.ExpectedVersion || await database.Payments.AnyAsync(payment => payment.TenantId == command.TenantId && payment.InvoiceId == command.InvoiceId, cancellationToken)) return InvoiceCommandResult<DeletedInvoiceResponse>.Conflict();
 
         var now = DateTimeOffset.UtcNow;
-        var attachment = await database.InvoiceAttachments.SingleOrDefaultAsync(item => item.InvoiceId == invoice.Id, cancellationToken);
-        if (attachment is not null)
-        {
-            database.InvoiceAttachments.Remove(attachment);
-            database.AttachmentCleanups.Add(AttachmentCleanup.Create(invoice.TenantId, attachment.BlobName, now));
-        }
+        var attachments = await database.InvoiceAttachments.Where(item => item.InvoiceId == invoice.Id).ToListAsync(cancellationToken);
+        database.InvoiceAttachments.RemoveRange(attachments);
+        database.AttachmentCleanups.AddRange(attachments.Select(attachment => AttachmentCleanup.Create(invoice.TenantId, attachment.BlobName, now)));
         database.Invoices.Remove(invoice);
         var result = new DeletedInvoiceResponse();
         database.IdempotencyRecords.Add(IdempotencyRecord.Create(command.TenantId, "delete-draft-invoice", command.IdempotencyKey, JsonSerializer.Serialize(result), now));

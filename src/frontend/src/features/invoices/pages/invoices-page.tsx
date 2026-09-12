@@ -10,7 +10,7 @@ import {
   createCounterparty,
   createInvoice,
   deleteDraftInvoice,
-  downloadInvoice,
+  downloadInvoiceAttachment,
   uploadInvoiceAttachment,
 } from "../api/invoices-api";
 import {
@@ -267,9 +267,13 @@ export function InvoicesPage() {
     null,
   );
   const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
+  const [invoiceToAttach, setInvoiceToAttach] = useState<Invoice | null>(null);
   const uploadAttachment = useMutation({
-    mutationFn: ({ invoiceId, file }: { invoiceId: string; file: File }) => uploadInvoiceAttachment(invoiceId, file),
-    onSuccess: async () => { await cache.invalidateQueries({ queryKey: invoiceKeys.all }); },
+    mutationFn: ({ invoiceId, file, type }: { invoiceId: string; file: File; type?: "invoice" | "other" }) => uploadInvoiceAttachment(invoiceId, file, type),
+    onSuccess: async () => {
+      setInvoiceToAttach(null);
+      await cache.invalidateQueries({ queryKey: invoiceKeys.all });
+    },
   });
   const lifecycle = useMutation({
     mutationFn: ({
@@ -526,13 +530,14 @@ export function InvoicesPage() {
                           <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
                         </svg>
                       </Link>
-                      <button
+                      {invoice.invoiceAttachmentId && <button
                         className="icon-btn"
                         type="button"
-                        aria-label="Open generated invoice PDF"
-                        title="Open generated invoice PDF"
+                        aria-label={`Open invoice attachment for ${invoice.counterpartyName}`}
+                        title="Open invoice attachment"
                         onClick={async () => {
-                          const blob = await downloadInvoice(invoice.invoiceId);
+                          if (!invoice.invoiceAttachmentId) return;
+                          const blob = await downloadInvoiceAttachment(invoice.invoiceId, invoice.invoiceAttachmentId);
                           const url = URL.createObjectURL(blob);
                           window.open(url, "_blank", "noopener");
                         }}
@@ -544,16 +549,16 @@ export function InvoicesPage() {
                         >
                           <path d="M6 3h9l5 5v13H6zM14 3v5h5M9 13h6M9 17h6M9 9h2" />
                         </svg>
-                      </button>
-                      <label className="icon-btn" title="Attach or replace source document">
-                        <span className="visually-hidden">Attach source document for {invoice.counterpartyName}</span>
-                        <input className="visually-hidden" type="file" accept="application/pdf,image/png,image/jpeg" onChange={(event) => {
-                          const file = event.currentTarget.files?.[0];
-                          if (file) uploadAttachment.mutate({ invoiceId: invoice.invoiceId, file });
-                          event.currentTarget.value = "";
-                        }} />
+                      </button>}
+                      <button
+                        className="icon-btn"
+                        type="button"
+                        aria-label={`Attach document for ${invoice.counterpartyName}`}
+                        title="Attach document"
+                        onClick={() => setInvoiceToAttach(invoice)}
+                      >
                         <svg className="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 12 6.5-6.5a3.5 3.5 0 1 1 5 5L10 20a5 5 0 0 1-7-7l9-9" /></svg>
-                      </label>
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -655,6 +660,25 @@ export function InvoicesPage() {
               <button className="btn" type="button" disabled={deleteInvoice.isPending} onClick={() => setInvoiceToDelete(null)}>Cancel</button>
               <button className="btn btn-primary" type="button" disabled={deleteInvoice.isPending} onClick={() => deleteInvoice.mutate(invoiceToDelete)}>{deleteInvoice.isPending ? "Deleting..." : "Delete invoice"}</button>
             </div>
+          </section>
+        </div>
+      )}
+      {invoiceToAttach && (
+        <div className="modal-backdrop" role="presentation">
+          <section className="modal" role="dialog" aria-modal="true" aria-labelledby="invoice-attachment-title">
+            <div className="modal-head"><h2 id="invoice-attachment-title">{invoiceToAttach.invoiceAttachmentId ? "Upload other attachment" : "Choose attachment type"}</h2></div>
+            <div className="modal-body">
+              {invoiceToAttach.invoiceAttachmentId ? (
+                <label className="btn btn-primary">Choose file<input className="visually-hidden" type="file" accept="application/pdf,image/png,image/jpeg" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) uploadAttachment.mutate({ invoiceId: invoiceToAttach.invoiceId, file }); event.currentTarget.value = ""; }} /></label>
+              ) : (
+                <div className="row-actions visible-actions">
+                  <label className="btn btn-primary">Invoice<input className="visually-hidden" type="file" accept="application/pdf,image/png,image/jpeg" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) uploadAttachment.mutate({ invoiceId: invoiceToAttach.invoiceId, file, type: "invoice" }); event.currentTarget.value = ""; }} /></label>
+                  <label className="btn">Other type of attachment<input className="visually-hidden" type="file" accept="application/pdf,image/png,image/jpeg" onChange={(event) => { const file = event.currentTarget.files?.[0]; if (file) uploadAttachment.mutate({ invoiceId: invoiceToAttach.invoiceId, file, type: "other" }); event.currentTarget.value = ""; }} /></label>
+                </div>
+              )}
+              {uploadAttachment.isError && <p role="alert">The attachment could not be uploaded. Use a PDF, PNG, or JPEG no larger than 10 MB.</p>}
+            </div>
+            <div className="modal-foot"><button className="btn" type="button" disabled={uploadAttachment.isPending} onClick={() => setInvoiceToAttach(null)}>Cancel</button></div>
           </section>
         </div>
       )}

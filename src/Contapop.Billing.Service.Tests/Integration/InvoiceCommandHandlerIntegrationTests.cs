@@ -150,8 +150,9 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
         await using var database = await CreateDatabaseAsync();
         var tenantId = Guid.NewGuid();
         var invoice = Invoice.Create(tenantId, Guid.NewGuid(), Guid.NewGuid(), "outgoing", "service", [new CreateInvoiceLine("Consulting", 1, 100, 0.21m), new CreateInvoiceLine("Support", 1, 200, 0.21m)], new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
-        var attachment = InvoiceAttachment.Create(invoice.Id, tenantId, "tenant/draft.pdf", "draft.pdf", "application/pdf", 10, DateTimeOffset.UtcNow);
-        database.AddRange(invoice, attachment);
+        var invoiceAttachment = InvoiceAttachment.Create(invoice.Id, tenantId, "invoice", "tenant/draft.pdf", "draft.pdf", "application/pdf", 10, DateTimeOffset.UtcNow);
+        var otherAttachment = InvoiceAttachment.Create(invoice.Id, tenantId, "other", "tenant/draft-notes.pdf", "notes.pdf", "application/pdf", 10, DateTimeOffset.UtcNow);
+        database.AddRange(invoice, invoiceAttachment, otherAttachment);
         await database.SaveChangesAsync();
         var handler = new InvoiceCommandHandler(database);
         var key = Guid.NewGuid().ToString();
@@ -166,8 +167,9 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
         Assert.Equal(0, await database.Invoices.CountAsync(item => item.Id == invoice.Id));
         Assert.Equal(0, await database.InvoiceLines.CountAsync(item => item.InvoiceId == invoice.Id));
         Assert.Equal(0, await database.InvoiceAttachments.CountAsync(item => item.InvoiceId == invoice.Id));
-        var cleanup = await database.AttachmentCleanups.SingleAsync();
-        Assert.Equal("tenant/draft.pdf", cleanup.BlobName);
+        Assert.Equal(2, await database.AttachmentCleanups.CountAsync());
+        Assert.Contains(await database.AttachmentCleanups.Select(item => item.BlobName).ToListAsync(), item => item == "tenant/draft.pdf");
+        Assert.Contains(await database.AttachmentCleanups.Select(item => item.BlobName).ToListAsync(), item => item == "tenant/draft-notes.pdf");
         Assert.Equal(0, await database.OutboxMessages.CountAsync());
     }
 

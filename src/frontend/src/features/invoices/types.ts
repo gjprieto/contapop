@@ -20,6 +20,7 @@ export type Invoice = {
   status: string;
   canArchive: boolean;
   canDelete?: boolean;
+  invoiceAttachmentId?: string;
   netAmountMinor: number;
   taxAmountMinor: number;
   totalAmountMinor: number;
@@ -46,15 +47,17 @@ export type InvoiceDetail = Invoice & {
     paymentMethod: string;
     reconciledTransactionId?: string;
   }>;
-  attachment?: {
+  attachments: Array<{
     attachmentId: string;
     invoiceId: string;
+    type: "invoice" | "other";
     fileName: string;
     contentType: string;
     sizeBytes: number;
     createdAt: string;
     updatedAt: string;
-  };
+    version: number;
+  }>;
   createdAt: string;
   updatedAt: string;
 };

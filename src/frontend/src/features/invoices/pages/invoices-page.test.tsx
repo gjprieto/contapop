@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
   createInvoice: vi.fn(),
   changeInvoiceStatus: vi.fn(),
   deleteDraftInvoice: vi.fn(),
-  downloadInvoice: vi.fn(),
+  downloadInvoiceAttachment: vi.fn(),
 }));
 vi.mock("../api/invoices-api", () => ({
   getInvoices: mocks.getInvoices,
@@ -22,7 +22,7 @@ vi.mock("../api/invoices-api", () => ({
   createCounterparty: vi.fn(),
   changeInvoiceStatus: mocks.changeInvoiceStatus,
   deleteDraftInvoice: mocks.deleteDraftInvoice,
-  downloadInvoice: mocks.downloadInvoice,
+  downloadInvoiceAttachment: mocks.downloadInvoiceAttachment,
   uploadInvoiceAttachment: vi.fn(),
 }));
 vi.mock("../../auth/api/auth-api", () => ({
@@ -170,7 +170,7 @@ describe("InvoicesPage", () => {
     );
   });
 
-  it("opens the generated PDF in a new tab from its accessible document action", async () => {
+  it("opens the uploaded invoice attachment in a new tab only when one exists", async () => {
     const invoice: Invoice = {
       invoiceId: "invoice-1",
       counterpartyId: "counterparty-1",
@@ -179,6 +179,7 @@ describe("InvoicesPage", () => {
       type: "service",
       status: "issued",
       canArchive: true,
+      invoiceAttachmentId: "attachment-1",
       netAmountMinor: 10000,
       taxAmountMinor: 2100,
       totalAmountMinor: 12100,
@@ -186,7 +187,7 @@ describe("InvoicesPage", () => {
       dueDate: "2026-10-09",
       version: 1,
     };
-    mocks.downloadInvoice.mockResolvedValue(
+    mocks.downloadInvoiceAttachment.mockResolvedValue(
       new Blob(["invoice"], { type: "application/pdf" }),
     );
     const createObjectUrl = vi
@@ -201,7 +202,7 @@ describe("InvoicesPage", () => {
       totalCount: 1,
     });
     await user.click(
-      await screen.findByRole("button", { name: "Open generated invoice PDF" }),
+      await screen.findByRole("button", { name: "Open invoice attachment for Acme SL" }),
     );
     expect(open).toHaveBeenCalledWith("blob:invoice-pdf", "_blank", "noopener");
     createObjectUrl.mockRestore();

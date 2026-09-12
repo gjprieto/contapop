@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using Contapop.Billing.Service.Application.Commands;
 using Contapop.Billing.Service.Application.Attachments;
 using Contapop.Billing.Service.Infrastructure.Persistence;
@@ -17,9 +18,10 @@ public static class InvoiceEndpoints
         invoices.MapPost("/{invoiceId:guid}/void", VoidAsync);
         invoices.MapPost("/{invoiceId:guid}/archive", ArchiveAsync);
         invoices.MapDelete("/{invoiceId:guid}", DeleteDraftAsync);
-        invoices.MapPut("/{invoiceId:guid}/attachment", AttachAsync).DisableAntiforgery();
-        invoices.MapDelete("/{invoiceId:guid}/attachment", RemoveAttachmentAsync);
-        invoices.MapGet("/{invoiceId:guid}/attachment", GetAttachmentAsync);
+        invoices.MapPost("/{invoiceId:guid}/attachments", AttachAsync).DisableAntiforgery();
+        invoices.MapPut("/{invoiceId:guid}/attachments/{attachmentId:guid}", ReplaceAttachmentAsync).DisableAntiforgery();
+        invoices.MapDelete("/{invoiceId:guid}/attachments/{attachmentId:guid}", RemoveAttachmentAsync);
+        invoices.MapGet("/{invoiceId:guid}/attachments/{attachmentId:guid}", GetAttachmentAsync);
         invoices.MapGet("/{invoiceId:guid}", GetByIdAsync);
         invoices.MapGet("", ListAsync);
         return endpoints;
@@ -95,8 +97,8 @@ public static class InvoiceEndpoints
         if (invoice is null) return Results.NotFound();
         var lines = await database.InvoiceLines.AsNoTracking().Where(line => line.InvoiceId == invoiceId).Select(line => new InvoiceLineResponse(line.Id, line.Description, line.Quantity, line.UnitPriceMinor, line.TaxRate, line.NetAmountMinor, line.TaxAmountMinor, line.TotalAmountMinor)).ToListAsync(cancellationToken);
         var payments = await database.Payments.AsNoTracking().Where(payment => payment.InvoiceId == invoiceId).OrderByDescending(payment => payment.Date).Select(payment => new InvoicePaymentResponse(payment.Id, payment.AmountMinor, payment.Date, payment.PaymentMethod, payment.ReconciledTransactionId)).ToListAsync(cancellationToken);
-        var attachment = await database.InvoiceAttachments.AsNoTracking().Where(item => item.InvoiceId == invoiceId && item.TenantId == tenantId).Select(item => new InvoiceAttachmentResponse(item.Id, item.InvoiceId, item.OriginalFileName, item.ContentType, item.SizeBytes, item.CreatedAt, item.UpdatedAt)).SingleOrDefaultAsync(cancellationToken);
-        return Results.Ok(invoice with { Lines = lines, Payments = payments, Attachment = attachment });
+        var attachments = await database.InvoiceAttachments.AsNoTracking().Where(item => item.InvoiceId == invoiceId && item.TenantId == tenantId).OrderBy(item => item.CreatedAt).Select(item => new InvoiceAttachmentResponse(item.Id, item.InvoiceId, item.Type, item.OriginalFileName, item.ContentType, item.SizeBytes, item.CreatedAt, item.UpdatedAt, (int)item.Version)).ToListAsync(cancellationToken);
+        return Results.Ok(invoice with { Lines = lines, Payments = payments, Attachments = attachments });
     }
 
     private static async Task<IResult> ListAsync(string? status, string? direction, string? type, DateOnly? dateFrom, DateOnly? dateTo, long? totalAmountMinMinor, long? totalAmountMaxMinor, string? search, string? sort, int? page, int? pageSize, HttpContext context, BillingDbContext database, CancellationToken cancellationToken)
@@ -127,7 +129,7 @@ public static class InvoiceEndpoints
             _ => query.OrderByDescending(item => item.Invoice.Date).ThenByDescending(item => item.Invoice.Id),
         };
         var items = await ordered.Skip((actualPage - 1) * actualPageSize).Take(actualPageSize)
-            .Select(item => new InvoiceListItem(item.Invoice.Id, item.Invoice.CounterpartyId, item.CounterpartyName, item.Invoice.Direction, item.Invoice.Type, item.Invoice.Status, (item.Invoice.Status == "issued" || item.Invoice.Status == "overdue" || item.Invoice.Status == "void") && !database.Payments.Any(payment => payment.TenantId == tenantId && payment.InvoiceId == item.Invoice.Id), item.Invoice.Status == "draft" && !database.Payments.Any(payment => payment.TenantId == tenantId && payment.InvoiceId == item.Invoice.Id), item.Invoice.NetAmountMinor, item.Invoice.TaxAmountMinor, item.Invoice.TotalAmountMinor, item.Invoice.Date, item.Invoice.DueDate, (int)item.Invoice.Version))
+            .Select(item => new InvoiceListItem(item.Invoice.Id, item.Invoice.CounterpartyId, item.CounterpartyName, item.Invoice.Direction, item.Invoice.Type, item.Invoice.Status, (item.Invoice.Status == "issued" || item.Invoice.Status == "overdue" || item.Invoice.Status == "void") && !database.Payments.Any(payment => payment.TenantId == tenantId && payment.InvoiceId == item.Invoice.Id), item.Invoice.Status == "draft" && !database.Payments.Any(payment => payment.TenantId == tenantId && payment.InvoiceId == item.Invoice.Id), database.InvoiceAttachments.Where(attachment => attachment.InvoiceId == item.Invoice.Id && attachment.Type == "invoice").Select(attachment => (Guid?)attachment.Id).FirstOrDefault(), item.Invoice.NetAmountMinor, item.Invoice.TaxAmountMinor, item.Invoice.TotalAmountMinor, item.Invoice.Date, item.Invoice.DueDate, (int)item.Invoice.Version))
             .ToListAsync(cancellationToken);
         return Results.Ok(new InvoicePagedResponse(items, actualPage, actualPageSize, total));
     }
@@ -152,11 +154,12 @@ public static class InvoiceEndpoints
         return errors;
     }
 
-    private static async Task<IResult> AttachAsync(Guid invoiceId, IFormFile? file, HttpContext context, InvoiceAttachmentService attachments, CancellationToken cancellationToken)
+    private static async Task<IResult> AttachAsync(Guid invoiceId, [FromForm] string? attachmentType, IFormFile? file, HttpContext context, InvoiceAttachmentService attachments, CancellationToken cancellationToken)
     {
         if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
         if (file is null) return Results.ValidationProblem(new Dictionary<string, string[]> { ["file"] = ["An attachment file is required."] });
-        var result = await attachments.AttachAsync(tenantId, invoiceId, file, cancellationToken);
+        if (!TryGetIdempotencyKey(context, out _)) return MissingIdempotencyKey();
+        var result = await attachments.AttachAsync(tenantId, invoiceId, attachmentType, file, cancellationToken);
         if (result.IsNotFound) return Results.NotFound();
         if (result.IsConflict) return Conflict("Archived invoices cannot be modified.");
         if (result.Error is not null)
@@ -165,20 +168,32 @@ public static class InvoiceEndpoints
                 ? Results.Problem(statusCode: StatusCodes.Status413PayloadTooLarge, title: "Attachment too large", detail: result.Error)
                 : Unprocessable(result.Error);
         }
-        return result.IsNew ? Results.Created($"/api/v1/invoices/{invoiceId}/attachment", result.Attachment) : Results.Ok(result.Attachment);
+        return Results.Created($"/api/v1/invoices/{invoiceId}/attachments/{result.Attachment!.AttachmentId}", result.Attachment);
     }
 
-    private static async Task<IResult> RemoveAttachmentAsync(Guid invoiceId, HttpContext context, InvoiceAttachmentService attachments, CancellationToken cancellationToken)
+    private static async Task<IResult> ReplaceAttachmentAsync(Guid invoiceId, Guid attachmentId, IFormFile? file, HttpContext context, InvoiceAttachmentService attachments, CancellationToken cancellationToken)
     {
         if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
-        await attachments.RemoveAsync(tenantId, invoiceId, cancellationToken);
-        return Results.NoContent();
+        if (file is null) return Results.ValidationProblem(new Dictionary<string, string[]> { ["file"] = ["An attachment file is required."] });
+        if (!TryGetIdempotencyKey(context, out _)) return MissingIdempotencyKey();
+        if (!TryGetExpectedVersion(context, out var version)) return MissingVersion();
+        var result = await attachments.ReplaceAsync(tenantId, invoiceId, attachmentId, version, file, cancellationToken);
+        if (result.IsNotFound) return Results.NotFound();
+        if (result.IsConflict) return Conflict("The attachment has changed. Refresh and try again.");
+        return result.Error is null ? Results.Ok(result.Attachment) : file.Length > 10_485_760 ? Results.Problem(statusCode: StatusCodes.Status413PayloadTooLarge, title: "Attachment too large", detail: result.Error) : Unprocessable(result.Error);
     }
 
-    private static async Task<IResult> GetAttachmentAsync(Guid invoiceId, HttpContext context, InvoiceAttachmentService attachments, CancellationToken cancellationToken)
+    private static async Task<IResult> RemoveAttachmentAsync(Guid invoiceId, Guid attachmentId, HttpContext context, InvoiceAttachmentService attachments, CancellationToken cancellationToken)
     {
         if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
-        var attachment = await attachments.GetAsync(tenantId, invoiceId, cancellationToken);
+        if (!TryGetIdempotencyKey(context, out _)) return MissingIdempotencyKey();
+        return await attachments.RemoveAsync(tenantId, invoiceId, attachmentId, cancellationToken) ? Results.NoContent() : Results.NotFound();
+    }
+
+    private static async Task<IResult> GetAttachmentAsync(Guid invoiceId, Guid attachmentId, HttpContext context, InvoiceAttachmentService attachments, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
+        var attachment = await attachments.GetAsync(tenantId, invoiceId, attachmentId, cancellationToken);
         return attachment is null ? Results.NotFound() : Results.File(attachment.Content, attachment.ContentType, attachment.FileName, enableRangeProcessing: true);
     }
 
@@ -194,9 +209,9 @@ public static class InvoiceEndpoints
 public sealed record CreateInvoiceRequest(Guid ProjectId, Guid CounterpartyId, string Direction, string Type, IReadOnlyList<CreateInvoiceLineRequest> Lines, DateOnly Date, DateOnly DueDate);
 public sealed record CreateInvoiceLineRequest(string Description, int Quantity, long UnitPriceMinor, decimal TaxRate);
 public sealed record UpdateDraftInvoiceRequest(IReadOnlyList<CreateInvoiceLineRequest> Lines, DateOnly Date, DateOnly DueDate);
-public sealed record InvoiceListItem(Guid InvoiceId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, bool CanArchive, bool CanDelete, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, int Version);
+public sealed record InvoiceListItem(Guid InvoiceId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, bool CanArchive, bool CanDelete, Guid? InvoiceAttachmentId, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, int Version);
 public sealed record InvoicePagedResponse(IReadOnlyList<InvoiceListItem> Items, int Page, int PageSize, int TotalCount);
 public sealed record InvoiceDetailsResponse(Guid InvoiceId, Guid ProjectId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, bool CanArchive, bool CanDelete, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version)
-{ public IReadOnlyList<InvoiceLineResponse> Lines { get; init; } = []; public IReadOnlyList<InvoicePaymentResponse> Payments { get; init; } = []; public InvoiceAttachmentResponse? Attachment { get; init; } }
+{ public IReadOnlyList<InvoiceLineResponse> Lines { get; init; } = []; public IReadOnlyList<InvoicePaymentResponse> Payments { get; init; } = []; public IReadOnlyList<InvoiceAttachmentResponse> Attachments { get; init; } = []; }
 public sealed record InvoiceLineResponse(Guid InvoiceLineId, string Description, int Quantity, long UnitPriceMinor, decimal TaxRate, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor);
 public sealed record InvoicePaymentResponse(Guid PaymentId, long AmountMinor, DateOnly Date, string PaymentMethod, Guid? ReconciledTransactionId);

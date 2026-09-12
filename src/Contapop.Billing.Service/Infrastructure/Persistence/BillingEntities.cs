@@ -129,18 +129,20 @@ public sealed class InvoiceAttachment
     public Guid Id { get; private set; }
     public Guid InvoiceId { get; private set; }
     public Guid TenantId { get; private set; }
+    public string Type { get; private set; } = null!;
     public string BlobName { get; private set; } = null!;
     public string OriginalFileName { get; private set; } = null!;
     public string ContentType { get; private set; } = null!;
     public long SizeBytes { get; private set; }
+    public long Version { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
-    public static InvoiceAttachment Create(Guid invoiceId, Guid tenantId, string blobName, string originalFileName, string contentType, long sizeBytes, DateTimeOffset now) => new()
+    public static InvoiceAttachment Create(Guid invoiceId, Guid tenantId, string type, string blobName, string originalFileName, string contentType, long sizeBytes, DateTimeOffset now) => new()
     {
-        Id = Guid.NewGuid(), InvoiceId = invoiceId, TenantId = tenantId, BlobName = blobName,
+        Id = Guid.NewGuid(), InvoiceId = invoiceId, TenantId = tenantId, Type = type, BlobName = blobName,
         OriginalFileName = originalFileName, ContentType = contentType, SizeBytes = sizeBytes,
-        CreatedAt = now, UpdatedAt = now,
+        Version = 1, CreatedAt = now, UpdatedAt = now,
     };
 
     public string Replace(string blobName, string originalFileName, string contentType, long sizeBytes, DateTimeOffset now)
@@ -150,6 +152,7 @@ public sealed class InvoiceAttachment
         OriginalFileName = originalFileName;
         ContentType = contentType;
         SizeBytes = sizeBytes;
+        Version++;
         UpdatedAt = now;
         return previousBlobName;
     }

@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Contapop.Billing.Service.Application.Commands;
-using Contapop.Billing.Service.Application.Queries;
 using Contapop.Billing.Service.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +13,6 @@ public static class PaymentEndpoints
         payments.MapPost("", RecordAsync);
         payments.MapPost("/{paymentId:guid}/reconcile", ReconcileAsync);
         payments.MapGet("", ListAsync);
-        endpoints.MapGet("/api/v1/invoices/{invoiceId:guid}/document", DocumentAsync).RequireAuthorization("account-owner");
         return endpoints;
     }
 
@@ -55,14 +53,6 @@ public static class PaymentEndpoints
             _ => query.OrderByDescending(item => item.Date).ThenByDescending(item => item.Id),
         }).Skip((actualPage - 1) * actualPageSize).Select(item => new PaymentListItem(item.Id, item.InvoiceId, item.AmountMinor, item.Date, item.PaymentMethod, item.ReconciledTransactionId, (int)item.Version)).Take(actualPageSize).ToListAsync(cancellationToken);
         return Results.Ok(new PaymentPagedResponse(items, actualPage, actualPageSize, total));
-    }
-
-    private static async Task<IResult> DocumentAsync(Guid invoiceId, HttpContext context, BillingDbContext database, CancellationToken cancellationToken)
-    {
-        if (!TryTenant(context, out var tenantId)) return Results.Unauthorized();
-        var invoice = await database.Invoices.AsNoTracking().Join(database.Counterparties.AsNoTracking(), item => item.CounterpartyId, item => item.Id, (invoice, counterparty) => new { Invoice = invoice, counterparty.Name }).SingleOrDefaultAsync(item => item.Invoice.Id == invoiceId && item.Invoice.TenantId == tenantId, cancellationToken);
-        if (invoice is null) return Results.NotFound();
-        return Results.File(InvoicePdfDocument.Create(invoice.Invoice.Id, invoice.Name, invoice.Invoice.TotalAmountMinor), "application/pdf", $"invoice-{invoiceId}.pdf");
     }
 
     private static bool TryTenant(HttpContext context, out Guid tenantId) => Guid.TryParse(context.User.FindFirstValue("tenant_id"), out tenantId);

@@ -66,13 +66,16 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
             entity.Property(attachment => attachment.Id).HasColumnName("id");
             entity.Property(attachment => attachment.InvoiceId).HasColumnName("invoice_id").IsRequired();
             entity.Property(attachment => attachment.TenantId).HasColumnName("tenant_id").IsRequired();
+            entity.Property(attachment => attachment.Type).HasColumnName("type").HasMaxLength(20).IsRequired();
             entity.Property(attachment => attachment.BlobName).HasColumnName("blob_name").HasMaxLength(200).IsRequired();
             entity.Property(attachment => attachment.OriginalFileName).HasColumnName("original_file_name").HasMaxLength(255).IsRequired();
             entity.Property(attachment => attachment.ContentType).HasColumnName("content_type").HasMaxLength(100).IsRequired();
             entity.Property(attachment => attachment.SizeBytes).HasColumnName("size_bytes").IsRequired();
+            entity.Property(attachment => attachment.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
             entity.Property(attachment => attachment.CreatedAt).HasColumnName("created_at").IsRequired();
             entity.Property(attachment => attachment.UpdatedAt).HasColumnName("updated_at").IsRequired();
-            entity.HasIndex(attachment => attachment.InvoiceId).IsUnique();
+            entity.HasIndex(attachment => attachment.InvoiceId);
+            entity.HasIndex(attachment => new { attachment.InvoiceId, attachment.Type }).IsUnique().HasFilter("type = 'invoice'");
             entity.HasIndex(attachment => new { attachment.TenantId, attachment.BlobName }).IsUnique();
         });
 
