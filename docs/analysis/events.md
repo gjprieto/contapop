@@ -163,7 +163,7 @@ These are the events that make the Cross-Service Data Consistency Strategy work.
 
 ## Other Anticipated Integration Events (first pass)
 
-These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need. Their payloads are specified when their producing service is ready to implement them: Identity and Ledger are already specified, Billing is specified by Task 3.1, and Bookkeeping & Planning remains deferred to Task 4.1.
+These aren't domain synchronization events — nothing replicates them into a local read-replica for write-time validation — but they're the business-fact events Reporting's projections will need. Their payloads are specified when their producing service is ready to implement them: Identity and Ledger are already specified, Billing is specified by Task 3.1, and Bookkeeping & Planning remains deferred to Task 4.1. Billing publishes no event when it permanently deletes a draft Invoice: drafts are not Reporting facts and never have a Reporting projection to remove.
 
 ### `identity.tenant-created.v1`
 
@@ -241,7 +241,7 @@ These aren't domain synchronization events — nothing replicates them into a lo
 
 ### `billing.invoice-archived.v1`
 
-**Producer:** Billing & Invoicing, when `ArchiveInvoice` succeeds for an invoice with no Payment records.
+**Producer:** Billing & Invoicing, when `ArchiveInvoice` succeeds for a payment-free `issued`, `overdue`, or `void` invoice. A permanently deleted draft does not publish this event because Reporting never receives a draft projection.
 **Consumers:** Reporting; Phase 6 notifications remove any pending reminder for the invoice.
 
 | Payload field | Notes |
@@ -249,7 +249,7 @@ These aren't domain synchronization events — nothing replicates them into a lo
 | `invoice_id` | |
 | `project_id` | |
 | `direction` | `incoming` or `outgoing` |
-| `previous_status` | `draft`, `issued`, `overdue`, or `void` |
+| `previous_status` | `issued`, `overdue`, or `void` |
 | `archived_at` | |
 
 - **Financial Accounts & Ledger:**

@@ -16,6 +16,14 @@ This document records scope cut-lines for the MVP — decisions about how much o
 
 **Follow-up needed:** confirm the current Verifactu applicability timeline before committing to a post-MVP compliance phase's timing — Spanish regulation in this area has been in flux and the exact deadlines should be re-verified closer to that phase rather than assumed from what's known today.
 
+## Invoice Removal
+
+**Decision (2026-09-12):** a payment-free `draft` Invoice may be permanently deleted as an accidental, pre-financial-workflow entry. `issued`, `overdue`, and `void` payment-free invoices use `ArchiveInvoice` instead. `paid` invoices and any invoice with a Payment record cannot be deleted or archived.
+
+**Why:** an accidental draft has never become a reporting fact, so retaining it as financial history has no value. Once an Invoice has entered the financial workflow, archival preserves the owned record and produces the existing Reporting removal event.
+
+**Consequence:** `DeleteDraftInvoice` removes the Invoice, all Invoice Lines, and attachment metadata transactionally. Its blob is queued for durable retry cleanup; no draft-deletion integration event is needed because Reporting receives Invoice data only from `billing.invoice-issued.v1` onward.
+
 ## Project Scope: Single Implicit Project
 
 **Decision (2026-09-06):** every tenant gets exactly one Project, auto-created behind the scenes when the tenant is provisioned. There is no Projects management screen, no project switcher, and no user-facing CRUD for Project in the MVP. This matches the fact that none of the 11 MVP screens in `screens-and-features.md` mention Projects at all.
@@ -70,6 +78,7 @@ Gerardo guides development directly; most implementation is carried out by AI co
 |---|---|---|
 | Currency | EUR only | No — no currency field added |
 | Invoice tax | Basic VAT/IVA breakdown; full compliance deferred | Yes — `domain.md`'s Invoice entity |
+| Invoice removal | Permanently delete payment-free drafts; archive payment-free issued, overdue, and void invoices | No — lifecycle rule only |
 | Project | Single implicit project per tenant, no management UI | No — usage/UI scope only |
 | Multi-user | Single-owner only, no invite flow | No — usage/UI scope only |
 | Audience/onboarding | Small private pilot, manually onboarded | No — usage/UI scope only |

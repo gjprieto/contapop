@@ -313,11 +313,11 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 3.7b.
 
-**Implement:** add the `archived` Invoice status and `ArchiveInvoice` command from `domain.md`/`contracts.md`, including its migration, Experience API pass-through, and `billing.invoice-archived.v1` outbox event. This is a soft removal: retain the invoice and lines, exclude archived invoices from the default list, and reject archiving when the invoice is `paid` or has any Payment record. Return the server-computed `canArchive` flag from invoice list/details queries so the frontend does not duplicate the payment-eligibility rule. Add a row action alongside Issue/Void only for eligible invoices, require an accessible confirmation dialog, invalidate invoice list/detail queries after success, and ensure the visible count refreshes. Task 3.7e extends this flow to clean up an existing attachment.
+**Implement:** add the `archived` Invoice status and `ArchiveInvoice` command from `domain.md`/`contracts.md`, including its migration, Experience API pass-through, and `billing.invoice-archived.v1` outbox event. This is a soft removal for `issued`, `overdue`, and `void` invoices only: retain the invoice and lines, exclude archived invoices from the default list, and reject archiving when the invoice is `draft`, `paid`, or has any Payment record. Return the server-computed `canArchive` flag from invoice list/details queries so the frontend does not duplicate the payment-eligibility rule. Add a row action alongside Issue/Void only for eligible invoices, require an accessible confirmation dialog, invalidate invoice list/detail queries after success, and ensure the visible count refreshes. Task 3.7e extends this flow to clean up an existing attachment; Task 3.7g adds the separate permanent-removal path for accidental drafts.
 
 **Automated tests:** domain tests for eligible statuses and rejection of paid/payment-linked invoices; integration tests proving soft deletion, default-list exclusion, idempotency, and the outbox event; component tests for action visibility, cancel/confirm behavior, and query invalidation.
 
-**What you can test:** archive a draft or unpaid invoice with no payments after confirming, verify it leaves the default list but appears under the archived filter, and verify an invoice with a payment has no archive action and is rejected by the API.
+**What you can test:** archive an issued, overdue, or void invoice with no payments after confirming, verify it leaves the default list but appears under the archived filter, and verify a draft or an invoice with a payment has no archive action and is rejected by the API.
 
 ### Task 3.7d — Invoice details view
 

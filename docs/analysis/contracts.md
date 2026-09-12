@@ -484,7 +484,7 @@ Live bank feed integration (the Bank Feed Integration System API named in `api-l
 
 Screens: Invoices, Payments.
 
-**Resolved here:** the original note that "creation and issuing may be the same step" is settled — `CreateInvoice` creates a `draft`, `IssueInvoice` transitions it to `issued` and fires the event, and `VoidInvoice` only accepts a `draft`. This mirrors the `status` enum added to `domain.md`'s Invoice entity and matches the Invoices screen's need to show draft invoices before they're sent. Invoice removal is the `ArchiveInvoice` status transition rather than a hard delete; it is allowed only when no Payment records reference the invoice and the invoice is not `paid`.
+**Resolved here:** the original note that "creation and issuing may be the same step" is settled — `CreateInvoice` creates a `draft`, `IssueInvoice` transitions it to `issued` and fires the event, and `VoidInvoice` only accepts a `draft`. This mirrors the `status` enum added to `domain.md`'s Invoice entity and matches the Invoices screen's need to show draft invoices before they're sent. Invoice removal has two paths: `DeleteDraftInvoice` permanently removes only a draft with no Payment records, while `ArchiveInvoice` is the status transition for payment-free `issued`, `overdue`, and `void` invoices. `paid` or payment-linked invoices cannot be removed.
 
 ### Commands
 
@@ -498,6 +498,7 @@ Screens: Invoices, Payments.
 | `IssueInvoice` | `POST /api/v1/invoices/{invoiceId}/issue` | Invoices |
 | `VoidInvoice` | `POST /api/v1/invoices/{invoiceId}/void` | Invoices |
 | `ArchiveInvoice` | `POST /api/v1/invoices/{invoiceId}/archive` | Invoices |
+| `DeleteDraftInvoice` | `DELETE /api/v1/invoices/{invoiceId}` | Invoices |
 | `AttachInvoiceDocument` | `PUT /api/v1/invoices/{invoiceId}/attachment` | Invoices |
 | `RemoveInvoiceDocument` | `DELETE /api/v1/invoices/{invoiceId}/attachment` | Invoices |
 | `RecordPayment` | `POST /api/v1/payments` | Payments |
@@ -646,7 +647,7 @@ Draft only.
 
 #### `ArchiveInvoice`
 
-Soft-removes an invoice from the default list. This never deletes the Invoice, its lines, or its audit history. Attachment cleanup is added by Task 3.7e once invoice attachments exist.
+Soft-removes an invoice from the default list. This never deletes the Invoice, its lines, or its audit history. It removes an existing attachment through the durable cleanup path.
 
 **Route:** `POST /api/v1/invoices/{invoiceId}/archive`
 
@@ -659,9 +660,25 @@ Soft-removes an invoice from the default list. This never deletes the Invoice, i
 { "invoiceId": "guid", "status": "\"archived\"", "updatedAt": "date-time", "version": "int" }
 ```
 
-**Errors:** `409 Conflict` if the invoice is `paid`, any Payment record references it, or `If-Match` is stale. `draft`, `issued`, `overdue`, and `void` invoices without Payment records can be archived. Already archived requests are idempotent and return the current archived representation.
+**Errors:** `409 Conflict` if the invoice is `draft`, `paid`, or already `archived`, any Payment record references it, or `If-Match` is stale. Only `issued`, `overdue`, and `void` invoices without Payment records can be archived. Replaying the same `Idempotency-Key` returns the original archived representation; a new command against an already archived Invoice is rejected.
 
 **Event:** `billing.invoice-archived.v1`, written to the outbox in the same transaction as the status change so Reporting can remove an invoice that had previously been issued.
+
+#### `DeleteDraftInvoice`
+
+Permanently removes an accidental draft before it enters the financial workflow. The command is allowed only when the Invoice is currently `draft` and has no Payment records. It deletes the Invoice and all of its Invoice Lines in one database transaction. If an attachment exists, the same transaction deletes its Billing metadata and writes a durable blob-cleanup work record; physical deletion of the private blob is retried until it succeeds. The command never makes another tenant's attachment addressable and never reports success before the metadata and cleanup work are durable.
+
+**Route:** `DELETE /api/v1/invoices/{invoiceId}`
+
+**Request:** *(no body)*
+
+**Headers:** `Idempotency-Key` (required GUID), `If-Match` (required quoted current version).
+
+**Response:** `204 No Content`.
+
+**Errors:** `404 Not Found` if the Invoice is not visible to the tenant or was already deleted by a different command; `409 Conflict` if the Invoice is not `draft`, has any Payment record, or `If-Match` is stale. Repeating the request with the same `Idempotency-Key` returns `204 No Content` without repeating deletion or cleanup scheduling. A new idempotency key after a successful deletion receives `404 Not Found`.
+
+**Events:** none. Reporting receives Invoice facts only after `billing.invoice-issued.v1`; a draft therefore has no Reporting projection that needs a deletion event.
 
 #### `AttachInvoiceDocument`
 
@@ -778,7 +795,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
   "items": [
     {
       "invoiceId": "guid", "counterpartyId": "guid", "counterpartyName": "string",
-      "direction": "string", "type": "string", "status": "string", "canArchive": "bool",
+      "direction": "string", "type": "string", "status": "string", "canArchive": "bool", "canDeleteDraft": "bool",
       "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int",
       "date": "date", "dueDate": "date", "version": "int"
     }
@@ -795,7 +812,7 @@ Validates `transactionId` against this service's local `transaction_replica` (pe
 ```
 {
   "invoiceId": "guid", "projectId": "guid", "counterpartyId": "guid", "counterpartyName": "string",
-  "direction": "string", "type": "string", "status": "string", "canArchive": "bool",
+  "direction": "string", "type": "string", "status": "string", "canArchive": "bool", "canDeleteDraft": "bool",
   "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int",
   "lines": [
     { "invoiceLineId": "guid", "description": "string", "quantity": "int", "unitPriceMinor": "int", "taxRate": "decimal", "netAmountMinor": "int", "taxAmountMinor": "int", "totalAmountMinor": "int" }
@@ -1284,7 +1301,7 @@ No commands or queries of its own — every endpoint here composes calls to the 
 | Financial Overview | `GET /experience/v1/financial-overview` | Reporting's `GetFinancialOverview` + Ledger's `ListBankAccounts`/`ListPaymentCards` | `POST /experience/v1/financial-overview/transactions/import` → Ledger's `ImportTransactionsFromFile` |
 | Expenses | `GET /experience/v1/expenses` | Bookkeeping's `ListExpenses` | `GET /experience/v1/expenses/unreconciled-transactions` → composes Ledger's `ListUnreconciledTransactions` minus this tenant's already-reconciled `reconciled_transaction_id`s (fetched from Bookkeeping) — the cross-service diff described in the Financial Accounts & Ledger section above |
 | Revenues | `GET /experience/v1/revenues` | Bookkeeping's `ListRevenues` | Same reconciliation-picker composition as Expenses |
-| Invoices | `GET /experience/v1/invoices` | Billing's `ListInvoices` + `ListCounterparties` | `PATCH /experience/v1/invoices/{invoiceId}` → Billing's `UpdateDraftInvoice` |
+| Invoices | `GET /experience/v1/invoices` | Billing's `ListInvoices` + `ListCounterparties` | `PATCH /experience/v1/invoices/{invoiceId}` → Billing's `UpdateDraftInvoice`; `DELETE /experience/v1/invoices/{invoiceId}` → Billing's `DeleteDraftInvoice` |
 | Payments | `GET /experience/v1/payments` | Billing's `ListPayments` | `GET /experience/v1/payments/unreconciled-transactions` → same composition pattern as Expenses/Revenues |
 | Transactions | `GET /experience/v1/transactions` | Ledger's `ListTransactions` | — |
 | Reports | `GET /experience/v1/reports` | Reporting's `ListReports`/`GetReportById` | — |
