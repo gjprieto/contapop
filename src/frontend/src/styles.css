@@ -309,6 +309,7 @@ tbody tr:hover .row-actions{opacity:1;}
 .form-grid>.full{grid-column:1/-1;}
 .invoice-line-editor h3{font-size:14px;margin:0 0 10px;}
 .invoice-line-editor{min-width:0;}
+.invoice-line-editor .card-head{padding:0 0 10px;}
 .invoice-line-header,.invoice-line-grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(82px,.75fr) minmax(110px,1fr) minmax(82px,.75fr);gap:8px;width:100%;}
 .invoice-line-header{margin-bottom:6px;}
 .invoice-line-header>span{font-size:12px;font-weight:600;color:var(--text-muted);}

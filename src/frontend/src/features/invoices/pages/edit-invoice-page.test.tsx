@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -14,10 +14,11 @@ function renderPage() {
 }
 
 describe("EditInvoicePage", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => { cleanup(); vi.clearAllMocks(); });
   it("edits a prepopulated draft, adds/removes lines, and submits recalculated line inputs", async () => {
     const user = userEvent.setup(); mocks.updateDraftInvoice.mockResolvedValue({}); renderPage();
     expect(await screen.findByDisplayValue("Consulting")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Back" })).toHaveAttribute("href", "/invoices/invoice-1");
     await user.click(screen.getByRole("button", { name: "Add line" }));
     await user.type(screen.getByLabelText("Line description", { selector: "#line-1-description" }), "Support");
     await user.clear(screen.getByLabelText("Unit price (EUR)", { selector: "#line-1-price" }));
@@ -31,8 +32,8 @@ describe("EditInvoicePage", () => {
     const user = userEvent.setup(); renderPage();
     await screen.findByDisplayValue("Consulting");
     await user.click(screen.getByRole("button", { name: "Add line" }));
-    await user.click(screen.getAllByRole("button", { name: "Remove line" })[1]);
-    expect(screen.getAllByLabelText("Line description")).toHaveLength(1);
+    await user.click(screen.getByRole("button", { name: "Remove line" }));
+    expect(screen.queryByLabelText("Line description", { selector: "#line-1-description" })).not.toBeInTheDocument();
     expect(mocks.updateDraftInvoice).not.toHaveBeenCalled();
   });
 });
