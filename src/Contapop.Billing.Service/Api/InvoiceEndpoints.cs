@@ -12,6 +12,7 @@ public static class InvoiceEndpoints
     {
         var invoices = endpoints.MapGroup("/api/v1/invoices").RequireAuthorization("account-owner");
         invoices.MapPost("", CreateAsync);
+        invoices.MapPatch("/{invoiceId:guid}", UpdateDraftAsync);
         invoices.MapPost("/{invoiceId:guid}/issue", IssueAsync);
         invoices.MapPost("/{invoiceId:guid}/void", VoidAsync);
         invoices.MapPost("/{invoiceId:guid}/archive", ArchiveAsync);
@@ -43,6 +44,19 @@ public static class InvoiceEndpoints
         if (!TryGetExpectedVersion(context, out var version)) return MissingVersion();
         var result = await handler.IssueAsync(new(tenantId, key, invoiceId, version), cancellationToken);
         return result.IsNotFound ? Results.NotFound() : result.IsConflict ? Conflict("Only draft invoices can be issued.") : Results.Ok(result.Value);
+    }
+
+    private static async Task<IResult> UpdateDraftAsync(Guid invoiceId, UpdateDraftInvoiceRequest request, HttpContext context, InvoiceCommandHandler handler, BillingDbContext database, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
+        if (!TryGetIdempotencyKey(context, out var key)) return MissingIdempotencyKey();
+        if (!TryGetExpectedVersion(context, out var version)) return MissingVersion();
+        var errors = ValidateLinesAndDates(request.Lines, request.Date, request.DueDate);
+        if (errors.Count > 0) return Results.ValidationProblem(errors);
+        var result = await handler.UpdateDraftAsync(new(tenantId, key, invoiceId, version, request.Lines.Select(line => new CreateInvoiceLineCommand(line.Description.Trim(), line.Quantity, line.UnitPriceMinor, line.TaxRate)).ToArray(), request.Date, request.DueDate), cancellationToken);
+        if (result.IsNotFound) return Results.NotFound();
+        if (result.IsConflict) return Conflict("Only draft invoices at the current version can be updated.");
+        return await GetByIdAsync(invoiceId, context, database, cancellationToken);
     }
 
     private static async Task<IResult> VoidAsync(Guid invoiceId, HttpContext context, InvoiceCommandHandler handler, CancellationToken cancellationToken)
@@ -125,9 +139,16 @@ public static class InvoiceEndpoints
         if (request.CounterpartyId == Guid.Empty) errors["counterpartyId"] = ["Counterparty must be a non-empty GUID."];
         if (request.Direction is not ("incoming" or "outgoing")) errors["direction"] = ["Direction must be incoming or outgoing."];
         if (request.Type is not ("service" or "product")) errors["type"] = ["Type must be service or product."];
-        if (request.Lines.Count == 0) errors["lines"] = ["At least one invoice line is required."];
-        if (request.Lines.Any(line => string.IsNullOrWhiteSpace(line.Description) || line.Description.Length > 500 || line.Quantity <= 0 || line.UnitPriceMinor <= 0 || line.TaxRate is < 0m or > 1m)) errors["lines"] = ["Each line requires a description, positive quantity and unit price, and a VAT rate between 0 and 1."];
-        if (request.DueDate < request.Date) errors["dueDate"] = ["Due date cannot be before the invoice date."];
+        foreach (var error in ValidateLinesAndDates(request.Lines, request.Date, request.DueDate)) errors[error.Key] = error.Value;
+        return errors;
+    }
+
+    private static Dictionary<string, string[]> ValidateLinesAndDates(IReadOnlyList<CreateInvoiceLineRequest> lines, DateOnly date, DateOnly dueDate)
+    {
+        var errors = new Dictionary<string, string[]>();
+        if (lines.Count == 0) errors["lines"] = ["At least one invoice line is required."];
+        if (lines.Any(line => string.IsNullOrWhiteSpace(line.Description) || line.Description.Length > 500 || line.Quantity <= 0 || line.UnitPriceMinor <= 0 || line.TaxRate is < 0m or > 1m)) errors["lines"] = ["Each line requires a description, positive quantity and unit price, and a VAT rate between 0 and 1."];
+        if (dueDate < date) errors["dueDate"] = ["Due date cannot be before the invoice date."];
         return errors;
     }
 
@@ -172,6 +193,7 @@ public static class InvoiceEndpoints
 
 public sealed record CreateInvoiceRequest(Guid ProjectId, Guid CounterpartyId, string Direction, string Type, IReadOnlyList<CreateInvoiceLineRequest> Lines, DateOnly Date, DateOnly DueDate);
 public sealed record CreateInvoiceLineRequest(string Description, int Quantity, long UnitPriceMinor, decimal TaxRate);
+public sealed record UpdateDraftInvoiceRequest(IReadOnlyList<CreateInvoiceLineRequest> Lines, DateOnly Date, DateOnly DueDate);
 public sealed record InvoiceListItem(Guid InvoiceId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, bool CanArchive, bool CanDelete, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, int Version);
 public sealed record InvoicePagedResponse(IReadOnlyList<InvoiceListItem> Items, int Page, int PageSize, int TotalCount);
 public sealed record InvoiceDetailsResponse(Guid InvoiceId, Guid ProjectId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, bool CanArchive, bool CanDelete, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version)

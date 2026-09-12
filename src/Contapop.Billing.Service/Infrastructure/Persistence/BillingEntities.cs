@@ -46,6 +46,22 @@ public sealed class Invoice
         return true;
     }
 
+    public bool TryUpdateDraft(int expectedVersion, IReadOnlyList<CreateInvoiceLine> lines, DateOnly date, DateOnly dueDate, DateTimeOffset now)
+    {
+        if (Status != "draft" || Version != expectedVersion) return false;
+
+        var invoiceLines = lines.Select(line => InvoiceLine.Create(line.Description, line.Quantity, line.UnitPriceMinor, line.TaxRate)).ToList();
+        Lines = invoiceLines;
+        NetAmountMinor = invoiceLines.Sum(line => line.NetAmountMinor);
+        TaxAmountMinor = invoiceLines.Sum(line => line.TaxAmountMinor);
+        TotalAmountMinor = checked(NetAmountMinor + TaxAmountMinor);
+        Date = date;
+        DueDate = dueDate;
+        Version++;
+        UpdatedAt = now;
+        return true;
+    }
+
     public bool TryVoid(int expectedVersion, DateTimeOffset now)
     {
         if (Status != "draft" || Version != expectedVersion) return false;

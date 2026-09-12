@@ -86,4 +86,31 @@ public sealed class InvoiceTests
 
         Assert.False(invoice.TryArchive((int)invoice.Version, now));
     }
+
+    [Fact]
+    public void Update_draft_replaces_all_lines_and_recalculates_totals()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var invoice = Invoice.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "outgoing", "service", [new CreateInvoiceLine("Old", 1, 100, 0.21m)], new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), now);
+
+        var updated = invoice.TryUpdateDraft(1, [new CreateInvoiceLine("First", 2, 100, 0.21m), new CreateInvoiceLine("Second", 1, 10, 0.25m)], new DateOnly(2026, 9, 10), new DateOnly(2026, 10, 10), now);
+
+        Assert.True(updated);
+        Assert.Equal(2, invoice.Lines.Count);
+        Assert.Equal(210, invoice.NetAmountMinor);
+        Assert.Equal(44, invoice.TaxAmountMinor);
+        Assert.Equal(254, invoice.TotalAmountMinor);
+        Assert.Equal(2, invoice.Version);
+        Assert.Equal(new DateOnly(2026, 9, 10), invoice.Date);
+    }
+
+    [Fact]
+    public void Update_draft_rejects_non_draft_or_stale_version()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var invoice = Invoice.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), now);
+        Assert.True(invoice.TryIssue(1, now));
+
+        Assert.False(invoice.TryUpdateDraft(2, [new CreateInvoiceLine("Updated", 1, 200, 0.21m)], new DateOnly(2026, 9, 10), new DateOnly(2026, 10, 10), now));
+    }
 }

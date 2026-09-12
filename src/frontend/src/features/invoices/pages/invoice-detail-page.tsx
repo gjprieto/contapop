@@ -31,7 +31,7 @@ export function InvoiceDetailPage() {
   return <main className="page">
     <div className="page-head">
       <div><p className="eyebrow">Billing</p><h1>Invoice details</h1><p className="page-intro">{detail.counterpartyName} · {detail.direction} {detail.type}</p></div>
-      <Link className="btn" to={returnTo}>Back to invoices</Link>
+      <div className="row-actions visible-actions">{detail.status === "draft" && <Link className="btn btn-primary" to={`/invoices/${invoiceId}/edit${location.search}`}>Edit draft</Link>}<Link className="btn" to={returnTo}>Back to invoices</Link></div>
     </div>
     <div className="grid grid-2">
       <section className="card card-pad"><h2 className="section-title">Invoice</h2><div className="kv-list"><DetailRow label="Counterparty" value={detail.counterpartyName} /><DetailRow label="Direction" value={detail.direction} /><DetailRow label="Type" value={detail.type} /><DetailRow label="Status" value={<span className={`badge badge-${detail.status === "paid" ? "green" : detail.status === "overdue" ? "red" : "amber"}`}>{detail.status}</span>} /><DetailRow label="Invoice date" value={detail.date} /><DetailRow label="Due date" value={detail.dueDate} /></div></section>

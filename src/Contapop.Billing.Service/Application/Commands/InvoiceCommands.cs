@@ -8,6 +8,7 @@ public sealed record CreateInvoiceCommand(Guid TenantId, string IdempotencyKey, 
     }
 }
 public sealed record CreateInvoiceLineCommand(string Description, int Quantity, long UnitPriceMinor, decimal TaxRate);
+public sealed record UpdateDraftInvoiceCommand(Guid TenantId, string IdempotencyKey, Guid InvoiceId, int ExpectedVersion, IReadOnlyList<CreateInvoiceLineCommand> Lines, DateOnly Date, DateOnly DueDate);
 public sealed record IssueInvoiceCommand(Guid TenantId, string IdempotencyKey, Guid InvoiceId, int ExpectedVersion);
 public sealed record VoidInvoiceCommand(Guid TenantId, string IdempotencyKey, Guid InvoiceId, int ExpectedVersion);
 public sealed record ArchiveInvoiceCommand(Guid TenantId, string IdempotencyKey, Guid InvoiceId, int ExpectedVersion);

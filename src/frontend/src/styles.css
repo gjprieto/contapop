@@ -287,6 +287,7 @@ tbody tr:hover .row-actions{opacity:1;}
 .modal-backdrop{position:fixed;inset:0;background:rgba(15,18,16,0.5);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;animation:fade .12s ease;}
 .modal{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);width:100%;max-width:520px;max-height:88vh;display:flex;flex-direction:column;animation:pop .14s ease;}
 .modal.modal-lg{max-width:720px;}
+.invoice-create-modal{max-width:860px;}
 .modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);flex:none;}
 .modal-head h2{font-size:16px;}
 .modal-body{padding:20px 22px;overflow-y:auto;}
@@ -305,6 +306,16 @@ tbody tr:hover .row-actions{opacity:1;}
 
 /* ---------- Form ---------- */
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid>.full{grid-column:1/-1;}
+.invoice-line-editor h3{font-size:14px;margin:0 0 10px;}
+.invoice-line-editor{min-width:0;}
+.invoice-line-header,.invoice-line-grid{display:grid;grid-template-columns:minmax(0,3fr) minmax(82px,.75fr) minmax(110px,1fr) minmax(82px,.75fr);gap:8px;width:100%;}
+.invoice-line-header{margin-bottom:6px;}
+.invoice-line-header>span{font-size:12px;font-weight:600;color:var(--text-muted);}
+.invoice-line-grid{align-items:center;margin-top:8px;}
+.invoice-line-grid input{width:100%;min-width:0;}
+.invoice-line-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:10px;}
+.invoice-totals{margin:0;padding-top:4px;font-weight:600;text-align:right;}
 .form-field{display:flex;flex-direction:column;gap:5px;}
 .form-field.full{grid-column:1/-1;}
 .form-field label{font-size:12px;font-weight:600;color:var(--text-muted);}
@@ -312,7 +323,7 @@ tbody tr:hover .row-actions{opacity:1;}
 .form-field .err{font-size:11px;color:var(--red-500);}
 .checkbox-row{display:flex;align-items:center;gap:8px;}
 .checkbox-row input{width:auto;}
-@media (max-width:520px){.form-grid{grid-template-columns:1fr;}}
+@media (max-width:520px){.form-grid{grid-template-columns:1fr;}.invoice-line-header,.invoice-line-grid{grid-template-columns:1fr 84px;}.invoice-line-header{display:none;}.invoice-line-grid input:first-of-type{grid-column:1 / -1;}.invoice-line-actions{justify-content:flex-end;}}
 
 /* ---------- Detail rows ---------- */
 .kv-list{display:flex;flex-direction:column;gap:0;}

@@ -73,6 +73,10 @@ export type CreateInvoiceInput = {
   date: string;
   dueDate: string;
 };
+export type UpdateDraftInvoiceInput = Pick<
+  CreateInvoiceInput,
+  "lines" | "date" | "dueDate"
+>;
 export type InvoiceFilters = {
   status?: string;
   direction?: "incoming" | "outgoing";

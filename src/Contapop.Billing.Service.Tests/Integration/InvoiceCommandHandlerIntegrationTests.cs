@@ -79,6 +79,50 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Update_draft_atomically_replaces_lines_recalculates_totals_and_replays()
+    {
+        await using var database = await CreateDatabaseAsync();
+        var tenantId = Guid.NewGuid();
+        var invoice = Invoice.Create(tenantId, Guid.NewGuid(), Guid.NewGuid(), "outgoing", "service", [new CreateInvoiceLine("Old", 1, 100, 0.21m)], new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        database.Invoices.Add(invoice);
+        await database.SaveChangesAsync();
+        var handler = new InvoiceCommandHandler(database);
+        var key = Guid.NewGuid().ToString();
+        var command = new UpdateDraftInvoiceCommand(tenantId, key, invoice.Id, 1, [new CreateInvoiceLineCommand("Consulting", 2, 10_000, 0.21m), new CreateInvoiceLineCommand("Support", 1, 5_000, 0.10m)], new DateOnly(2026, 9, 10), new DateOnly(2026, 10, 10));
+
+        var updated = await handler.UpdateDraftAsync(command, CancellationToken.None);
+        var replay = await handler.UpdateDraftAsync(command, CancellationToken.None);
+        var persisted = await database.Invoices.Include(item => item.Lines).SingleAsync();
+
+        Assert.Equal(updated.Value, replay.Value);
+        Assert.Equal(2, persisted.Lines.Count);
+        Assert.Equal(25_000, persisted.NetAmountMinor);
+        Assert.Equal(4_700, persisted.TaxAmountMinor);
+        Assert.Equal(29_700, persisted.TotalAmountMinor);
+        Assert.Equal(2, persisted.Version);
+        Assert.Equal(0, await database.OutboxMessages.CountAsync());
+    }
+
+    [Fact]
+    public async Task Update_draft_rejects_stale_and_non_draft_invoices_without_changes()
+    {
+        await using var database = await CreateDatabaseAsync();
+        var tenantId = Guid.NewGuid();
+        var invoice = Invoice.Create(tenantId, Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        database.Invoices.Add(invoice);
+        await database.SaveChangesAsync();
+        var handler = new InvoiceCommandHandler(database);
+        var stale = await handler.UpdateDraftAsync(new(tenantId, Guid.NewGuid().ToString(), invoice.Id, 2, [new("Changed", 1, 200, 0.21m)], new DateOnly(2026, 9, 10), new DateOnly(2026, 10, 10)), CancellationToken.None);
+        Assert.True(invoice.TryIssue(1, DateTimeOffset.UtcNow));
+        await database.SaveChangesAsync();
+        var issued = await handler.UpdateDraftAsync(new(tenantId, Guid.NewGuid().ToString(), invoice.Id, 2, [new("Changed", 1, 200, 0.21m)], new DateOnly(2026, 9, 10), new DateOnly(2026, 10, 10)), CancellationToken.None);
+
+        Assert.True(stale.IsConflict);
+        Assert.True(issued.IsConflict);
+        Assert.Equal(100, invoice.NetAmountMinor);
+    }
+
+    [Fact]
     public async Task Archive_soft_deletes_an_unpaid_issued_invoice_and_writes_the_required_event()
     {
         await using var database = await CreateDatabaseAsync();

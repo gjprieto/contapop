@@ -32,6 +32,7 @@ const schema = z.object({
   dueDate: z.string().min(1),
 });
 type Values = z.infer<typeof schema>;
+type AdditionalLine = { description: string; quantity: number; unitPrice: number; taxRate: number };
 
 const money = (amount: number) =>
   new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(
@@ -74,6 +75,7 @@ function InvoiceForm({ onClose }: { onClose: () => void }) {
   const user = useCurrentUser();
   const cache = useQueryClient();
   const [counterpartyName, setCounterpartyName] = useState("");
+  const [additionalLines, setAdditionalLines] = useState<AdditionalLine[]>([]);
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -89,10 +91,12 @@ function InvoiceForm({ onClose }: { onClose: () => void }) {
     },
   });
   const values = form.watch();
-  const net = Math.round(
-    (Number(values.quantity) || 0) * (Number(values.unitPrice) || 0) * 100,
-  );
-  const tax = Math.round(net * (Number(values.taxRate) || 0));
+  const allLines = [{ description: values.description, quantity: Number(values.quantity) || 0, unitPrice: Number(values.unitPrice) || 0, taxRate: Number(values.taxRate) || 0 }, ...additionalLines];
+  const totals = allLines.reduce((total, line) => {
+    const net = Math.round(line.quantity * line.unitPrice * 100);
+    const tax = Math.round(net * line.taxRate);
+    return { net: total.net + net, tax: total.tax + tax };
+  }, { net: 0, tax: 0 });
   const refresh = async () => {
     await cache.invalidateQueries({ queryKey: invoiceKeys.all });
     await cache.invalidateQueries({ queryKey: invoiceKeys.counterparties });
@@ -116,19 +120,13 @@ function InvoiceForm({ onClose }: { onClose: () => void }) {
         counterpartyId: input.counterpartyId,
         direction: input.direction,
         type: input.type,
-        lines: [
-          {
-            description: input.description,
-            quantity: input.quantity,
-            unitPriceMinor: Math.round(input.unitPrice * 100),
-            taxRate: input.taxRate,
-          },
-        ],
+        lines: [{ description: input.description, quantity: input.quantity, unitPriceMinor: Math.round(input.unitPrice * 100), taxRate: input.taxRate }, ...additionalLines.map(line => ({ description: line.description, quantity: line.quantity, unitPriceMinor: Math.round(line.unitPrice * 100), taxRate: line.taxRate }))],
         date: input.date,
         dueDate: input.dueDate,
       }),
     onSuccess: async () => {
       form.reset();
+      setAdditionalLines([]);
       await refresh();
       onClose();
     },
@@ -136,7 +134,7 @@ function InvoiceForm({ onClose }: { onClose: () => void }) {
   return (
     <div className="modal-backdrop" role="presentation">
       <section
-        className="modal"
+        className="modal modal-lg invoice-create-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="invoice-form-title"
@@ -200,63 +198,46 @@ function InvoiceForm({ onClose }: { onClose: () => void }) {
                 <option value="product">Product</option>
               </select>
             </div>
-            <div className="form-field full">
-              <label htmlFor="invoice-description">Line description</label>
-              <input
-                id="invoice-description"
-                {...form.register("description")}
-              />
-            </div>
-            <div className="form-field">
-              <label htmlFor="invoice-quantity">Quantity</label>
-              <input
-                id="invoice-quantity"
-                type="number"
-                min="1"
-                {...form.register("quantity")}
-              />
-            </div>
-            <div className="form-field">
-              <label htmlFor="invoice-unit-price">Unit price (EUR)</label>
-              <input
-                id="invoice-unit-price"
-                type="number"
-                min="0.01"
-                step="0.01"
-                {...form.register("unitPrice")}
-              />
-            </div>
-            <div className="form-field">
-              <label htmlFor="invoice-tax-rate">VAT rate</label>
-              <input
-                id="invoice-tax-rate"
-                type="number"
-                min="0"
-                max="1"
-                step="0.01"
-                {...form.register("taxRate")}
-              />
-            </div>
             <div className="form-field">
               <label htmlFor="invoice-date">Invoice date</label>
               <input id="invoice-date" type="date" {...form.register("date")} />
             </div>
             <div className="form-field">
               <label htmlFor="invoice-due-date">Due date</label>
-              <input
-                id="invoice-due-date"
-                type="date"
-                {...form.register("dueDate")}
-              />
+              <input id="invoice-due-date" type="date" {...form.register("dueDate")} />
             </div>
-            <p className="full">
-              Net {money(net)} · VAT {money(tax)} · Total {money(net + tax)}
-            </p>
+            <section className="invoice-line-editor full" aria-labelledby="invoice-lines-title">
+              <h3 id="invoice-lines-title">Item lines</h3>
+              <div className="invoice-line-header" aria-hidden="true">
+                <span>Line description</span><span>Quantity</span><span>Unit price</span><span>VAT</span>
+              </div>
+              <div role="group" aria-label="Invoice item lines">
+                <div className="invoice-line-grid">
+                  <label className="visually-hidden" htmlFor="invoice-description">Line description</label><input id="invoice-description" {...form.register("description")} />
+                  <label className="visually-hidden" htmlFor="invoice-quantity">Quantity</label><input id="invoice-quantity" type="number" min="1" {...form.register("quantity")} />
+                  <label className="visually-hidden" htmlFor="invoice-unit-price">Unit price (EUR)</label><input id="invoice-unit-price" type="number" min="0.01" step="0.01" {...form.register("unitPrice")} />
+                  <label className="visually-hidden" htmlFor="invoice-tax-rate">VAT rate</label><input id="invoice-tax-rate" type="number" min="0" max="1" step="0.01" {...form.register("taxRate")} />
+                </div>
+                {additionalLines.map((line, index) => <div className="invoice-line-grid" key={index}>
+                  <label className="visually-hidden" htmlFor={`additional-description-${index}`}>Line description</label><input id={`additional-description-${index}`} value={line.description} onChange={(event) => setAdditionalLines(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, description: event.target.value } : item))} />
+                  <label className="visually-hidden" htmlFor={`additional-quantity-${index}`}>Quantity</label><input id={`additional-quantity-${index}`} type="number" min="1" value={line.quantity} onChange={(event) => setAdditionalLines(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, quantity: Number(event.target.value) } : item))} />
+                  <label className="visually-hidden" htmlFor={`additional-price-${index}`}>Unit price (EUR)</label><input id={`additional-price-${index}`} type="number" min="0.01" step="0.01" value={line.unitPrice} onChange={(event) => setAdditionalLines(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, unitPrice: Number(event.target.value) } : item))} />
+                  <label className="visually-hidden" htmlFor={`additional-tax-${index}`}>VAT rate</label><input id={`additional-tax-${index}`} type="number" min="0" max="1" step="0.01" value={line.taxRate} onChange={(event) => setAdditionalLines(current => current.map((item, itemIndex) => itemIndex === index ? { ...item, taxRate: Number(event.target.value) } : item))} />
+                </div>)}
+              </div>
+              <div className="invoice-line-actions">
+                <button className="btn btn-sm" type="button" disabled={additionalLines.length === 0} onClick={() => setAdditionalLines(current => current.slice(0, -1))}>Remove line</button>
+                <button className="btn btn-sm" type="button" onClick={() => setAdditionalLines(current => [...current, { description: "", quantity: 1, unitPrice: 0, taxRate: 0.21 }])}>Add line</button>
+              </div>
+            </section>
             {create.isError && (
               <p className="form-error full" role="alert">
                 We could not create this invoice.
               </p>
             )}
+            <p className="invoice-totals full">
+              Net {money(totals.net)} · VAT {money(totals.tax)} · Total {money(totals.net + totals.tax)}
+            </p>
           </div>
           <div className="modal-foot">
             <button className="btn" type="button" onClick={onClose}>

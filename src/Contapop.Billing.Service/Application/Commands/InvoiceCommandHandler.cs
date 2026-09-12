@@ -36,6 +36,32 @@ public sealed class InvoiceCommandHandler(BillingDbContext database)
         return InvoiceCommandResult<InvoiceStatusResponse>.Success(result);
     }
 
+    public async Task<InvoiceCommandResult<InvoiceStatusResponse>> UpdateDraftAsync(UpdateDraftInvoiceCommand command, CancellationToken cancellationToken)
+    {
+        var replay = await GetReplayAsync<InvoiceStatusResponse>(command.TenantId, "update-draft-invoice", command.IdempotencyKey, cancellationToken);
+        if (replay is not null) return InvoiceCommandResult<InvoiceStatusResponse>.Success(replay);
+
+        // The replacement is performed as a set-based line delete plus a version-checked aggregate update.
+        database.ChangeTracker.Clear();
+        var invoice = await database.Invoices.AsNoTracking()
+            .SingleOrDefaultAsync(item => item.Id == command.InvoiceId && item.TenantId == command.TenantId, cancellationToken);
+        if (invoice is null) return InvoiceCommandResult<InvoiceStatusResponse>.NotFound();
+
+        var now = DateTimeOffset.UtcNow;
+        if (!invoice.TryUpdateDraft(command.ExpectedVersion, command.Lines.Select(line => new CreateInvoiceLine(line.Description, line.Quantity, line.UnitPriceMinor, line.TaxRate)).ToArray(), command.Date, command.DueDate, now))
+            return InvoiceCommandResult<InvoiceStatusResponse>.Conflict();
+
+        await database.InvoiceLines.Where(line => line.InvoiceId == invoice.Id).ExecuteDeleteAsync(cancellationToken);
+        database.Invoices.Attach(invoice);
+        database.Entry(invoice).State = EntityState.Modified;
+        database.Entry(invoice).Property(item => item.Version).OriginalValue = command.ExpectedVersion;
+        database.InvoiceLines.AddRange(invoice.Lines);
+        var result = new InvoiceStatusResponse(invoice.Id, invoice.Status, now, (int)invoice.Version);
+        database.IdempotencyRecords.Add(IdempotencyRecord.Create(command.TenantId, "update-draft-invoice", command.IdempotencyKey, JsonSerializer.Serialize(result), now));
+        await database.SaveChangesAsync(cancellationToken);
+        return InvoiceCommandResult<InvoiceStatusResponse>.Success(result);
+    }
+
     public async Task<InvoiceCommandResult<InvoiceStatusResponse>> VoidAsync(VoidInvoiceCommand command, CancellationToken cancellationToken)
     {
         var replay = await GetReplayAsync<InvoiceStatusResponse>(command.TenantId, "void-invoice", command.IdempotencyKey, cancellationToken);

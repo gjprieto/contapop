@@ -2,6 +2,7 @@ import { apiRequest, apiRequestVoid } from "../../../shared/api/client";
 import type {
   Counterparty,
   CreateInvoiceInput,
+  UpdateDraftInvoiceInput,
   Invoice,
   InvoiceDetail,
   InvoiceFilters,
@@ -51,6 +52,19 @@ export const createInvoice = (input: CreateInvoiceInput) =>
     headers: {
       "Content-Type": "application/json",
       "Idempotency-Key": crypto.randomUUID(),
+    },
+    body: JSON.stringify(input),
+  });
+export const updateDraftInvoice = (
+  invoice: InvoiceDetail,
+  input: UpdateDraftInvoiceInput,
+) =>
+  apiRequest<InvoiceDetail>(`/experience/v1/invoices/${invoice.invoiceId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "Idempotency-Key": crypto.randomUUID(),
+      "If-Match": `"${invoice.version}"`,
     },
     body: JSON.stringify(input),
   });
