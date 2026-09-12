@@ -14,6 +14,7 @@
     <ProjectReference Include="..\Contapop.Identity.Service\Contapop.Identity.Service.csproj" />
     <ProjectReference Include="..\Contapop.Ledger.Service\Contapop.Ledger.Service.csproj" />
     <ProjectReference Include="..\Contapop.Billing.Service\Contapop.Billing.Service.csproj" />
+    <ProjectReference Include="..\Contapop.Bookkeeping.Service\Contapop.Bookkeeping.Service.csproj" />
     <ProjectReference Include="..\Contapop.Reconciliation.Service\Contapop.Reconciliation.Service.csproj" />
   </ItemGroup>
 

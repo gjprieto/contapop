@@ -11,7 +11,7 @@ var billingAttachments = storage.AddBlobs("billing-attachments");
 var identityDatabase = postgres.AddDatabase("identity", "contapop_identity");
 var ledgerDatabase = postgres.AddDatabase("ledger", "contapop_ledger");
 var billingDatabase = postgres.AddDatabase("billing", "contapop_billing");
-postgres.AddDatabase("bookkeeping", "contapop_bookkeeping");
+var bookkeepingDatabase = postgres.AddDatabase("bookkeeping", "contapop_bookkeeping");
 postgres.AddDatabase("reporting", "contapop_reporting");
 var reconciliationDatabase = postgres.AddDatabase("reconciliation", "contapop_reconciliation");
 
@@ -49,6 +49,14 @@ var billing = builder.AddProject<Projects.Contapop_Billing_Service>("billing-ser
     .WithHttpHealthCheck("/health")
     .WithDaprSidecar(sidecar => sidecar.WithReference(pubSub));
 
+var bookkeeping = builder.AddProject<Projects.Contapop_Bookkeeping_Service>("bookkeeping-service")
+    .WithReference(bookkeepingDatabase)
+    .WithEnvironment("InternalJwt__SigningKey", internalJwtSigningKey)
+    .WaitFor(bookkeepingDatabase)
+    .WithHttpEndpoint(port: 5116)
+    .WithHttpHealthCheck("/health")
+    .WithDaprSidecar(sidecar => sidecar.WithReference(pubSub));
+
 var reconciliation = builder.AddProject<Projects.Contapop_Reconciliation_Service>("reconciliation-service")
     .WithReference(reconciliationDatabase)
     .WithReference(ledger)
@@ -62,6 +70,7 @@ var reconciliation = builder.AddProject<Projects.Contapop_Reconciliation_Service
 experienceApi.WithReference(identity).WaitFor(identity);
 experienceApi.WithReference(ledger).WaitFor(ledger);
 experienceApi.WithReference(billing).WaitFor(billing);
+experienceApi.WithReference(bookkeeping).WaitFor(bookkeeping);
 experienceApi.WithReference(reconciliation).WaitFor(reconciliation);
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
