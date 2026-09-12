@@ -62,6 +62,12 @@ public sealed class InvoiceCommandHandler(BillingDbContext database)
         var previousStatus = invoice.Status;
         var now = DateTimeOffset.UtcNow;
         if (!invoice.TryArchive(command.ExpectedVersion, now)) return InvoiceCommandResult<InvoiceStatusResponse>.Conflict();
+        var attachment = await database.InvoiceAttachments.SingleOrDefaultAsync(item => item.InvoiceId == invoice.Id, cancellationToken);
+        if (attachment is not null)
+        {
+            database.InvoiceAttachments.Remove(attachment);
+            database.AttachmentCleanups.Add(AttachmentCleanup.Create(invoice.TenantId, attachment.BlobName, now));
+        }
         var result = new InvoiceStatusResponse(invoice.Id, invoice.Status, now, (int)invoice.Version);
         database.OutboxMessages.Add(OutboxMessage.Create("billing.invoice-archived.v1", "Invoice", invoice.Id, invoice.Version, invoice.TenantId, now, JsonSerializer.Serialize(new { invoice_id = invoice.Id, project_id = invoice.ProjectId, direction = invoice.Direction, previous_status = previousStatus, archived_at = now })));
         database.IdempotencyRecords.Add(IdempotencyRecord.Create(command.TenantId, "archive-invoice", command.IdempotencyKey, JsonSerializer.Serialize(result), now));

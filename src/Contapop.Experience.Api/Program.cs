@@ -212,6 +212,9 @@ invoices.MapPost("/{invoiceId:guid}/issue", (Guid invoiceId, HttpContext context
 invoices.MapPost("/{invoiceId:guid}/void", (Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingAsync(HttpMethod.Post, $"/api/v1/invoices/{invoiceId}/void", null, context, clients, jwt, ct, true, true));
 invoices.MapPost("/{invoiceId:guid}/archive", (Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingAsync(HttpMethod.Post, $"/api/v1/invoices/{invoiceId}/archive", null, context, clients, jwt, ct, true, true));
 invoices.MapGet("/{invoiceId:guid}/document", (Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingDocumentAsync(invoiceId, context, clients, jwt, ct));
+invoices.MapPut("/{invoiceId:guid}/attachment", (Guid invoiceId, [FromForm] IFormFile? file, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingAttachmentUploadAsync(invoiceId, file, context, clients, jwt, ct)).Accepts<IFormFile>("multipart/form-data").DisableAntiforgery();
+invoices.MapDelete("/{invoiceId:guid}/attachment", (Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingAsync(HttpMethod.Delete, $"/api/v1/invoices/{invoiceId}/attachment", null, context, clients, jwt, ct));
+invoices.MapGet("/{invoiceId:guid}/attachment", (Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingAttachmentAsync(invoiceId, context, clients, jwt, ct));
 
 var payments = app.MapGroup("/experience/v1/payments").RequireAuthorization("account-owner");
 payments.MapGet("", (HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingAsync(HttpMethod.Get, "/api/v1/payments" + context.Request.QueryString, null, context, clients, jwt, ct));
@@ -342,6 +345,31 @@ static async Task<IResult> ForwardBillingDocumentAsync(Guid invoiceId, HttpConte
     if (!response.IsSuccessStatusCode) return response.StatusCode == System.Net.HttpStatusCode.NotFound ? Results.NotFound() : Results.Problem(statusCode: StatusCodes.Status502BadGateway, title: "Billing service unavailable");
     var bytes = await response.Content.ReadAsByteArrayAsync(ct);
     return Results.File(bytes, response.Content.Headers.ContentType?.MediaType ?? "application/pdf", response.Content.Headers.ContentDisposition?.FileNameStar ?? $"invoice-{invoiceId}.pdf");
+}
+
+static async Task<IResult> ForwardBillingAttachmentUploadAsync(Guid invoiceId, IFormFile? file, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwtIssuer, CancellationToken ct)
+{
+    if (file is null) return Results.ValidationProblem(new Dictionary<string, string[]> { ["file"] = ["An attachment file is required."] });
+    using var content = new MultipartFormDataContent();
+    await using var source = file.OpenReadStream();
+    using var fileContent = new StreamContent(source);
+    fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType);
+    content.Add(fileContent, "file", file.FileName);
+    using var request = new HttpRequestMessage(HttpMethod.Put, $"/api/v1/invoices/{invoiceId}/attachment") { Content = content };
+    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtIssuer.Create(context.User));
+    using var response = await clients.CreateClient("billing-service").SendAsync(request, ct);
+    var body = await response.Content.ReadAsStringAsync(ct);
+    return Results.Content(body, response.Content.Headers.ContentType?.MediaType ?? "application/json", statusCode: (int)response.StatusCode);
+}
+
+static async Task<IResult> ForwardBillingAttachmentAsync(Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwtIssuer, CancellationToken ct)
+{
+    using var request = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/invoices/{invoiceId}/attachment");
+    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtIssuer.Create(context.User));
+    using var response = await clients.CreateClient("billing-service").SendAsync(request, ct);
+    if (!response.IsSuccessStatusCode) return response.StatusCode == System.Net.HttpStatusCode.NotFound ? Results.NotFound() : Results.Problem(statusCode: StatusCodes.Status502BadGateway, title: "Billing service unavailable");
+    var bytes = await response.Content.ReadAsByteArrayAsync(ct);
+    return Results.File(bytes, response.Content.Headers.ContentType?.MediaType ?? "application/octet-stream", response.Content.Headers.ContentDisposition?.FileNameStar ?? "attachment");
 }
 
 static async Task<IResult> ListPaymentUnreconciledTransactionsAsync(HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwtIssuer, CancellationToken ct)

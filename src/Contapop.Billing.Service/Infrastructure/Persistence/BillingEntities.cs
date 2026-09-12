@@ -108,6 +108,58 @@ public sealed class InvoiceLine
     }
 }
 
+public sealed class InvoiceAttachment
+{
+    public Guid Id { get; private set; }
+    public Guid InvoiceId { get; private set; }
+    public Guid TenantId { get; private set; }
+    public string BlobName { get; private set; } = null!;
+    public string OriginalFileName { get; private set; } = null!;
+    public string ContentType { get; private set; } = null!;
+    public long SizeBytes { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset UpdatedAt { get; private set; }
+
+    public static InvoiceAttachment Create(Guid invoiceId, Guid tenantId, string blobName, string originalFileName, string contentType, long sizeBytes, DateTimeOffset now) => new()
+    {
+        Id = Guid.NewGuid(), InvoiceId = invoiceId, TenantId = tenantId, BlobName = blobName,
+        OriginalFileName = originalFileName, ContentType = contentType, SizeBytes = sizeBytes,
+        CreatedAt = now, UpdatedAt = now,
+    };
+
+    public string Replace(string blobName, string originalFileName, string contentType, long sizeBytes, DateTimeOffset now)
+    {
+        var previousBlobName = BlobName;
+        BlobName = blobName;
+        OriginalFileName = originalFileName;
+        ContentType = contentType;
+        SizeBytes = sizeBytes;
+        UpdatedAt = now;
+        return previousBlobName;
+    }
+}
+
+public sealed class AttachmentCleanup
+{
+    public Guid Id { get; private set; }
+    public Guid TenantId { get; private set; }
+    public string BlobName { get; private set; } = null!;
+    public int AttemptCount { get; private set; }
+    public DateTimeOffset NextAttemptAt { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+
+    public static AttachmentCleanup Create(Guid tenantId, string blobName, DateTimeOffset now) => new()
+    {
+        Id = Guid.NewGuid(), TenantId = tenantId, BlobName = blobName, NextAttemptAt = now, CreatedAt = now,
+    };
+
+    public void Retry(DateTimeOffset now)
+    {
+        AttemptCount++;
+        NextAttemptAt = now.AddMinutes(Math.Min(60, Math.Max(1, AttemptCount)));
+    }
+}
+
 public sealed record CreateInvoiceLine(string Description, int Quantity, long UnitPriceMinor, decimal TaxRate);
 
 public sealed class Payment

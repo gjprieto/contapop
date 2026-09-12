@@ -10,6 +10,7 @@ import {
   createCounterparty,
   createInvoice,
   downloadInvoice,
+  uploadInvoiceAttachment,
 } from "../api/invoices-api";
 import {
   invoiceKeys,
@@ -283,6 +284,10 @@ export function InvoicesPage() {
   const [invoiceToArchive, setInvoiceToArchive] = useState<Invoice | null>(
     null,
   );
+  const uploadAttachment = useMutation({
+    mutationFn: ({ invoiceId, file }: { invoiceId: string; file: File }) => uploadInvoiceAttachment(invoiceId, file),
+    onSuccess: async () => { await cache.invalidateQueries({ queryKey: invoiceKeys.all }); },
+  });
   const lifecycle = useMutation({
     mutationFn: ({
       invoice,
@@ -541,6 +546,15 @@ export function InvoicesPage() {
                           <path d="M6 3h9l5 5v13H6zM14 3v5h5M9 13h6M9 17h6M9 9h2" />
                         </svg>
                       </button>
+                      <label className="icon-btn" title="Attach or replace source document">
+                        <span className="visually-hidden">Attach source document for {invoice.counterpartyName}</span>
+                        <input className="visually-hidden" type="file" accept="application/pdf,image/png,image/jpeg" onChange={(event) => {
+                          const file = event.currentTarget.files?.[0];
+                          if (file) uploadAttachment.mutate({ invoiceId: invoice.invoiceId, file });
+                          event.currentTarget.value = "";
+                        }} />
+                        <svg className="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 12 6.5-6.5a3.5 3.5 0 1 1 5 5L10 20a5 5 0 0 1-7-7l9-9" /></svg>
+                      </label>
                     </div>
                   </td>
                 </tr>

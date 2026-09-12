@@ -7,6 +7,8 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
 {
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
+    public DbSet<InvoiceAttachment> InvoiceAttachments => Set<InvoiceAttachment>();
+    public DbSet<AttachmentCleanup> AttachmentCleanups => Set<AttachmentCleanup>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Counterparty> Counterparties => Set<Counterparty>();
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
@@ -55,6 +57,36 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
             entity.Property(line => line.TaxAmountMinor).HasColumnName("tax_amount_minor").IsRequired();
             entity.Property(line => line.TotalAmountMinor).HasColumnName("total_amount_minor").IsRequired();
             entity.HasIndex(line => line.InvoiceId);
+        });
+
+        modelBuilder.Entity<InvoiceAttachment>(entity =>
+        {
+            entity.ToTable("invoice_attachments", "invoicing");
+            entity.HasKey(attachment => attachment.Id);
+            entity.Property(attachment => attachment.Id).HasColumnName("id");
+            entity.Property(attachment => attachment.InvoiceId).HasColumnName("invoice_id").IsRequired();
+            entity.Property(attachment => attachment.TenantId).HasColumnName("tenant_id").IsRequired();
+            entity.Property(attachment => attachment.BlobName).HasColumnName("blob_name").HasMaxLength(200).IsRequired();
+            entity.Property(attachment => attachment.OriginalFileName).HasColumnName("original_file_name").HasMaxLength(255).IsRequired();
+            entity.Property(attachment => attachment.ContentType).HasColumnName("content_type").HasMaxLength(100).IsRequired();
+            entity.Property(attachment => attachment.SizeBytes).HasColumnName("size_bytes").IsRequired();
+            entity.Property(attachment => attachment.CreatedAt).HasColumnName("created_at").IsRequired();
+            entity.Property(attachment => attachment.UpdatedAt).HasColumnName("updated_at").IsRequired();
+            entity.HasIndex(attachment => attachment.InvoiceId).IsUnique();
+            entity.HasIndex(attachment => new { attachment.TenantId, attachment.BlobName }).IsUnique();
+        });
+
+        modelBuilder.Entity<AttachmentCleanup>(entity =>
+        {
+            entity.ToTable("attachment_cleanups", "invoicing");
+            entity.HasKey(cleanup => cleanup.Id);
+            entity.Property(cleanup => cleanup.Id).HasColumnName("id");
+            entity.Property(cleanup => cleanup.TenantId).HasColumnName("tenant_id").IsRequired();
+            entity.Property(cleanup => cleanup.BlobName).HasColumnName("blob_name").HasMaxLength(200).IsRequired();
+            entity.Property(cleanup => cleanup.AttemptCount).HasColumnName("attempt_count").IsRequired();
+            entity.Property(cleanup => cleanup.NextAttemptAt).HasColumnName("next_attempt_at").IsRequired();
+            entity.Property(cleanup => cleanup.CreatedAt).HasColumnName("created_at").IsRequired();
+            entity.HasIndex(cleanup => new { cleanup.NextAttemptAt, cleanup.AttemptCount });
         });
 
         modelBuilder.Entity<Payment>(entity =>

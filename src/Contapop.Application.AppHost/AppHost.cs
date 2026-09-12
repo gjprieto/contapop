@@ -6,6 +6,8 @@ var pubSub = builder.AddDaprPubSub("pubsub");
 var internalJwtSigningKey = builder.AddParameter("internal-jwt-signing-key", secret: true);
 
 var postgres = builder.AddPostgres("postgres");
+var storage = builder.AddAzureStorage("storage").RunAsEmulator();
+var billingAttachments = storage.AddBlobs("billing-attachments");
 var identityDatabase = postgres.AddDatabase("identity", "contapop_identity");
 var ledgerDatabase = postgres.AddDatabase("ledger", "contapop_ledger");
 var billingDatabase = postgres.AddDatabase("billing", "contapop_billing");
@@ -40,6 +42,7 @@ var ledger = builder.AddProject<Projects.Contapop_Ledger_Service>("ledger-servic
 
 var billing = builder.AddProject<Projects.Contapop_Billing_Service>("billing-service")
     .WithReference(billingDatabase)
+    .WithReference(billingAttachments)
     .WithEnvironment("InternalJwt__SigningKey", internalJwtSigningKey)
     .WaitFor(billingDatabase)
     .WithHttpEndpoint(port: 5115)

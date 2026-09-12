@@ -1,9 +1,12 @@
 using System.Text;
+using Azure.Storage.Blobs;
 using Contapop.Billing.Service.Api;
 using Contapop.Billing.Service.Application.Replication;
 using Contapop.Billing.Service.Application.Commands;
 using Contapop.Billing.Service.Application.Abstractions;
 using Contapop.Billing.Service.Application.BackgroundJobs;
+using Contapop.Billing.Service.Application.Attachments;
+using Contapop.Billing.Service.Infrastructure.Attachments;
 using Contapop.Billing.Service.Infrastructure.Reconciliation;
 using Contapop.Billing.Service.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -21,9 +24,13 @@ builder.Services.AddScoped<TransactionReplicationConsumer>();
 builder.Services.AddScoped<CounterpartyCommandHandler>();
 builder.Services.AddScoped<InvoiceCommandHandler>();
 builder.Services.AddScoped<PaymentCommandHandler>();
+builder.Services.AddScoped<InvoiceAttachmentService>();
+builder.Services.AddSingleton(new BlobServiceClient(builder.Configuration.GetConnectionString("billing-attachments") ?? throw new InvalidOperationException("Billing attachment storage is not configured.")));
+builder.Services.AddScoped<InvoiceAttachmentStorage>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<MarkInvoicesOverdueJob>();
 builder.Services.AddHostedService<MarkInvoicesOverdueHostedService>();
+builder.Services.AddHostedService<InvoiceAttachmentCleanupHostedService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<IReconciliationClaimValidator, LedgerReconciliationClaimValidator>(client =>
     client.BaseAddress = new Uri(builder.Configuration["services:ledger-service:http:0"] ?? "http://localhost:5113"));

@@ -45,6 +45,15 @@ export type InvoiceDetail = Invoice & {
     paymentMethod: string;
     reconciledTransactionId?: string;
   }>;
+  attachment?: {
+    attachmentId: string;
+    invoiceId: string;
+    fileName: string;
+    contentType: string;
+    sizeBytes: number;
+    createdAt: string;
+    updatedAt: string;
+  };
   createdAt: string;
   updatedAt: string;
 };

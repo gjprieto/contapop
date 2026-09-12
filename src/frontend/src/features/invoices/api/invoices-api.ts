@@ -76,3 +76,23 @@ export async function downloadInvoice(invoiceId: string) {
   if (!response.ok) throw new Error("Could not download invoice.");
   return response.blob();
 }
+export async function uploadInvoiceAttachment(invoiceId: string, file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  const response = await fetch(`/experience/v1/invoices/${invoiceId}/attachment`, {
+    method: "PUT",
+    body: form,
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Could not upload attachment.");
+  return response.json();
+}
+export async function removeInvoiceAttachment(invoiceId: string) {
+  const response = await fetch(`/experience/v1/invoices/${invoiceId}/attachment`, { method: "DELETE", credentials: "include" });
+  if (!response.ok) throw new Error("Could not remove attachment.");
+}
+export async function downloadInvoiceAttachment(invoiceId: string) {
+  const response = await fetch(`/experience/v1/invoices/${invoiceId}/attachment`, { credentials: "include" });
+  if (!response.ok) throw new Error("Could not download attachment.");
+  return response.blob();
+}
