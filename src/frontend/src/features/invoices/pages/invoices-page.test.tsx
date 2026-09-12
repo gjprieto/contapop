@@ -205,6 +205,31 @@ describe("InvoicesPage", () => {
     open.mockRestore();
   });
 
+  it("opens invoice details while retaining the URL-backed list filters", async () => {
+    const invoice: Invoice = {
+      invoiceId: "invoice-1",
+      counterpartyId: "counterparty-1",
+      counterpartyName: "Acme SL",
+      direction: "outgoing",
+      type: "service",
+      status: "issued",
+      canArchive: true,
+      netAmountMinor: 10000,
+      taxAmountMinor: 2100,
+      totalAmountMinor: 12100,
+      date: "2026-09-09",
+      dueDate: "2026-10-09",
+      version: 1,
+    };
+    renderPage("/invoices?status=issued&search=Acme", {
+      items: [invoice], page: 1, pageSize: 10, totalCount: 1,
+    });
+
+    expect(await screen.findByRole("link", { name: "View invoice details for Acme SL" })).toHaveAttribute(
+      "href", "/invoices/invoice-1?status=issued&search=Acme",
+    );
+  });
+
   it("only offers archive when allowed and archives after confirmation", async () => {
     const archiveable: Invoice = {
       invoiceId: "archiveable",

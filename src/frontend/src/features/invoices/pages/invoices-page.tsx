@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { startTransition, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useCurrentUser } from "../../auth/api/auth-queries";
 import {
@@ -512,6 +512,16 @@ export function InvoicesPage() {
                           Archive
                         </button>
                       )}
+                      <Link
+                        className="icon-btn"
+                        to={`/invoices/${invoice.invoiceId}${searchParams.toString() ? `?${searchParams}` : ""}`}
+                        aria-label={`View invoice details for ${invoice.counterpartyName}`}
+                        title="View invoice details"
+                      >
+                        <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6ZM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                        </svg>
+                      </Link>
                       <button
                         className="icon-btn"
                         type="button"

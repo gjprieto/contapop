@@ -45,7 +45,7 @@ Per `docs/analysis/mvp/scope-decisions.md`'s test-rigor decision, only the money
 **Depends on:** Phase 1 (Project) and Phase 2 (Transaction, for reconciliation).
 
 **Delivers:**
-- Counterparty CRUD, Invoice (VAT breakdown, direction, counterparty reference), `IssueInvoice`, `VoidInvoice`, `ArchiveInvoice`, draft-only `DeleteDraftInvoice`, invoice filtering/details and one Blob-backed attachment, `RecordPayment`, `ReconcilePaymentWithTransaction` (second proof of the event backbone — this service replicating Financial Accounts & Ledger's Transaction), `GenerateInvoiceDocument` (PDF), the `MarkInvoicesOverdue` background job.
+- Counterparty CRUD, Invoice (VAT breakdown, direction, counterparty reference), `UpdateDraftInvoice`, `IssueInvoice`, `VoidInvoice`, `ArchiveInvoice`, draft-only `DeleteDraftInvoice`, invoice filtering/details and one Blob-backed attachment, `RecordPayment`, `ReconcilePaymentWithTransaction` (second proof of the event backbone — this service replicating Financial Accounts & Ledger's Transaction), `GenerateInvoiceDocument` (PDF), the `MarkInvoicesOverdue` background job.
 - Publishing `billing.invoice-issued.v1`, `billing.invoice-paid.v1`, `billing.invoice-overdue.v1`, `billing.invoice-archived.v1`, `billing.payment-recorded.v1` for Phase 5's Reporting to consume.
 - Frontend: Invoices list/details screens, Payments screen.
 

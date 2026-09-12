@@ -359,11 +359,31 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **What you can test:** create an accidental draft invoice, delete it after confirming, and verify that it no longer appears under any invoice filter. Confirm that an issued, overdue, void, paid, or payment-linked invoice cannot use the delete action.
 
+### Task 3.7h — Specify multi-line draft invoice creation and editing
+
+**Depends on:** 3.7d.
+
+**Implement:** no code. Define `UpdateDraftInvoice` in the authoritative specifications. Confirm that `counterpartyId`, `direction`, and `type` are immutable after creation; a draft's invoice date, due date, and complete line-item collection are mutable; submitted lines replace the complete persisted collection atomically; totals use the established banker's-rounding rule; only drafts are editable; and no integration event is needed because drafts have not entered Reporting. Specify the frontend requirements for multi-line creation/editing, a draft-only details Edit action, a dedicated prepopulated edit route, cancellation without persistence, and query refresh after saving.
+
+**Automated tests:** none; this task is complete only when `domain.md`, `contracts.md`, screen scope, workplan, and this task breakdown are internally consistent and make Task 3.7i independently implementable.
+
+**What you can test:** review the approved specification and verify it clearly distinguishes immutable draft identity fields from editable dates and item lines, defines replacement semantics, and defines the draft-only UI flow.
+
+### Task 3.7i — Implement multi-line draft invoice creation and editing
+
+**Depends on:** 3.7h.
+
+**Implement:** implement `UpdateDraftInvoice` exactly as specified by Task 3.7h, including Billing persistence, atomic replacement of Invoice Lines, VAT and aggregate-total recomputation, idempotency, optimistic concurrency, the System API endpoint, and Experience API pass-through. Update the invoice creation form to support adding and removing one or more item lines, with live calculated line and aggregate net/VAT/total amounts. Add a draft-only Edit action to the invoice details view and a dedicated prepopulated edit form that displays `counterpartyId`, direction, and type as immutable context while allowing invoice date, due date, and line items to change. Cancel returns to the detail view without a mutation; save invalidates invoice list and detail queries and returns to refreshed details. Reject all updates to non-draft invoices and never publish an integration event for a draft edit.
+
+**Automated tests:** domain and Billing integration tests for draft-only authorization, immutable-field exclusion, complete atomic line replacement, total recomputation, idempotency, and optimistic-concurrency rejection. Experience API forwarding coverage. Frontend component tests for multi-line creation and editing, add/edit/remove line interactions, live calculated totals, draft-only edit visibility, cancellation without an API request, successful save/cache refresh, and non-draft action absence.
+
+**What you can test:** create an invoice with multiple items and verify the displayed net/VAT/total. Open a draft invoice, edit its dates and line collection, save, and confirm the details and list totals refresh. Confirm the Edit action is absent after issuing, voiding, paying, overdue transition, or archiving.
+
 ### Task 3.8 — Phase 3 Playwright E2E
 
-**Depends on:** 3.7a, 3.7b, 3.7c, 3.7d, 3.7e, 3.7f, 3.7g.
+**Depends on:** 3.7a, 3.7b, 3.7c, 3.7d, 3.7e, 3.7f, 3.7g, 3.7i.
 
-**Implement:** the Phase 3 Playwright test from `workplan.md`: create a counterparty and invoice with a VAT rate; filter and open its details; attach, view, replace, and remove a source document; issue it; record and reconcile a payment against a Phase 2 transaction; watch the invoice flip to paid; confirm archive is unavailable; and open the generated PDF through its document icon. Include a second payment-free invoice to exercise confirmed archival and the archived filter, plus a separate accidental draft to exercise confirmed permanent deletion.
+**Implement:** the Phase 3 Playwright test from `workplan.md`: create a counterparty and multi-line draft invoice; edit its dates and line collection and confirm recalculated totals; filter and open its details; attach, view, replace, and remove a source document; issue it; record and reconcile a payment against a Phase 2 transaction; watch the invoice flip to paid; confirm archive is unavailable; and open the generated PDF through its document icon. Include a second payment-free invoice to exercise confirmed archival and the archived filter, plus a separate accidental draft to exercise confirmed permanent deletion.
 
 **Automated tests:** the Playwright spec itself.
 

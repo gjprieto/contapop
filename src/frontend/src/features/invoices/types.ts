@@ -26,6 +26,28 @@ export type Invoice = {
   dueDate: string;
   version: number;
 };
+export type InvoiceDetail = Invoice & {
+  projectId: string;
+  lines: Array<{
+    invoiceLineId: string;
+    description: string;
+    quantity: number;
+    unitPriceMinor: number;
+    taxRate: number;
+    netAmountMinor: number;
+    taxAmountMinor: number;
+    totalAmountMinor: number;
+  }>;
+  payments: Array<{
+    paymentId: string;
+    amountMinor: number;
+    date: string;
+    paymentMethod: string;
+    reconciledTransactionId?: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+};
 export type Paged<T> = {
   items: T[];
   page: number;

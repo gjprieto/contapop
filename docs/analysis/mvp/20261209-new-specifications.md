@@ -37,3 +37,7 @@ I found some new requirements and clarifications that emerged after completing T
     - Update any related backend state or database records to store the attachment.
     - Implement validation to restrict the types and sizes of files that can be attached.
     - Provide a way to remove or replace the attached document if needed.
+- Task 3.7h: Create and edit multi-line draft invoices:
+    - Allow one or more item lines when creating an invoice.
+    - Allow editing only while an invoice is a draft. Counterparty, direction, and type remain immutable; invoice date, due date, and item lines can change.
+    - Provide an edit action from invoice details, a cancel path that persists nothing, and a save path that recalculates all line and invoice totals.

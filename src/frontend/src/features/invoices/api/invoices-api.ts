@@ -3,6 +3,7 @@ import type {
   Counterparty,
   CreateInvoiceInput,
   Invoice,
+  InvoiceDetail,
   InvoiceFilters,
   Paged,
 } from "../types";
@@ -28,6 +29,8 @@ export const getInvoices = (filters: InvoiceFilters, signal?: AbortSignal) =>
     `/experience/v1/invoices?${invoiceParameters(filters)}`,
     { signal },
   );
+export const getInvoice = (invoiceId: string, signal?: AbortSignal) =>
+  apiRequest<InvoiceDetail>(`/experience/v1/invoices/${invoiceId}`, { signal });
 export const getCounterparties = (signal?: AbortSignal) =>
   apiRequest<Paged<Counterparty>>(
     "/experience/v1/counterparties?page=1&pageSize=100",

@@ -60,7 +60,9 @@ export function AppShell() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const location = useLocation();
   const currentUser = useCurrentUser();
-  const [title, subtitle] = pageTitles[location.pathname] ?? pageTitles['/'];
+  const [title, subtitle] = location.pathname.startsWith('/invoices/')
+    ? pageTitles['/invoices']
+    : (pageTitles[location.pathname] ?? pageTitles['/']);
   const initial = currentUser.data?.name.trim().charAt(0).toUpperCase() ?? 'C';
 
   return (

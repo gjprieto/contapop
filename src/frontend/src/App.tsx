@@ -4,6 +4,7 @@ import { ProtectedRoute } from './features/auth/components/protected-route';
 import { HomePage } from './features/home/pages/home-page';
 import { FinancialOverviewPage } from './features/accounts/pages/financial-overview-page';
 import { InvoicesPage } from './features/invoices/pages/invoices-page';
+import { InvoiceDetailPage } from './features/invoices/pages/invoice-detail-page';
 import { PaymentsPage } from './features/payments/pages/payments-page';
 import { SettingsPage } from './features/settings/pages/settings-page';
 import { TransactionsPage } from './features/transactions/pages/transactions-page';
@@ -19,6 +20,7 @@ export function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/financial-overview" element={<FinancialOverviewPage />} />
           <Route path="/invoices" element={<InvoicesPage />} />
+          <Route path="/invoices/:invoiceId" element={<InvoiceDetailPage />} />
           <Route path="/payments" element={<PaymentsPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/user" element={<UserPage />} />

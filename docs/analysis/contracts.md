@@ -494,6 +494,7 @@ Screens: Invoices, Payments.
 | `UpdateCounterparty` | `PATCH /api/v1/counterparties/{counterpartyId}` | Invoices |
 | `ArchiveCounterparty` | `POST /api/v1/counterparties/{counterpartyId}/archive` | Invoices |
 | `CreateInvoice` | `POST /api/v1/invoices` | Invoices |
+| `UpdateDraftInvoice` | `PATCH /api/v1/invoices/{invoiceId}` | Invoices |
 | `IssueInvoice` | `POST /api/v1/invoices/{invoiceId}/issue` | Invoices |
 | `VoidInvoice` | `POST /api/v1/invoices/{invoiceId}/void` | Invoices |
 | `ArchiveInvoice` | `POST /api/v1/invoices/{invoiceId}/archive` | Invoices |
@@ -582,6 +583,36 @@ Creates a `draft` invoice — no event yet (only `IssueInvoice` fires one).
 ```
 
 **Errors:** `422 Unprocessable Entity` if `projectId` isn't found in the local `project_replica`, or `counterpartyId` doesn't exist/is archived.
+
+#### `UpdateDraftInvoice`
+
+Edits an existing draft Invoice. `counterpartyId`, `direction`, and `type` are deliberately absent and immutable after creation. The submitted `lines` replace the complete draft line collection atomically; the service recomputes every line's net, VAT, and total amounts and the Invoice aggregates using the same banker's-rounding rule as `CreateInvoice`.
+
+**Route:** `PATCH /api/v1/invoices/{invoiceId}`
+
+**Request:**
+```
+{
+  "lines": [
+    {
+      "description": "string",
+      "quantity": "int — positive",
+      "unitPriceMinor": "int — positive EUR minor units",
+      "taxRate": "decimal — e.g. 0.21 for 21%"
+    }
+  ],
+  "date": "date",
+  "dueDate": "date"
+}
+```
+
+`lines` contains at least one item. The complete-replacement semantics allow adding, editing, and removing draft lines without separate line-item commands.
+
+**Headers:** `Idempotency-Key` (required GUID), `If-Match` (required quoted current version).
+
+**Response:** `200 OK` — the full updated Invoice, using the `GetInvoiceById` response shape.
+
+**Errors:** `409 Conflict` if the Invoice is not currently `draft` or `If-Match` is stale. No integration event is published: draft Invoices are not Reporting facts until `IssueInvoice` succeeds.
 
 #### `IssueInvoice`
 
@@ -1253,7 +1284,7 @@ No commands or queries of its own — every endpoint here composes calls to the 
 | Financial Overview | `GET /experience/v1/financial-overview` | Reporting's `GetFinancialOverview` + Ledger's `ListBankAccounts`/`ListPaymentCards` | `POST /experience/v1/financial-overview/transactions/import` → Ledger's `ImportTransactionsFromFile` |
 | Expenses | `GET /experience/v1/expenses` | Bookkeeping's `ListExpenses` | `GET /experience/v1/expenses/unreconciled-transactions` → composes Ledger's `ListUnreconciledTransactions` minus this tenant's already-reconciled `reconciled_transaction_id`s (fetched from Bookkeeping) — the cross-service diff described in the Financial Accounts & Ledger section above |
 | Revenues | `GET /experience/v1/revenues` | Bookkeeping's `ListRevenues` | Same reconciliation-picker composition as Expenses |
-| Invoices | `GET /experience/v1/invoices` | Billing's `ListInvoices` + `ListCounterparties` | — |
+| Invoices | `GET /experience/v1/invoices` | Billing's `ListInvoices` + `ListCounterparties` | `PATCH /experience/v1/invoices/{invoiceId}` → Billing's `UpdateDraftInvoice` |
 | Payments | `GET /experience/v1/payments` | Billing's `ListPayments` | `GET /experience/v1/payments/unreconciled-transactions` → same composition pattern as Expenses/Revenues |
 | Transactions | `GET /experience/v1/transactions` | Ledger's `ListTransactions` | — |
 | Reports | `GET /experience/v1/reports` | Reporting's `ListReports`/`GetReportById` | — |
