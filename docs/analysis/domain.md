@@ -139,7 +139,7 @@ An Invoice or Ticket represents a billing or payment document associated with a 
 - `project_id`: Identifier of the project the invoice or ticket belongs to (if applicable).
 - `counterparty_id`: Identifier of the Counterparty — the customer being billed (outgoing) or the supplier billing the tenant (incoming).
 - `direction`: Whether the invoice is `outgoing` (tenant billing the counterparty) or `incoming` (counterparty billing the tenant).
-- `status`: `draft`, `issued`, `paid`, `overdue`, `void`, or `archived`.
+- `status`: `draft`, `issued`, `paid`, `overdue`, `void`, or `archived`. `draft`, `issued`, `overdue`, and `void` invoices without Payment records can transition to `archived`; a `paid` invoice cannot be archived.
 - `type`: `service` or `product`, describing the invoice's billed offering.
 - `net_amount`: Computed sum of the invoice lines' net amounts.
 - `tax_amount`: Computed sum of every invoice line's VAT amount, each rounded to the nearest EUR minor unit using banker's rounding (MidpointRounding.ToEven).

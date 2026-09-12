@@ -50,6 +50,25 @@ public sealed class InvoiceCommandHandler(BillingDbContext database)
         return InvoiceCommandResult<InvoiceStatusResponse>.Success(result);
     }
 
+    public async Task<InvoiceCommandResult<InvoiceStatusResponse>> ArchiveAsync(ArchiveInvoiceCommand command, CancellationToken cancellationToken)
+    {
+        var replay = await GetReplayAsync<InvoiceStatusResponse>(command.TenantId, "archive-invoice", command.IdempotencyKey, cancellationToken);
+        if (replay is not null) return InvoiceCommandResult<InvoiceStatusResponse>.Success(replay);
+        var invoice = await database.Invoices.SingleOrDefaultAsync(item => item.Id == command.InvoiceId && item.TenantId == command.TenantId, cancellationToken);
+        if (invoice is null) return InvoiceCommandResult<InvoiceStatusResponse>.NotFound();
+        if (invoice.Status == "archived") return InvoiceCommandResult<InvoiceStatusResponse>.Success(new(invoice.Id, invoice.Status, invoice.UpdatedAt, (int)invoice.Version));
+        if (invoice.Status == "paid" || await database.Payments.AnyAsync(payment => payment.TenantId == command.TenantId && payment.InvoiceId == command.InvoiceId, cancellationToken)) return InvoiceCommandResult<InvoiceStatusResponse>.Conflict();
+
+        var previousStatus = invoice.Status;
+        var now = DateTimeOffset.UtcNow;
+        if (!invoice.TryArchive(command.ExpectedVersion, now)) return InvoiceCommandResult<InvoiceStatusResponse>.Conflict();
+        var result = new InvoiceStatusResponse(invoice.Id, invoice.Status, now, (int)invoice.Version);
+        database.OutboxMessages.Add(OutboxMessage.Create("billing.invoice-archived.v1", "Invoice", invoice.Id, invoice.Version, invoice.TenantId, now, JsonSerializer.Serialize(new { invoice_id = invoice.Id, project_id = invoice.ProjectId, direction = invoice.Direction, previous_status = previousStatus, archived_at = now })));
+        database.IdempotencyRecords.Add(IdempotencyRecord.Create(command.TenantId, "archive-invoice", command.IdempotencyKey, JsonSerializer.Serialize(result), now));
+        await database.SaveChangesAsync(cancellationToken);
+        return InvoiceCommandResult<InvoiceStatusResponse>.Success(result);
+    }
+
     private async Task<T?> GetReplayAsync<T>(Guid tenantId, string operation, string key, CancellationToken cancellationToken) where T : class
     {
         var result = await database.IdempotencyRecords.AsNoTracking().Where(record => record.TenantId == tenantId && record.Operation == operation && record.Key == key).Select(record => record.Result).SingleOrDefaultAsync(cancellationToken);

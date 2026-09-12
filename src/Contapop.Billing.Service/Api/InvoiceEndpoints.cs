@@ -13,6 +13,7 @@ public static class InvoiceEndpoints
         invoices.MapPost("", CreateAsync);
         invoices.MapPost("/{invoiceId:guid}/issue", IssueAsync);
         invoices.MapPost("/{invoiceId:guid}/void", VoidAsync);
+        invoices.MapPost("/{invoiceId:guid}/archive", ArchiveAsync);
         invoices.MapGet("/{invoiceId:guid}", GetByIdAsync);
         invoices.MapGet("", ListAsync);
         return endpoints;
@@ -48,11 +49,20 @@ public static class InvoiceEndpoints
         return result.IsNotFound ? Results.NotFound() : result.IsConflict ? Conflict("Only draft invoices can be voided.") : Results.Ok(result.Value);
     }
 
+    private static async Task<IResult> ArchiveAsync(Guid invoiceId, HttpContext context, InvoiceCommandHandler handler, CancellationToken cancellationToken)
+    {
+        if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
+        if (!TryGetIdempotencyKey(context, out var key)) return MissingIdempotencyKey();
+        if (!TryGetExpectedVersion(context, out var version)) return MissingVersion();
+        var result = await handler.ArchiveAsync(new(tenantId, key, invoiceId, version), cancellationToken);
+        return result.IsNotFound ? Results.NotFound() : result.IsConflict ? Conflict("Only unpaid invoices without payments can be archived.") : Results.Ok(result.Value);
+    }
+
     private static async Task<IResult> GetByIdAsync(Guid invoiceId, HttpContext context, BillingDbContext database, CancellationToken cancellationToken)
     {
         if (!TryGetTenant(context, out var tenantId)) return Results.Unauthorized();
         var invoice = await database.Invoices.AsNoTracking().Where(item => item.Id == invoiceId && item.TenantId == tenantId)
-            .Join(database.Counterparties.AsNoTracking(), invoice => invoice.CounterpartyId, counterparty => counterparty.Id, (invoice, counterparty) => new InvoiceDetailsResponse(invoice.Id, invoice.ProjectId, invoice.CounterpartyId, counterparty.Name, invoice.Direction, invoice.Type, invoice.Status, invoice.NetAmountMinor, invoice.TaxAmountMinor, invoice.TotalAmountMinor, invoice.Date, invoice.DueDate, invoice.CreatedAt, invoice.UpdatedAt, (int)invoice.Version))
+            .Join(database.Counterparties.AsNoTracking(), invoice => invoice.CounterpartyId, counterparty => counterparty.Id, (invoice, counterparty) => new InvoiceDetailsResponse(invoice.Id, invoice.ProjectId, invoice.CounterpartyId, counterparty.Name, invoice.Direction, invoice.Type, invoice.Status, (invoice.Status == "draft" || invoice.Status == "issued" || invoice.Status == "overdue" || invoice.Status == "void") && !database.Payments.Any(payment => payment.TenantId == tenantId && payment.InvoiceId == invoice.Id), invoice.NetAmountMinor, invoice.TaxAmountMinor, invoice.TotalAmountMinor, invoice.Date, invoice.DueDate, invoice.CreatedAt, invoice.UpdatedAt, (int)invoice.Version))
             .SingleOrDefaultAsync(cancellationToken);
         if (invoice is null) return Results.NotFound();
         var lines = await database.InvoiceLines.AsNoTracking().Where(line => line.InvoiceId == invoiceId).Select(line => new InvoiceLineResponse(line.Id, line.Description, line.Quantity, line.UnitPriceMinor, line.TaxRate, line.NetAmountMinor, line.TaxAmountMinor, line.TotalAmountMinor)).ToListAsync(cancellationToken);
@@ -88,7 +98,7 @@ public static class InvoiceEndpoints
             _ => query.OrderByDescending(item => item.Invoice.Date).ThenByDescending(item => item.Invoice.Id),
         };
         var items = await ordered.Skip((actualPage - 1) * actualPageSize).Take(actualPageSize)
-            .Select(item => new InvoiceListItem(item.Invoice.Id, item.Invoice.CounterpartyId, item.CounterpartyName, item.Invoice.Direction, item.Invoice.Type, item.Invoice.Status, item.Invoice.NetAmountMinor, item.Invoice.TaxAmountMinor, item.Invoice.TotalAmountMinor, item.Invoice.Date, item.Invoice.DueDate, (int)item.Invoice.Version))
+            .Select(item => new InvoiceListItem(item.Invoice.Id, item.Invoice.CounterpartyId, item.CounterpartyName, item.Invoice.Direction, item.Invoice.Type, item.Invoice.Status, (item.Invoice.Status == "draft" || item.Invoice.Status == "issued" || item.Invoice.Status == "overdue" || item.Invoice.Status == "void") && !database.Payments.Any(payment => payment.TenantId == tenantId && payment.InvoiceId == item.Invoice.Id), item.Invoice.NetAmountMinor, item.Invoice.TaxAmountMinor, item.Invoice.TotalAmountMinor, item.Invoice.Date, item.Invoice.DueDate, (int)item.Invoice.Version))
             .ToListAsync(cancellationToken);
         return Results.Ok(new InvoicePagedResponse(items, actualPage, actualPageSize, total));
     }
@@ -117,9 +127,9 @@ public static class InvoiceEndpoints
 
 public sealed record CreateInvoiceRequest(Guid ProjectId, Guid CounterpartyId, string Direction, string Type, IReadOnlyList<CreateInvoiceLineRequest> Lines, DateOnly Date, DateOnly DueDate);
 public sealed record CreateInvoiceLineRequest(string Description, int Quantity, long UnitPriceMinor, decimal TaxRate);
-public sealed record InvoiceListItem(Guid InvoiceId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, int Version);
+public sealed record InvoiceListItem(Guid InvoiceId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, bool CanArchive, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, int Version);
 public sealed record InvoicePagedResponse(IReadOnlyList<InvoiceListItem> Items, int Page, int PageSize, int TotalCount);
-public sealed record InvoiceDetailsResponse(Guid InvoiceId, Guid ProjectId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version)
+public sealed record InvoiceDetailsResponse(Guid InvoiceId, Guid ProjectId, Guid CounterpartyId, string CounterpartyName, string Direction, string Type, string Status, bool CanArchive, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor, DateOnly Date, DateOnly DueDate, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version)
 { public IReadOnlyList<InvoiceLineResponse> Lines { get; init; } = []; public IReadOnlyList<InvoicePaymentResponse> Payments { get; init; } = []; }
 public sealed record InvoiceLineResponse(Guid InvoiceLineId, string Description, int Quantity, long UnitPriceMinor, decimal TaxRate, long NetAmountMinor, long TaxAmountMinor, long TotalAmountMinor);
 public sealed record InvoicePaymentResponse(Guid PaymentId, long AmountMinor, DateOnly Date, string PaymentMethod, Guid? ReconciledTransactionId);

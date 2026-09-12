@@ -615,18 +615,20 @@ Draft only.
 
 #### `ArchiveInvoice`
 
-Soft-removes an invoice from the default list. This never deletes the Invoice, its lines, or its audit history. Archiving also removes the invoice's attachment, if present, using the attachment blob-cleanup retry behavior defined in `domain.md`.
+Soft-removes an invoice from the default list. This never deletes the Invoice, its lines, or its audit history. Attachment cleanup is added by Task 3.7e once invoice attachments exist.
 
 **Route:** `POST /api/v1/invoices/{invoiceId}/archive`
 
 **Request:** *(no body)*
+
+**Headers:** `Idempotency-Key` (required GUID), `If-Match` (required quoted current version).
 
 **Response:** `200 OK`
 ```
 { "invoiceId": "guid", "status": "\"archived\"", "updatedAt": "date-time", "version": "int" }
 ```
 
-**Errors:** `409 Conflict` if the invoice is `paid` or any Payment record references it. Already archived requests are idempotent and return the current archived representation.
+**Errors:** `409 Conflict` if the invoice is `paid`, any Payment record references it, or `If-Match` is stale. `draft`, `issued`, `overdue`, and `void` invoices without Payment records can be archived. Already archived requests are idempotent and return the current archived representation.
 
 **Event:** `billing.invoice-archived.v1`, written to the outbox in the same transaction as the status change so Reporting can remove an invoice that had previously been issued.
 

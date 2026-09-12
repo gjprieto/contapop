@@ -210,6 +210,7 @@ invoices.MapGet("/{invoiceId:guid}", (Guid invoiceId, HttpContext context, IHttp
 invoices.MapPost("", (JsonElement body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingAsync(HttpMethod.Post, "/api/v1/invoices", body, context, clients, jwt, ct, true));
 invoices.MapPost("/{invoiceId:guid}/issue", (Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingAsync(HttpMethod.Post, $"/api/v1/invoices/{invoiceId}/issue", null, context, clients, jwt, ct, true, true));
 invoices.MapPost("/{invoiceId:guid}/void", (Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingAsync(HttpMethod.Post, $"/api/v1/invoices/{invoiceId}/void", null, context, clients, jwt, ct, true, true));
+invoices.MapPost("/{invoiceId:guid}/archive", (Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingAsync(HttpMethod.Post, $"/api/v1/invoices/{invoiceId}/archive", null, context, clients, jwt, ct, true, true));
 invoices.MapGet("/{invoiceId:guid}/document", (Guid invoiceId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBillingDocumentAsync(invoiceId, context, clients, jwt, ct));
 
 var payments = app.MapGroup("/experience/v1/payments").RequireAuthorization("account-owner");

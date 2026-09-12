@@ -313,7 +313,7 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 3.7b.
 
-**Implement:** add the `archived` Invoice status and `ArchiveInvoice` command from `domain.md`/`contracts.md`, including its migration, Experience API pass-through, and `billing.invoice-archived.v1` outbox event. This is a soft removal: retain the invoice and lines, exclude archived invoices from the default list, and reject archiving when the invoice is `paid` or has any Payment record. Return the server-computed `canArchive` flag from invoice list/details queries so the frontend does not duplicate the payment-eligibility rule. Add a row action alongside Issue/Void only for eligible invoices, require an accessible confirmation dialog, invalidate invoice list/detail queries after success, and ensure visible counts/totals refresh. Task 3.7e extends this flow to clean up an existing attachment.
+**Implement:** add the `archived` Invoice status and `ArchiveInvoice` command from `domain.md`/`contracts.md`, including its migration, Experience API pass-through, and `billing.invoice-archived.v1` outbox event. This is a soft removal: retain the invoice and lines, exclude archived invoices from the default list, and reject archiving when the invoice is `paid` or has any Payment record. Return the server-computed `canArchive` flag from invoice list/details queries so the frontend does not duplicate the payment-eligibility rule. Add a row action alongside Issue/Void only for eligible invoices, require an accessible confirmation dialog, invalidate invoice list/detail queries after success, and ensure the visible count refreshes. Task 3.7e extends this flow to clean up an existing attachment.
 
 **Automated tests:** domain tests for eligible statuses and rejection of paid/payment-linked invoices; integration tests proving soft deletion, default-list exclusion, idempotency, and the outbox event; component tests for action visibility, cancel/confirm behavior, and query invalidation.
 
@@ -339,11 +339,31 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **What you can test:** attach a PDF, PNG, or JPEG from the row action; view it in invoice details; replace and remove it; verify unsupported or oversized files are rejected and the generated-PDF document action remains independent.
 
+### Task 3.7f — Specify draft invoice removal
+
+**Depends on:** 3.7e.
+
+**Implement:** no code. Change the Invoice removal rules so a `draft` invoice with no Payment records can be permanently removed, while `issued`, `overdue`, and `void` invoices continue to use `ArchiveInvoice`; `paid` or payment-linked invoices remain non-removable. Define the `DeleteDraftInvoice` command, its System and Experience API routes, required idempotency/concurrency headers, response and error behavior, attachment/blob cleanup guarantee, and whether an integration event is required. Update every affected authoritative specification: `domain.md`, `services.md`, `events.md`, `contracts.md`, `screens-and-features.md`, `scope-decisions.md`, and `workplan.md` as applicable. Confirm that Reporting never receives a draft invoice projection, or define the required deletion event if that assumption is no longer true.
+
+**Automated tests:** none; this task is complete only when the specification changes are internally consistent and make Task 3.7g independently implementable.
+
+**What you can test:** review the approved contract and verify that a user can distinguish deleting an accidental draft from archiving an invoice that has entered the financial workflow.
+
+### Task 3.7g — Delete draft invoices
+
+**Depends on:** 3.7f.
+
+**Implement:** implement `DeleteDraftInvoice` exactly as specified by Task 3.7f, including Billing persistence, transactional handling of invoice-line deletion and attachment/blob cleanup, the System API endpoint, Experience API pass-through, and frontend row action with an accessible confirmation dialog. The command must only permanently delete a `draft` invoice with no Payment records; all other statuses and payment-linked invoices must be rejected. Retain `ArchiveInvoice` for `issued`, `overdue`, and `void` invoices. Invalidate invoice list/detail queries after successful deletion and refresh the visible count.
+
+**Automated tests:** domain and Billing integration tests for draft-only eligibility, payment-linked rejection, idempotent retry behavior, invoice-line and attachment cleanup, and atomic persistence behavior; Experience API forwarding coverage; frontend component tests for draft-only action visibility, cancellation, confirmation, and list/detail cache refresh. Extend the Phase 3 Playwright flow with confirmed deletion of a separate accidental draft.
+
+**What you can test:** create an accidental draft invoice, delete it after confirming, and verify that it no longer appears under any invoice filter. Confirm that an issued, overdue, void, paid, or payment-linked invoice cannot use the delete action.
+
 ### Task 3.8 — Phase 3 Playwright E2E
 
-**Depends on:** 3.7a, 3.7b, 3.7c, 3.7d, 3.7e.
+**Depends on:** 3.7a, 3.7b, 3.7c, 3.7d, 3.7e, 3.7f, 3.7g.
 
-**Implement:** the Phase 3 Playwright test from `workplan.md`: create a counterparty and invoice with a VAT rate; filter and open its details; attach, view, replace, and remove a source document; issue it; record and reconcile a payment against a Phase 2 transaction; watch the invoice flip to paid; confirm archive is unavailable; and open the generated PDF through its document icon. Include a second payment-free invoice to exercise confirmed archival and the archived filter.
+**Implement:** the Phase 3 Playwright test from `workplan.md`: create a counterparty and invoice with a VAT rate; filter and open its details; attach, view, replace, and remove a source document; issue it; record and reconcile a payment against a Phase 2 transaction; watch the invoice flip to paid; confirm archive is unavailable; and open the generated PDF through its document icon. Include a second payment-free invoice to exercise confirmed archival and the archived filter, plus a separate accidental draft to exercise confirmed permanent deletion.
 
 **Automated tests:** the Playwright spec itself.
 

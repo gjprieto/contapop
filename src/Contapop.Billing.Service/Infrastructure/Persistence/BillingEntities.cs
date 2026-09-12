@@ -55,6 +55,15 @@ public sealed class Invoice
         return true;
     }
 
+    public bool TryArchive(int expectedVersion, DateTimeOffset now)
+    {
+        if (Status is not ("draft" or "issued" or "overdue" or "void") || Version != expectedVersion) return false;
+        Status = "archived";
+        Version++;
+        UpdatedAt = now;
+        return true;
+    }
+
     public bool TryMarkPaid(DateTimeOffset now)
     {
         if (Status is not ("issued" or "overdue")) return false;

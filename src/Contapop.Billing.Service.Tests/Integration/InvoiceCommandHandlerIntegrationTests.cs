@@ -79,6 +79,49 @@ public sealed class InvoiceCommandHandlerIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Archive_soft_deletes_an_unpaid_invoice_and_writes_the_required_event()
+    {
+        await using var database = await CreateDatabaseAsync();
+        var tenantId = Guid.NewGuid();
+        var counterparty = Counterparty.Create(tenantId, "customer", "Acme SL", null, null, null, DateTimeOffset.UtcNow);
+        var invoice = Invoice.Create(tenantId, Guid.NewGuid(), counterparty.Id, "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        database.AddRange(counterparty, invoice);
+        await database.SaveChangesAsync();
+
+        var archived = await new InvoiceCommandHandler(database).ArchiveAsync(new(tenantId, Guid.NewGuid().ToString(), invoice.Id, 1), CancellationToken.None);
+
+        Assert.Equal("archived", archived.Value!.Status);
+        Assert.Equal("archived", await database.Invoices.Where(item => item.Id == invoice.Id).Select(item => item.Status).SingleAsync());
+        Assert.Equal(1, await database.InvoiceLines.CountAsync(line => line.InvoiceId == invoice.Id));
+        var @event = await database.OutboxMessages.SingleAsync(message => message.EventName == "billing.invoice-archived.v1");
+        Assert.Equal(invoice.Id, @event.AggregateId);
+        Assert.Contains("\"previous_status\":\"draft\"", @event.Payload);
+        Assert.Contains("\"project_id\"", @event.Payload);
+    }
+
+    [Fact]
+    public async Task Archive_rejects_an_invoice_with_a_payment_and_replays_an_archived_invoice()
+    {
+        await using var database = await CreateDatabaseAsync();
+        var tenantId = Guid.NewGuid();
+        var counterparty = Counterparty.Create(tenantId, "customer", "Acme SL", null, null, null, DateTimeOffset.UtcNow);
+        var paidReference = Invoice.Create(tenantId, Guid.NewGuid(), counterparty.Id, "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        var archiveable = Invoice.Create(tenantId, Guid.NewGuid(), counterparty.Id, "outgoing", 100, 0.21m, new DateOnly(2026, 9, 9), new DateOnly(2026, 10, 9), DateTimeOffset.UtcNow);
+        database.AddRange(counterparty, paidReference, archiveable, Payment.Create(tenantId, paidReference.Id, 121, new DateOnly(2026, 9, 10), "bank_transfer", DateTimeOffset.UtcNow));
+        await database.SaveChangesAsync();
+        var handler = new InvoiceCommandHandler(database);
+
+        var rejected = await handler.ArchiveAsync(new(tenantId, Guid.NewGuid().ToString(), paidReference.Id, 1), CancellationToken.None);
+        var archived = await handler.ArchiveAsync(new(tenantId, Guid.NewGuid().ToString(), archiveable.Id, 1), CancellationToken.None);
+        var replay = await handler.ArchiveAsync(new(tenantId, Guid.NewGuid().ToString(), archiveable.Id, 1), CancellationToken.None);
+
+        Assert.True(rejected.IsConflict);
+        Assert.Equal("archived", archived.Value!.Status);
+        Assert.Equal(archived.Value, replay.Value);
+        Assert.Equal(1, await database.OutboxMessages.CountAsync(message => message.EventName == "billing.invoice-archived.v1"));
+    }
+
+    [Fact]
     public async Task Record_payment_marks_a_fully_paid_invoice_and_writes_both_events()
     {
         await using var database = await CreateDatabaseAsync();

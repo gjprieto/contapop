@@ -37,6 +37,7 @@ public sealed class BillingDbContext(DbContextOptions<BillingDbContext> options)
             entity.Property(invoice => invoice.CreatedAt).HasColumnName("created_at").IsRequired();
             entity.Property(invoice => invoice.UpdatedAt).HasColumnName("updated_at").IsRequired();
             entity.HasIndex(invoice => new { invoice.TenantId, invoice.ProjectId, invoice.Status });
+            entity.HasIndex(invoice => new { invoice.TenantId, invoice.Status, invoice.Date });
             entity.HasMany(invoice => invoice.Lines).WithOne().HasForeignKey(line => line.InvoiceId).OnDelete(DeleteBehavior.Cascade);
         });
 

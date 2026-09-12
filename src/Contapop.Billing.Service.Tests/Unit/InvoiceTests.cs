@@ -51,4 +51,32 @@ public sealed class InvoiceTests
         Assert.False(paidInvoice.TryMarkOverdue(DateOnly.FromDateTime(now.UtcDateTime), now));
         Assert.Equal("paid", paidInvoice.Status);
     }
+
+    [Theory]
+    [InlineData("draft")]
+    [InlineData("issued")]
+    [InlineData("overdue")]
+    [InlineData("void")]
+    public void Archive_accepts_each_eligible_status(string status)
+    {
+        var now = DateTimeOffset.UtcNow;
+        var invoice = Invoice.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 1), new DateOnly(2026, 9, 9), now);
+        if (status is "issued" or "overdue") Assert.True(invoice.TryIssue(1, now));
+        if (status == "overdue") Assert.True(invoice.TryMarkOverdue(new DateOnly(2026, 9, 10), now));
+        if (status == "void") Assert.True(invoice.TryVoid(1, now));
+
+        Assert.True(invoice.TryArchive((int)invoice.Version, now));
+        Assert.Equal("archived", invoice.Status);
+    }
+
+    [Fact]
+    public void Archive_rejects_a_paid_invoice()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var invoice = Invoice.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "outgoing", 100, 0.21m, new DateOnly(2026, 9, 1), new DateOnly(2026, 9, 9), now);
+        Assert.True(invoice.TryIssue(1, now));
+        Assert.True(invoice.TryMarkPaid(now));
+
+        Assert.False(invoice.TryArchive((int)invoice.Version, now));
+    }
 }

@@ -90,6 +90,22 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Billing_invoice_archive_forwards_command_headers_and_conflict()
+    {
+        using var client = _experienceFactory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
+        var login = await client.PostAsJsonAsync("/experience/v1/auth/login", new LoginRequest("ana@acme.test", "Password1"));
+        Assert.Equal(HttpStatusCode.NoContent, login.StatusCode);
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/experience/v1/invoices/44444444-4444-4444-4444-444444444444/archive");
+        request.Headers.TryAddWithoutValidation("Idempotency-Key", "55555555-5555-5555-5555-555555555555");
+        request.Headers.TryAddWithoutValidation("If-Match", "\"3\"");
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("{\"title\":\"Invoice cannot be archived\"}", await response.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
     public async Task Billing_errors_are_not_reported_as_a_service_availability_failure()
     {
         _billingListStatusCode = StatusCodes.Status500InternalServerError;
@@ -296,6 +312,14 @@ public sealed class ExperienceUserIntegrationTests : IAsyncLifetime
             Assert.True(context.User.Identity?.IsAuthenticated);
             Assert.Equal("11111111-1111-1111-1111-111111111111", context.User.FindFirstValue("tenant_id"));
             return Results.Content(_billingListStatusCode == StatusCodes.Status200OK ? "{\"items\":[]}" : "{\"title\":\"Billing query failed\"}", "application/json", statusCode: _billingListStatusCode);
+        }).RequireAuthorization();
+        _billingService.MapPost("/api/v1/invoices/{invoiceId:guid}/archive", (HttpContext context) =>
+        {
+            Assert.True(context.User.Identity?.IsAuthenticated);
+            Assert.Equal("11111111-1111-1111-1111-111111111111", context.User.FindFirstValue("tenant_id"));
+            Assert.Equal("55555555-5555-5555-5555-555555555555", context.Request.Headers["Idempotency-Key"].ToString());
+            Assert.Equal("\"3\"", context.Request.Headers.IfMatch.ToString());
+            return Results.Content("{\"title\":\"Invoice cannot be archived\"}", "application/json", statusCode: StatusCodes.Status409Conflict);
         }).RequireAuthorization();
         await _billingService.StartAsync();
 
