@@ -1,7 +1,10 @@
 using System.Text;
 using Contapop.Bookkeeping.Service.Api;
 using Contapop.Bookkeeping.Service.Application.Replication;
+using Contapop.Bookkeeping.Service.Application.Commands;
+using Contapop.Bookkeeping.Service.Application.Abstractions;
 using Contapop.Bookkeeping.Service.Infrastructure.Persistence;
+using Contapop.Bookkeeping.Service.Infrastructure.Reconciliation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -14,6 +17,10 @@ builder.Services.AddDbContext<BookkeepingDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("bookkeeping")));
 builder.Services.AddScoped<ProjectReplicationConsumer>();
 builder.Services.AddScoped<TransactionReplicationConsumer>();
+builder.Services.AddScoped<FinancialRecordCommandHandler>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient<IReconciliationClaimValidator, LedgerReconciliationClaimValidator>(client =>
+    client.BaseAddress = new Uri(builder.Configuration["services:ledger-service:http:0"] ?? "http://localhost:5113"));
 builder.Services.AddAuthentication().AddJwtBearer("InternalJwt", options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -50,6 +57,7 @@ if (app.Environment.IsDevelopment())
 app.MapGet("/health", () => Results.Ok());
 app.MapSubscribeHandler();
 app.MapReplicationEndpoints();
+app.MapFinancialRecordEndpoints();
 
 app.Run();
 

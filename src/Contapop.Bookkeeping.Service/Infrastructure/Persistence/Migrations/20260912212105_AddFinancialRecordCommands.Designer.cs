@@ -3,6 +3,7 @@ using System;
 using Contapop.Bookkeeping.Service.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Contapop.Bookkeeping.Service.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(BookkeepingDbContext))]
-    partial class BookkeepingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260912212105_AddFinancialRecordCommands")]
+    partial class AddFinancialRecordCommands
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

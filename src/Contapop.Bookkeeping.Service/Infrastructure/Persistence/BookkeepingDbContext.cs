@@ -8,6 +8,10 @@ public sealed class BookkeepingDbContext(DbContextOptions<BookkeepingDbContext> 
     public DbSet<InboxMessage> InboxMessages => Set<InboxMessage>();
     public DbSet<ProjectReplica> ProjectReplicas => Set<ProjectReplica>();
     public DbSet<TransactionReplica> TransactionReplicas => Set<TransactionReplica>();
+    public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<Revenue> Revenues => Set<Revenue>();
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -51,5 +55,59 @@ public sealed class BookkeepingDbContext(DbContextOptions<BookkeepingDbContext> 
             entity.Property(transaction => transaction.UpdatedAt).HasColumnName("updated_at").IsRequired();
             entity.HasIndex(transaction => new { transaction.TenantId, transaction.Status });
         });
+
+        ConfigureFinancialRecord(modelBuilder.Entity<Expense>(), "expenses", "expenses");
+        ConfigureFinancialRecord(modelBuilder.Entity<Revenue>(), "revenues", "revenues");
+
+        modelBuilder.Entity<IdempotencyRecord>(entity =>
+        {
+            entity.ToTable("idempotency_records", "expenses");
+            entity.HasKey(record => new { record.TenantId, record.Operation, record.Key });
+            entity.Property(record => record.TenantId).HasColumnName("tenant_id");
+            entity.Property(record => record.Operation).HasColumnName("operation").HasMaxLength(100);
+            entity.Property(record => record.Key).HasColumnName("key").HasMaxLength(200);
+            entity.Property(record => record.Result).HasColumnName("result").HasColumnType("jsonb").IsRequired();
+            entity.Property(record => record.CreatedAt).HasColumnName("created_at").IsRequired();
+        });
+
+        modelBuilder.Entity<OutboxMessage>(entity =>
+        {
+            entity.ToTable("outbox_messages", "expenses");
+            entity.HasKey(message => message.EventId);
+            entity.Property(message => message.EventId).HasColumnName("event_id");
+            entity.Property(message => message.EventName).HasColumnName("event_name").HasMaxLength(200).IsRequired();
+            entity.Property(message => message.AggregateType).HasColumnName("aggregate_type").HasMaxLength(100).IsRequired();
+            entity.Property(message => message.AggregateId).HasColumnName("aggregate_id").IsRequired();
+            entity.Property(message => message.AggregateVersion).HasColumnName("aggregate_version").IsRequired();
+            entity.Property(message => message.TenantId).HasColumnName("tenant_id").IsRequired();
+            entity.Property(message => message.CorrelationId).HasColumnName("correlation_id");
+            entity.Property(message => message.CausationId).HasColumnName("causation_id");
+            entity.Property(message => message.OccurredAt).HasColumnName("occurred_at").IsRequired();
+            entity.Property(message => message.Payload).HasColumnName("payload").HasColumnType("jsonb").IsRequired();
+            entity.Property(message => message.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.HasIndex(message => new { message.Status, message.OccurredAt });
+        });
+    }
+
+    private static void ConfigureFinancialRecord<T>(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<T> entity, string table, string schema) where T : FinancialRecord
+    {
+        entity.ToTable(table, schema);
+        entity.HasKey(record => record.Id);
+        entity.Property(record => record.Id).HasColumnName("id");
+        entity.Property(record => record.TenantId).HasColumnName("tenant_id").IsRequired();
+        entity.Property(record => record.ProjectId).HasColumnName("project_id").IsRequired();
+        entity.Property(record => record.ReconciledTransactionId).HasColumnName("reconciled_transaction_id");
+        entity.Property(record => record.AmountMinor).HasColumnName("amount_minor").IsRequired();
+        entity.Property(record => record.Date).HasColumnName("date").IsRequired();
+        entity.Property(record => record.Category).HasColumnName("category").HasMaxLength(200).IsRequired();
+        entity.Property(record => record.Recurring).HasColumnName("recurring").IsRequired();
+        entity.Property(record => record.RecurringInterval).HasColumnName("recurring_interval").HasMaxLength(20);
+        entity.Property(record => record.ImportSource).HasColumnName("import_source").HasMaxLength(20).IsRequired();
+        entity.Property(record => record.ConfirmedAt).HasColumnName("confirmed_at");
+        entity.Property(record => record.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
+        entity.Property(record => record.CreatedAt).HasColumnName("created_at").IsRequired();
+        entity.Property(record => record.UpdatedAt).HasColumnName("updated_at").IsRequired();
+        entity.HasIndex(record => new { record.TenantId, record.ProjectId, record.Date });
+        entity.HasIndex(record => new { record.TenantId, record.ReconciledTransactionId }).IsUnique().HasFilter("reconciled_transaction_id IS NOT NULL");
     }
 }
