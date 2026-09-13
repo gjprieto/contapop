@@ -11,7 +11,7 @@ public sealed class AzureDocumentExtractionAdapter(HttpClient client, IConfigura
     {
         var endpoint = configuration["DocumentExtraction:Endpoint"];
         var key = configuration["DocumentExtraction:Key"];
-        if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(key)) throw new DocumentExtractionException("Document extraction is not configured.");
+        if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(key)) throw new DocumentExtractionConfigurationException("Document extraction is not configured.");
 
         using var request = new HttpRequestMessage(HttpMethod.Post, $"{endpoint.TrimEnd('/')}/documentintelligence/documentModels/prebuilt-invoice:analyze?api-version=2024-11-30")
         {

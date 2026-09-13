@@ -61,6 +61,14 @@ npm run test        # Vitest component tests
 npm run test:e2e    # Playwright critical-path tests; requires the local Aspire stack and PLAYWRIGHT_PILOT_EMAIL/PASSWORD/NAME
 ```
 
+Document extraction local configuration (from `src/`, only when testing PDF OCR against Azure):
+```
+dotnet user-secrets set "DocumentExtraction:Endpoint" "https://<your-resource>.cognitiveservices.azure.com/" --project Contapop.Bookkeeping.Service
+dotnet user-secrets set "DocumentExtraction:Key" "<your-key>" --project Contapop.Bookkeeping.Service
+```
+
+The endpoint and key are Azure AI Document Intelligence resource secrets. Do not add them to `appsettings*.json`, source control, or browser code.
+
 When a task introduces a new project type (a service's test project, an E2E Playwright project, etc.), add its build/run/test commands to this section in the same commit/PR that adds the project, so this file stays accurate.
 
 ## 4. Implementation process: spec-driven, phase-then-task, vertical slices

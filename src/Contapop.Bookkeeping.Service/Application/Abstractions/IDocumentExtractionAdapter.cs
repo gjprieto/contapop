@@ -8,4 +8,5 @@ public interface IDocumentExtractionAdapter
 
 public sealed record DocumentExtractionResult(long? AmountMinor, DateOnly? Date, string? Category, decimal? Confidence, string? Diagnostics);
 
-public sealed class DocumentExtractionException(string message) : Exception(message);
+public class DocumentExtractionException(string message) : Exception(message);
+public sealed class DocumentExtractionConfigurationException(string message) : DocumentExtractionException(message);

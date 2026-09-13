@@ -31,7 +31,7 @@ public static class FinancialRecordEndpoints
             if (!IsPdf(file) || projectId == Guid.Empty) return Results.ValidationProblem(new Dictionary<string, string[]> { ["request"] = ["A non-empty PDF file and project ID are required."] });
             await using var stream = file!.OpenReadStream(); using var content = new MemoryStream(); await stream.CopyToAsync(content, ct);
             var result = await import(handler, new(tenantId, key, projectId, content.ToArray()), ct);
-            return result.Error switch { "project-unavailable" => Unprocessable("Project is unavailable."), "extraction-unavailable" => Unprocessable("The document extraction provider could not process the upload."), _ => Results.Created($"/api/v1/{name}s/{result.Value!.Id}", External(result.Value!, name)) };
+            return result.Error switch { "project-unavailable" => Unprocessable("Project is unavailable."), "extraction-unconfigured" => Results.Problem(statusCode: StatusCodes.Status503ServiceUnavailable, title: "Document extraction is unavailable", detail: "Document extraction credentials are not configured."), "extraction-unavailable" => Unprocessable("The document extraction provider could not process the upload."), _ => Results.Created($"/api/v1/{name}s/{result.Value!.Id}", External(result.Value!, name)) };
         }).Accepts<IFormFile>("multipart/form-data").DisableAntiforgery();
         group.MapPost("/import-file", async ([FromForm] IFormFile? file, [FromForm] Guid projectId, [FromForm] string? columnMapping, HttpContext context, FinancialRecordFileImporter importer, FinancialRecordCommandHandler handler, CancellationToken ct) =>
         {
