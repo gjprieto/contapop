@@ -19,7 +19,7 @@ public sealed class FinancialRecordCommandIntegrationTests : IAsyncLifetime
         await using var database = await CreateDatabaseAsync();
         database.ProjectReplicas.Add(ProjectReplica.Create(projectId, tenantId, "Books", "active", 1, DateTimeOffset.UtcNow));
         await database.SaveChangesAsync();
-        var handler = new FinancialRecordCommandHandler(database, new ClaimValidator());
+        var handler = new FinancialRecordCommandHandler(database, new ClaimValidator(), new ExtractionAdapter());
 
         var created = await handler.CreateExpenseAsync(new(tenantId, Guid.NewGuid().ToString(), projectId, 1_250, new DateOnly(2026, 9, 12), "Software", false, null), CancellationToken.None);
         var updated = await handler.UpdateExpenseAsync(new(tenantId, Guid.NewGuid().ToString(), created.Value!.Id, created.Value.Version, 1_500, null, "Tools", true, "monthly", true), CancellationToken.None);
@@ -45,7 +45,7 @@ public sealed class FinancialRecordCommandIntegrationTests : IAsyncLifetime
         await using var database = await CreateDatabaseAsync();
         database.ProjectReplicas.Add(ProjectReplica.Create(projectId, tenantId, "Books", "active", 1, DateTimeOffset.UtcNow));
         await database.SaveChangesAsync();
-        var handler = new FinancialRecordCommandHandler(database, new ClaimValidator());
+        var handler = new FinancialRecordCommandHandler(database, new ClaimValidator(), new ExtractionAdapter());
         var created = await handler.CreateRevenueAsync(new(tenantId, Guid.NewGuid().ToString(), projectId, 2_000, new DateOnly(2026, 9, 12), "Sales", false, null), CancellationToken.None);
 
         var unavailable = await handler.ReconcileRevenueAsync(new(tenantId, Guid.NewGuid().ToString(), created.Value!.Id, transactionId, Guid.NewGuid(), created.Value.Version), CancellationToken.None);
@@ -67,7 +67,7 @@ public sealed class FinancialRecordCommandIntegrationTests : IAsyncLifetime
         database.ProjectReplicas.Add(ProjectReplica.Create(projectId, tenantId, "Books", "active", 1, DateTimeOffset.UtcNow));
         database.TransactionReplicas.Add(TransactionReplica.Create(transactionId, tenantId, Guid.NewGuid(), 750, new DateOnly(2026, 9, 12), "expense", null, "archived", 1, DateTimeOffset.UtcNow));
         await database.SaveChangesAsync();
-        var handler = new FinancialRecordCommandHandler(database, new ClaimValidator());
+        var handler = new FinancialRecordCommandHandler(database, new ClaimValidator(), new ExtractionAdapter());
         var created = await handler.CreateExpenseAsync(new(tenantId, Guid.NewGuid().ToString(), projectId, 750, new DateOnly(2026, 9, 12), "Travel", false, null), CancellationToken.None);
 
         var result = await handler.ReconcileExpenseAsync(new(tenantId, Guid.NewGuid().ToString(), created.Value!.Id, transactionId, Guid.NewGuid(), created.Value.Version), CancellationToken.None);
@@ -85,7 +85,7 @@ public sealed class FinancialRecordCommandIntegrationTests : IAsyncLifetime
         database.ProjectReplicas.Add(ProjectReplica.Create(projectId, tenantId, "Books", "active", 1, DateTimeOffset.UtcNow));
         database.TransactionReplicas.Add(TransactionReplica.Create(transactionId, tenantId, Guid.NewGuid(), 1_100, new DateOnly(2026, 9, 12), "expense", null, "active", 1, DateTimeOffset.UtcNow));
         await database.SaveChangesAsync();
-        var handler = new FinancialRecordCommandHandler(database, new ClaimValidator(true));
+        var handler = new FinancialRecordCommandHandler(database, new ClaimValidator(true), new ExtractionAdapter());
         var created = await handler.CreateExpenseAsync(new(tenantId, Guid.NewGuid().ToString(), projectId, 1_100, new DateOnly(2026, 9, 12), "Office", false, null), CancellationToken.None);
 
         var result = await handler.ReconcileExpenseAsync(new(tenantId, Guid.NewGuid().ToString(), created.Value!.Id, transactionId, Guid.NewGuid(), created.Value.Version), CancellationToken.None);
@@ -107,5 +107,10 @@ public sealed class FinancialRecordCommandIntegrationTests : IAsyncLifetime
     private sealed class ClaimValidator(bool result = false) : IReconciliationClaimValidator
     {
         public Task<bool> IsValidAsync(Guid claimId, Guid transactionId, string dependentType, Guid dependentId, CancellationToken cancellationToken) => Task.FromResult(result);
+    }
+
+    private sealed class ExtractionAdapter : IDocumentExtractionAdapter
+    {
+        public Task<DocumentExtractionResult> ExtractAsync(ReadOnlyMemory<byte> document, CancellationToken cancellationToken) => Task.FromResult(new DocumentExtractionResult(1_250, new DateOnly(2026, 9, 12), "Software", 0.9m, null));
     }
 }

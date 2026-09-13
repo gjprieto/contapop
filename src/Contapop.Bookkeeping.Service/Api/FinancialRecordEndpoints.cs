@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Contapop.Bookkeeping.Service.Application.Commands;
 using Contapop.Bookkeeping.Service.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Contapop.Bookkeeping.Service.Api;
 
@@ -9,12 +10,12 @@ public static class FinancialRecordEndpoints
 {
     public static IEndpointRouteBuilder MapFinancialRecordEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        Map(endpoints, "/api/v1/expenses", "expense", static database => database.Expenses, static (handler, command, ct) => handler.CreateExpenseAsync(command, ct), static (handler, command, ct) => handler.UpdateExpenseAsync(command, ct), static (handler, command, ct) => handler.DeleteExpenseAsync(command, ct), static (handler, command, ct) => handler.ReconcileExpenseAsync(command, ct));
-        Map(endpoints, "/api/v1/revenues", "revenue", static database => database.Revenues, static (handler, command, ct) => handler.CreateRevenueAsync(command, ct), static (handler, command, ct) => handler.UpdateRevenueAsync(command, ct), static (handler, command, ct) => handler.DeleteRevenueAsync(command, ct), static (handler, command, ct) => handler.ReconcileRevenueAsync(command, ct));
+        Map(endpoints, "/api/v1/expenses", "expense", static database => database.Expenses, static (handler, command, ct) => handler.CreateExpenseAsync(command, ct), static (handler, command, ct) => handler.UpdateExpenseAsync(command, ct), static (handler, command, ct) => handler.DeleteExpenseAsync(command, ct), static (handler, command, ct) => handler.ReconcileExpenseAsync(command, ct), static (handler, command, ct) => handler.ImportExpenseAsync(command, ct), static (handler, command, ct) => handler.ConfirmExpenseAsync(command, ct));
+        Map(endpoints, "/api/v1/revenues", "revenue", static database => database.Revenues, static (handler, command, ct) => handler.CreateRevenueAsync(command, ct), static (handler, command, ct) => handler.UpdateRevenueAsync(command, ct), static (handler, command, ct) => handler.DeleteRevenueAsync(command, ct), static (handler, command, ct) => handler.ReconcileRevenueAsync(command, ct), static (handler, command, ct) => handler.ImportRevenueAsync(command, ct), static (handler, command, ct) => handler.ConfirmRevenueAsync(command, ct));
         return endpoints;
     }
 
-    private static void Map<T>(IEndpointRouteBuilder endpoints, string route, string name, Func<BookkeepingDbContext, DbSet<T>> records, Func<FinancialRecordCommandHandler, CreateFinancialRecordCommand, CancellationToken, Task<RecordResult<FinancialRecordResponse>>> create, Func<FinancialRecordCommandHandler, UpdateFinancialRecordCommand, CancellationToken, Task<RecordResult<FinancialRecordResponse>>> update, Func<FinancialRecordCommandHandler, DeleteFinancialRecordCommand, CancellationToken, Task<RecordResult<DeletedFinancialRecordResponse>>> delete, Func<FinancialRecordCommandHandler, ReconcileFinancialRecordCommand, CancellationToken, Task<RecordResult<FinancialRecordResponse>>> reconcile) where T : FinancialRecord
+    private static void Map<T>(IEndpointRouteBuilder endpoints, string route, string name, Func<BookkeepingDbContext, DbSet<T>> records, Func<FinancialRecordCommandHandler, CreateFinancialRecordCommand, CancellationToken, Task<RecordResult<FinancialRecordResponse>>> create, Func<FinancialRecordCommandHandler, UpdateFinancialRecordCommand, CancellationToken, Task<RecordResult<FinancialRecordResponse>>> update, Func<FinancialRecordCommandHandler, DeleteFinancialRecordCommand, CancellationToken, Task<RecordResult<DeletedFinancialRecordResponse>>> delete, Func<FinancialRecordCommandHandler, ReconcileFinancialRecordCommand, CancellationToken, Task<RecordResult<FinancialRecordResponse>>> reconcile, Func<FinancialRecordCommandHandler, ImportFinancialRecordCommand, CancellationToken, Task<RecordResult<ImportedFinancialRecordResponse>>> import, Func<FinancialRecordCommandHandler, ConfirmImportedFinancialRecordCommand, CancellationToken, Task<RecordResult<FinancialRecordResponse>>> confirm) where T : FinancialRecord
     {
         var group = endpoints.MapGroup(route).RequireAuthorization("account-owner");
         group.MapPost("", async (CreateFinancialRecordRequest request, HttpContext context, FinancialRecordCommandHandler handler, CancellationToken ct) =>
@@ -22,6 +23,21 @@ public static class FinancialRecordEndpoints
             if (!TryTenantAndKey(context, out var tenantId, out var key)) return MissingContext(context);
             if (!Valid(request.ProjectId, request.AmountMinor, request.Category, request.Recurring, request.RecurringInterval)) return InvalidRequest();
             return Map(await create(handler, new(tenantId, key, request.ProjectId, request.AmountMinor, request.Date, request.Category.Trim(), request.Recurring, request.RecurringInterval), ct), true, name);
+        });
+        group.MapPost("/import-document", async ([FromForm] IFormFile? file, [FromForm] Guid projectId, HttpContext context, FinancialRecordCommandHandler handler, CancellationToken ct) =>
+        {
+            if (!TryTenantAndKey(context, out var tenantId, out var key)) return MissingContext(context);
+            if (!IsPdf(file) || projectId == Guid.Empty) return Results.ValidationProblem(new Dictionary<string, string[]> { ["request"] = ["A non-empty PDF file and project ID are required."] });
+            await using var stream = file!.OpenReadStream(); using var content = new MemoryStream(); await stream.CopyToAsync(content, ct);
+            var result = await import(handler, new(tenantId, key, projectId, content.ToArray()), ct);
+            return result.Error switch { "project-unavailable" => Unprocessable("Project is unavailable."), "extraction-unavailable" => Unprocessable("The document extraction provider could not process the upload."), _ => Results.Created($"/api/v1/{name}s/{result.Value!.Id}", result.Value) };
+        }).Accepts<IFormFile>("multipart/form-data").DisableAntiforgery();
+        group.MapPost("/{recordId:guid}/confirm", async (Guid recordId, ConfirmImportedFinancialRecordRequest request, HttpContext context, FinancialRecordCommandHandler handler, CancellationToken ct) =>
+        {
+            if (!TryTenantAndKey(context, out var tenantId, out var key)) return MissingContext(context);
+            if (!TryVersion(context, out var version)) return MissingVersion();
+            if (request.AmountMinor is <= 0 || request.Category is not null && string.IsNullOrWhiteSpace(request.Category) || request.Recurring is false && request.RecurringInterval is not null || request.RecurringInterval is not null && request.RecurringInterval is not ("weekly" or "monthly" or "yearly")) return InvalidRequest();
+            return Map(await confirm(handler, new(tenantId, key, recordId, version, request.AmountMinor, request.Date, request.Category, request.Recurring, request.RecurringInterval, request.RecurringInterval is not null || request.Recurring is false), ct), false, name);
         });
         group.MapPatch("/{recordId:guid}", async (Guid recordId, UpdateFinancialRecordRequest request, HttpContext context, FinancialRecordCommandHandler handler, CancellationToken ct) =>
         {
@@ -61,8 +77,9 @@ public static class FinancialRecordEndpoints
         });
     }
 
-    private static IResult Map(RecordResult<FinancialRecordResponse> result, bool created, string name) => result.Error switch { "not-found" => Results.NotFound(), "conflict" => Conflict("Record is already reconciled or has a stale version."), "project-unavailable" => Unprocessable("Project is unavailable."), "transaction-unavailable" => Unprocessable("Transaction is unavailable."), "claim-unavailable" => Unprocessable("Reconciliation claim does not match."), _ when created => Results.Created($"/api/v1/{name}s/{result.Value!.Id}", result.Value), _ => Results.Ok(result.Value) };
+    private static IResult Map(RecordResult<FinancialRecordResponse> result, bool created, string name) => result.Error switch { "not-found" => Results.NotFound(), "conflict" => Conflict("Record is already reconciled, is already confirmed, or has a stale version."), "project-unavailable" => Unprocessable("Project is unavailable."), "transaction-unavailable" => Unprocessable("Transaction is unavailable."), "claim-unavailable" => Unprocessable("Reconciliation claim does not match."), _ when created => Results.Created($"/api/v1/{name}s/{result.Value!.Id}", result.Value), _ => Results.Ok(result.Value) };
     private static bool Valid(Guid projectId, long amountMinor, string category, bool recurring, string? interval) => projectId != Guid.Empty && amountMinor > 0 && !string.IsNullOrWhiteSpace(category) && FinancialRecord.Valid(recurring, interval);
+    private static bool IsPdf(IFormFile? file) { if (file is null || file.Length == 0 || file.ContentType != "application/pdf") return false; using var stream = file.OpenReadStream(); Span<byte> header = stackalloc byte[5]; return stream.Read(header) == 5 && header.SequenceEqual("%PDF-"u8); }
     private static bool TryTenantAndKey(HttpContext context, out Guid tenantId, out string key) { tenantId = Guid.Empty; key = context.Request.Headers["Idempotency-Key"].ToString(); return Guid.TryParse(context.User.FindFirstValue("tenant_id"), out tenantId) && Guid.TryParse(key, out _); }
     private static IResult MissingContext(HttpContext context) => context.User.Identity?.IsAuthenticated is true ? Results.ValidationProblem(new Dictionary<string, string[]> { ["Idempotency-Key"] = ["A GUID idempotency key is required."] }) : Results.Unauthorized();
     private static bool TryVersion(HttpContext context, out int version) { var value = context.Request.Headers.IfMatch.ToString(); version = 0; return value.Length >= 3 && value[0] == '"' && value[^1] == '"' && int.TryParse(value[1..^1], out version) && version > 0; }
@@ -75,5 +92,6 @@ public static class FinancialRecordEndpoints
 public sealed record CreateFinancialRecordRequest(Guid ProjectId, long AmountMinor, DateOnly Date, string Category, bool Recurring, string? RecurringInterval);
 public sealed record UpdateFinancialRecordRequest(long? AmountMinor, DateOnly? Date, string? Category, bool? Recurring, string? RecurringInterval);
 public sealed record ReconcileFinancialRecordRequest(Guid TransactionId, Guid ReconciliationClaimId);
+public sealed record ConfirmImportedFinancialRecordRequest(long? AmountMinor, DateOnly? Date, string? Category, bool? Recurring, string? RecurringInterval);
 public sealed record FinancialRecordListItem(Guid Id, long AmountMinor, DateOnly Date, string Category, bool Recurring, string? RecurringInterval, string ImportSource, DateTimeOffset? ConfirmedAt, Guid? ReconciledTransactionId, int Version);
 public sealed record FinancialRecordPagedResponse(IReadOnlyList<FinancialRecordListItem> Items, int Page, int PageSize, int TotalCount);

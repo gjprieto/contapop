@@ -5,6 +5,7 @@ using Contapop.Bookkeeping.Service.Application.Commands;
 using Contapop.Bookkeeping.Service.Application.Abstractions;
 using Contapop.Bookkeeping.Service.Infrastructure.Persistence;
 using Contapop.Bookkeeping.Service.Infrastructure.Reconciliation;
+using Contapop.Bookkeeping.Service.Infrastructure.DocumentExtraction;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -18,6 +19,7 @@ builder.Services.AddDbContext<BookkeepingDbContext>(options =>
 builder.Services.AddScoped<ProjectReplicationConsumer>();
 builder.Services.AddScoped<TransactionReplicationConsumer>();
 builder.Services.AddScoped<FinancialRecordCommandHandler>();
+builder.Services.AddHttpClient<IDocumentExtractionAdapter, AzureDocumentExtractionAdapter>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<IReconciliationClaimValidator, LedgerReconciliationClaimValidator>(client =>
     client.BaseAddress = new Uri(builder.Configuration["services:ledger-service:http:0"] ?? "http://localhost:5113"));

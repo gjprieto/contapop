@@ -1,3 +1,5 @@
+using Contapop.Bookkeeping.Service.Application.Abstractions;
+
 namespace Contapop.Bookkeeping.Service.Infrastructure.Persistence;
 
 public abstract class FinancialRecord
@@ -47,17 +49,33 @@ public abstract class FinancialRecord
         return true;
     }
 
+    public bool TryConfirm(long? amountMinor, DateOnly? date, string? category, bool? recurring, string? recurringInterval, bool updateRecurringInterval, int expectedVersion, DateTimeOffset now)
+    {
+        if (ImportSource != "pdf_ocr" || ConfirmedAt is not null || Version != expectedVersion) return false;
+        var actualAmount = amountMinor ?? AmountMinor;
+        var actualDate = date ?? Date;
+        var actualCategory = category ?? Category;
+        var actualRecurring = recurring ?? Recurring;
+        var actualInterval = updateRecurringInterval ? recurringInterval : RecurringInterval;
+        if (actualAmount <= 0 || actualDate == default || string.IsNullOrWhiteSpace(actualCategory) || !Valid(actualRecurring, actualInterval)) return false;
+        AmountMinor = actualAmount; Date = actualDate; Category = actualCategory; Recurring = actualRecurring; RecurringInterval = actualInterval;
+        ConfirmedAt = now; Version++; UpdatedAt = now;
+        return true;
+    }
+
     public static bool Valid(bool recurring, string? interval) => recurring ? interval is "weekly" or "monthly" or "yearly" : interval is null;
 }
 
 public sealed class Expense : FinancialRecord
 {
     public static Expense Create(Guid tenantId, Guid projectId, long amountMinor, DateOnly date, string category, bool recurring, string? recurringInterval, DateTimeOffset now) => Create<Expense>(tenantId, projectId, amountMinor, date, category, recurring, recurringInterval, "manual", now, now);
+    public static Expense Import(Guid tenantId, Guid projectId, DocumentExtractionResult extracted, DateTimeOffset now) => Create<Expense>(tenantId, projectId, extracted.AmountMinor ?? 0, extracted.Date ?? default, extracted.Category ?? string.Empty, false, null, "pdf_ocr", null, now);
 }
 
 public sealed class Revenue : FinancialRecord
 {
     public static Revenue Create(Guid tenantId, Guid projectId, long amountMinor, DateOnly date, string category, bool recurring, string? recurringInterval, DateTimeOffset now) => Create<Revenue>(tenantId, projectId, amountMinor, date, category, recurring, recurringInterval, "manual", now, now);
+    public static Revenue Import(Guid tenantId, Guid projectId, DocumentExtractionResult extracted, DateTimeOffset now) => Create<Revenue>(tenantId, projectId, extracted.AmountMinor ?? 0, extracted.Date ?? default, extracted.Category ?? string.Empty, false, null, "pdf_ocr", null, now);
 }
 
 public sealed class IdempotencyRecord
