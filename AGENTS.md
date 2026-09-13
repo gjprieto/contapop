@@ -63,11 +63,11 @@ npm run test:e2e    # Playwright critical-path tests; requires the local Aspire 
 
 Document extraction local configuration (from `src/`, only when testing PDF OCR against Azure):
 ```
-dotnet user-secrets set "DocumentExtraction:Endpoint" "https://<your-resource>.cognitiveservices.azure.com/" --project Contapop.Bookkeeping.Service
-dotnet user-secrets set "DocumentExtraction:Key" "<your-key>" --project Contapop.Bookkeeping.Service
+dotnet user-secrets set "Parameters:document-extraction-endpoint" "https://<your-resource>.cognitiveservices.azure.com/" --project Contapop.Application.AppHost
+dotnet user-secrets set "Parameters:document-extraction-key" "<your-key>" --project Contapop.Application.AppHost
 ```
 
-The endpoint and key are Azure AI Document Intelligence resource secrets. Do not add them to `appsettings*.json`, source control, or browser code.
+The AppHost passes these Azure AI Document Intelligence secrets to Bookkeeping & Planning when it starts the service. Do not add them to `appsettings*.json`, source control, or browser code.
 
 When a task introduces a new project type (a service's test project, an E2E Playwright project, etc.), add its build/run/test commands to this section in the same commit/PR that adds the project, so this file stays accurate.
 

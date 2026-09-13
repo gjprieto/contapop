@@ -4,6 +4,8 @@ var cache = builder.AddRedis("cache");
 builder.AddDapr();
 var pubSub = builder.AddDaprPubSub("pubsub");
 var internalJwtSigningKey = builder.AddParameter("internal-jwt-signing-key", secret: true);
+var documentExtractionEndpoint = builder.AddParameter("document-extraction-endpoint", secret: true);
+var documentExtractionKey = builder.AddParameter("document-extraction-key", secret: true);
 
 var postgres = builder.AddPostgres("postgres");
 var storage = builder.AddAzureStorage("storage").RunAsEmulator();
@@ -52,6 +54,8 @@ var billing = builder.AddProject<Projects.Contapop_Billing_Service>("billing-ser
 var bookkeeping = builder.AddProject<Projects.Contapop_Bookkeeping_Service>("bookkeeping-service")
     .WithReference(bookkeepingDatabase)
     .WithEnvironment("InternalJwt__SigningKey", internalJwtSigningKey)
+    .WithEnvironment("DocumentExtraction__Endpoint", documentExtractionEndpoint)
+    .WithEnvironment("DocumentExtraction__Key", documentExtractionKey)
     .WaitFor(bookkeepingDatabase)
     .WithHttpEndpoint(port: 5116)
     .WithHttpHealthCheck("/health")
