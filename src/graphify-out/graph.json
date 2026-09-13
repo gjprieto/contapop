@@ -1,0 +1,3595 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense",
+      "label": "Expense",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "expense",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L69"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue",
+      "label": "Revenue",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "revenue",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L76"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "label": "FinancialRecord",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "financialrecord",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L5"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "label": "Plan",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "plan",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L83"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense",
+      "label": "PlannedExpense",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "plannedexpense",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L146"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "label": "PlannedLine",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "plannedline",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L125"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "label": "OutboxMessage",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "outboxmessage",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L166"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord",
+      "label": "IdempotencyRecord",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "BookkeepingEntities.cs",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "idempotencyrecord",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L156"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedrevenue",
+      "label": "PlannedRevenue",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "BookkeepingEntities.cs",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "plannedrevenue",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L151"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_create",
+      "label": ".Create()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".create()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L71"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_import",
+      "label": ".Import()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".import()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L72"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_importstructured",
+      "label": ".ImportStructured()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".importstructured()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L73"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_create",
+      "label": ".Create()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".create()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L22"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryreconcile",
+      "label": ".TryReconcile()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".tryreconcile()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L44"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_create",
+      "label": ".Create()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".create()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L163"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_create",
+      "label": ".Create()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".create()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L179"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_create",
+      "label": ".Create()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".create()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L98"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_tryupdate",
+      "label": ".TryUpdate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".tryupdate()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L104"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_create",
+      "label": ".Create()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".create()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L139"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_create",
+      "label": ".Create()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".create()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L78"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_import",
+      "label": ".Import()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".import()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L79"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_importstructured",
+      "label": ".ImportStructured()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".importstructured()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L80"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryconfirm",
+      "label": ".TryConfirm()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".tryconfirm()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L52"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryupdate",
+      "label": ".TryUpdate()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".tryupdate()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L29"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_valid",
+      "label": ".Valid()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".valid()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L66"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_tryarchive",
+      "label": ".TryArchive()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".tryarchive()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L117"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense_create",
+      "label": ".Create()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".create()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L148"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedrevenue_create",
+      "label": ".Create()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "BookkeepingEntities.cs",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": ".create()",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L153"
+    },
+    {
+      "id": "dateonly",
+      "label": "DateOnly",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "norm_label": "dateonly",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "datetimeoffset",
+      "label": "DateTimeOffset",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "norm_label": "datetimeoffset",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "documentextractionresult",
+      "label": "DocumentExtractionResult",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "norm_label": "documentextractionresult",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "guid",
+      "label": "Guid",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "DateTimeOffset",
+      "file_type": "code",
+      "norm_label": "guid",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_amountminor",
+      "label": "AmountMinor",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "amountminor",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L11"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_category",
+      "label": "Category",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "category",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L13"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_confirmedat",
+      "label": "ConfirmedAt",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "confirmedat",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L17"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_createdat",
+      "label": "CreatedAt",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "createdat",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L19"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_date",
+      "label": "Date",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "date",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L12"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_id",
+      "label": "Id",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "id",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L7"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_importsource",
+      "label": "ImportSource",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "importsource",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L16"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_projectid",
+      "label": "ProjectId",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "projectid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L9"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_reconciledtransactionid",
+      "label": "ReconciledTransactionId",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "reconciledtransactionid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L10"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_recurring",
+      "label": "Recurring",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "recurring",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L14"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_recurringinterval",
+      "label": "RecurringInterval",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "recurringinterval",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L15"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tenantid",
+      "label": "TenantId",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "tenantid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L8"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_updatedat",
+      "label": "UpdatedAt",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "updatedat",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L20"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_version",
+      "label": "Version",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "FinancialRecord",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "version",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L18"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_allocatedamountminor",
+      "label": "AllocatedAmountMinor",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "allocatedamountminor",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L90"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_createdat",
+      "label": "CreatedAt",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "createdat",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L95"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_description",
+      "label": "Description",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "description",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L89"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_enddate",
+      "label": "EndDate",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "enddate",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L92"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_id",
+      "label": "Id",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "id",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L85"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_projectid",
+      "label": "ProjectId",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "projectid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L87"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_startdate",
+      "label": "StartDate",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "startdate",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L91"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_status",
+      "label": "Status",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "status",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L93"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_tenantid",
+      "label": "TenantId",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "tenantid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L86"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_title",
+      "label": "Title",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "title",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L88"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_updatedat",
+      "label": "UpdatedAt",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "updatedat",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L96"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_version",
+      "label": "Version",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "Plan",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "version",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L94"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_amountminor",
+      "label": "AmountMinor",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "amountminor",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L131"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_category",
+      "label": "Category",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "category",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L133"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_createdat",
+      "label": "CreatedAt",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "createdat",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L136"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_date",
+      "label": "Date",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "date",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L132"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_id",
+      "label": "Id",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "id",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L127"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_planid",
+      "label": "PlanId",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "planid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L130"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_projectid",
+      "label": "ProjectId",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "projectid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L129"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_recurring",
+      "label": "Recurring",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "recurring",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L134"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_recurringinterval",
+      "label": "RecurringInterval",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "recurringinterval",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L135"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_tenantid",
+      "label": "TenantId",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "tenantid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L128"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_updatedat",
+      "label": "UpdatedAt",
+      "_origin": "ast",
+      "community": 3,
+      "community_name": "PlannedLine",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "updatedat",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L137"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_aggregateid",
+      "label": "AggregateId",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "aggregateid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L171"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_aggregatetype",
+      "label": "AggregateType",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "aggregatetype",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L170"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_aggregateversion",
+      "label": "AggregateVersion",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "aggregateversion",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L172"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_causationid",
+      "label": "CausationId",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "causationid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L175"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_correlationid",
+      "label": "CorrelationId",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "correlationid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L174"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_eventid",
+      "label": "EventId",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "eventid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L168"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_eventname",
+      "label": "EventName",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "eventname",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L169"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_occurredat",
+      "label": "OccurredAt",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "occurredat",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L176"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_payload",
+      "label": "Payload",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "payload",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L177"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_status",
+      "label": "Status",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "status",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L178"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_tenantid",
+      "label": "TenantId",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "OutboxMessage",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "tenantid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L173"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "label": "BookkeepingEntities.cs",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "BookkeepingEntities.cs",
+      "file_type": "code",
+      "norm_label": "bookkeepingentities.cs",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L1"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_createdat",
+      "label": "CreatedAt",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "BookkeepingEntities.cs",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "createdat",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L162"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_key",
+      "label": "Key",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "BookkeepingEntities.cs",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "key",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L160"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_operation",
+      "label": "Operation",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "BookkeepingEntities.cs",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "operation",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L159"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_result",
+      "label": "Result",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "BookkeepingEntities.cs",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "result",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L161"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_tenantid",
+      "label": "TenantId",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "BookkeepingEntities.cs",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s62"
+        ]
+      },
+      "norm_label": "tenantid",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L158"
+    },
+    {
+      "id": "csharp_namespace:9effb99c1e26b90e",
+      "label": "Contapop.Bookkeeping.Service.Infrastructure.Persistence",
+      "_origin": "ast",
+      "community": 5,
+      "community_name": "BookkeepingEntities.cs",
+      "file_type": "code",
+      "metadata": {
+        "kind": "csharp_namespace",
+        "namespace": "Contapop.Bookkeeping.Service.Infrastructure.Persistence"
+      },
+      "norm_label": "contapop.bookkeeping.service.infrastructure.persistence",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L3",
+      "type": "namespace"
+    },
+    {
+      "id": "contapop_bookkeeping_service_contapop_bookkeeping_service",
+      "label": "Contapop.Bookkeeping.Service.csproj",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Contapop.Bookkeeping.Service.csproj",
+      "file_type": "code",
+      "norm_label": "contapop.bookkeeping.service.csproj",
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "source_location": null
+    },
+    {
+      "id": "nuget_closedxml",
+      "label": "ClosedXML (0.105.0)",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Contapop.Bookkeeping.Service.csproj",
+      "file_type": "code",
+      "norm_label": "closedxml (0.105.0)",
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "source_location": null
+    },
+    {
+      "id": "nuget_dapr_aspnetcore",
+      "label": "Dapr.AspNetCore (1.15.4)",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Contapop.Bookkeeping.Service.csproj",
+      "file_type": "code",
+      "norm_label": "dapr.aspnetcore (1.15.4)",
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "source_location": null
+    },
+    {
+      "id": "nuget_microsoft_aspnetcore_authentication_jwtbearer",
+      "label": "Microsoft.AspNetCore.Authentication.JwtBearer (10.0.11)",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Contapop.Bookkeeping.Service.csproj",
+      "file_type": "code",
+      "norm_label": "microsoft.aspnetcore.authentication.jwtbearer (10.0.11)",
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "source_location": null
+    },
+    {
+      "id": "nuget_microsoft_aspnetcore_openapi",
+      "label": "Microsoft.AspNetCore.OpenApi (10.0.11)",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Contapop.Bookkeeping.Service.csproj",
+      "file_type": "code",
+      "norm_label": "microsoft.aspnetcore.openapi (10.0.11)",
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "source_location": null
+    },
+    {
+      "id": "nuget_microsoft_entityframeworkcore_design",
+      "label": "Microsoft.EntityFrameworkCore.Design (9.0.0)",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Contapop.Bookkeeping.Service.csproj",
+      "file_type": "code",
+      "norm_label": "microsoft.entityframeworkcore.design (9.0.0)",
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "source_location": null
+    },
+    {
+      "id": "nuget_npgsql_entityframeworkcore_postgresql",
+      "label": "Npgsql.EntityFrameworkCore.PostgreSQL (9.0.0)",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Contapop.Bookkeeping.Service.csproj",
+      "file_type": "code",
+      "norm_label": "npgsql.entityframeworkcore.postgresql (9.0.0)",
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "source_location": null
+    },
+    {
+      "id": "framework_net10_0",
+      "label": "net10.0",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Contapop.Bookkeeping.Service.csproj",
+      "file_type": "concept",
+      "norm_label": "net10.0",
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "source_location": null
+    },
+    {
+      "id": "sdk_microsoft_net_sdk_web",
+      "label": "Microsoft.NET.Sdk.Web",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "Contapop.Bookkeeping.Service.csproj",
+      "file_type": "concept",
+      "norm_label": "microsoft.net.sdk.web",
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "source_location": null
+    }
+  ],
+  "links": [
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryconfirm",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_valid",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryupdate",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_valid",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L176",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L158",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_reconciledtransactionid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_amountminor",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_date",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_category",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_recurring",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_recurringinterval",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_importsource",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_confirmedat",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_version",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_createdat",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_updatedat",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_id",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tenantid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_projectid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_tenantid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L158",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_operation",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L159",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_key",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_result",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L161",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_createdat",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_eventid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L168",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_eventname",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L169",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_aggregatetype",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L170",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_aggregateid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L171",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_aggregateversion",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_tenantid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L173",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_correlationid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_causationid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_occurredat",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L176",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_payload",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L177",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_status",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_id",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_tenantid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_projectid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_title",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_description",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_allocatedamountminor",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_startdate",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_enddate",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_status",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_version",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_createdat",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_updatedat",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_id",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_tenantid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_projectid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L129",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_planid",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_amountminor",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_date",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_category",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_recurring",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_recurringinterval",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_createdat",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_updatedat",
+      "relation": "defines",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "field",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_create",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_importstructured",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_create",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryconfirm",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryupdate",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_create",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_tryupdate",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense_create",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_create",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedrevenue_create",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_create",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_importstructured",
+      "target": "dateonly",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateOnly"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_create",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_import",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_importstructured",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_create",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryconfirm",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryreconcile",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryupdate",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_create",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_create",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L179",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_create",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_tryarchive",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_tryupdate",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense_create",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_create",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedrevenue_create",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_create",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_import",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_importstructured",
+      "target": "datetimeoffset",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DateTimeOffset"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_import",
+      "target": "documentextractionresult",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DocumentExtractionResult"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_import",
+      "target": "documentextractionresult",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "DocumentExtractionResult"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_create",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_import",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_importstructured",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_create",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryreconcile",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_create",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_create",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L179",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_create",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_create",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_import",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_importstructured",
+      "target": "guid",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Guid"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense_create",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Plan"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_create",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Plan"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedrevenue_create",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "parameter_type",
+      "metadata": {
+        "ref_token": "Plan"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "relation": "inherits",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "metadata": {
+        "ref_token": "FinancialRecord"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "relation": "inherits",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "metadata": {
+        "ref_token": "FinancialRecord"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "relation": "inherits",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "metadata": {
+        "ref_token": "PlannedLine"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedrevenue",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "relation": "inherits",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "metadata": {
+        "ref_token": "PlannedLine"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedrevenue",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L156",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L166",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "target": "csharp_namespace:9effb99c1e26b90e",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_contapop_bookkeeping_service",
+      "target": "nuget_closedxml",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_contapop_bookkeeping_service",
+      "target": "nuget_dapr_aspnetcore",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_contapop_bookkeeping_service",
+      "target": "nuget_microsoft_aspnetcore_authentication_jwtbearer",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_contapop_bookkeeping_service",
+      "target": "nuget_microsoft_aspnetcore_openapi",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_contapop_bookkeeping_service",
+      "target": "nuget_microsoft_entityframeworkcore_design",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_contapop_bookkeeping_service",
+      "target": "nuget_npgsql_entityframeworkcore_postgresql",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_create",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_import",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_expense_importstructured",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_create",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryupdate",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryreconcile",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_tryconfirm",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_financialrecord_valid",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_idempotencyrecord_create",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_outboxmessage_create",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L179",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_tryupdate",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_tryarchive",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plan_create",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense_create",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedline_create",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedrevenue",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedrevenue_create",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_create",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_import",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue",
+      "target": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_revenue_importstructured",
+      "relation": "method",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_contapop_bookkeeping_service",
+      "target": "framework_net10_0",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_contapop_bookkeeping_service",
+      "target": "sdk_microsoft_net_sdk_web",
+      "relation": "references",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Contapop.Bookkeeping.Service/Contapop.Bookkeeping.Service.csproj",
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "2a803314e62a352b0193772d316e331824468ba4"
+}

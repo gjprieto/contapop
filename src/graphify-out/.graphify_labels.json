@@ -1,0 +1,9 @@
+{
+  "0": "DateTimeOffset",
+  "1": "FinancialRecord",
+  "2": "Plan",
+  "3": "PlannedLine",
+  "4": "OutboxMessage",
+  "5": "BookkeepingEntities.cs",
+  "6": "Contapop.Bookkeeping.Service.csproj"
+}
