@@ -20,9 +20,14 @@ public sealed class AzureDocumentExtractionAdapter(HttpClient client, IConfigura
         request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
         request.Headers.Add("Ocp-Apim-Subscription-Key", key);
         using var response = await client.SendAsync(request, cancellationToken);
-        if (!response.IsSuccessStatusCode || response.Headers.Location is null) throw new DocumentExtractionException("The document extraction provider could not process the upload.");
+        if (!response.IsSuccessStatusCode
+            || !response.Headers.TryGetValues("operation-location", out var operationLocations)
+            || !Uri.TryCreate(operationLocations.SingleOrDefault(), UriKind.Absolute, out var operation))
+        {
+            throw new DocumentExtractionException("The document extraction provider could not process the upload.");
+        }
 
-        using var result = await PollAsync(response.Headers.Location, key, cancellationToken);
+        using var result = await PollAsync(operation, key, cancellationToken);
         if (!result.RootElement.TryGetProperty("analyzeResult", out var analyzeResult)
             || !analyzeResult.TryGetProperty("documents", out var documents)
             || documents.GetArrayLength() == 0
