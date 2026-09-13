@@ -1061,6 +1061,8 @@ Sets `confirmedAt`, optionally correcting any of the OCR-extracted fields first.
 { "title": "string optional", "description": "string optional", "allocatedAmountMinor": "int optional", "startDate": "date optional", "endDate": "date optional" }
 ```
 
+The resulting `startDate` must not be after `endDate`. A period update is rejected when it would place an existing planned expense or planned revenue line outside the Plan period.
+
 **Response:** `200 OK` — full plan, same shape as `GetPlanById`.
 
 #### `ArchivePlan`
@@ -1091,6 +1093,8 @@ Sets `confirmedAt`, optionally correcting any of the OCR-extracted fields first.
 ```
 { "plannedExpenseId": "guid" /* or plannedRevenueId */, "planId": "guid", "createdAt": "date-time" }
 ```
+
+**Errors:** `409 Conflict` if the Plan is archived; `422 Unprocessable Entity` if the line date falls outside the Plan's inclusive start/end period.
 
 **Event:** `bookkeeping.planned-expense-added.v1` (or `bookkeeping.planned-revenue-added.v1`).
 
@@ -1169,10 +1173,10 @@ Joins this service's own actuals (Expense/Revenue, confirmed only) against the p
 {
   "planId": "guid",
   "period": { "startDate": "date", "endDate": "date" },
-  "expenses": { "plannedMinor": "int", "actualMinor": "int", "varianceMinor": "int" },
-  "revenues": { "plannedMinor": "int", "actualMinor": "int", "varianceMinor": "int" },
+  "expenses": { "plannedMinor": "int", "actualMinor": "int", "varianceMinor": "int — actual minus planned" },
+  "revenues": { "plannedMinor": "int", "actualMinor": "int", "varianceMinor": "int — actual minus planned" },
   "byCategory": [
-    { "category": "string", "plannedMinor": "int", "actualMinor": "int" }
+    { "type": "string — \"expense\" | \"revenue\"", "category": "string", "plannedMinor": "int", "actualMinor": "int" }
   ]
 }
 ```

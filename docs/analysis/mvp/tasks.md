@@ -459,7 +459,7 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 4.3.
 
-**Implement:** `CreatePlan`/`UpdatePlan`/`ArchivePlan`, `AddPlannedExpenseLine`/`AddPlannedRevenueLine`, `ListPlans`/`GetPlanById`, `GetPlanVsActual` from `contracts.md`. Publishes `bookkeeping.plan-created.v1` / `bookkeeping.planned-expense-added.v1` / `bookkeeping.planned-revenue-added.v1` per `events.md`.
+**Implement:** `CreatePlan`/`UpdatePlan`/`ArchivePlan`, `AddPlannedExpenseLine`/`AddPlannedRevenueLine`, `ListPlans`/`GetPlanById`, `GetPlanVsActual` from `contracts.md`. Planned lines must fall within their Plan's inclusive period, and a Plan update cannot exclude an existing planned line. `GetPlanVsActual.byCategory` includes a `type` so expense and revenue categories remain distinct. Publishes `bookkeeping.plan-created.v1` / `bookkeeping.planned-expense-added.v1` / `bookkeeping.planned-revenue-added.v1` per `events.md`.
 
 **Automated tests:** unit test for the plan-vs-actual comparison logic; integration tests for CRUD + outbox.
 

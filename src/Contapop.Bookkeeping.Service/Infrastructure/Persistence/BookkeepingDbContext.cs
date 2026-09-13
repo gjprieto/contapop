@@ -10,6 +10,9 @@ public sealed class BookkeepingDbContext(DbContextOptions<BookkeepingDbContext> 
     public DbSet<TransactionReplica> TransactionReplicas => Set<TransactionReplica>();
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<Revenue> Revenues => Set<Revenue>();
+    public DbSet<Plan> Plans => Set<Plan>();
+    public DbSet<PlannedExpense> PlannedExpenses => Set<PlannedExpense>();
+    public DbSet<PlannedRevenue> PlannedRevenues => Set<PlannedRevenue>();
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
@@ -58,6 +61,26 @@ public sealed class BookkeepingDbContext(DbContextOptions<BookkeepingDbContext> 
 
         ConfigureFinancialRecord(modelBuilder.Entity<Expense>(), "expenses", "expenses");
         ConfigureFinancialRecord(modelBuilder.Entity<Revenue>(), "revenues", "revenues");
+        modelBuilder.Entity<Plan>(entity =>
+        {
+            entity.ToTable("plans", "planning");
+            entity.HasKey(plan => plan.Id);
+            entity.Property(plan => plan.Id).HasColumnName("id");
+            entity.Property(plan => plan.TenantId).HasColumnName("tenant_id").IsRequired();
+            entity.Property(plan => plan.ProjectId).HasColumnName("project_id").IsRequired();
+            entity.Property(plan => plan.Title).HasColumnName("title").HasMaxLength(200).IsRequired();
+            entity.Property(plan => plan.Description).HasColumnName("description").HasMaxLength(2_000);
+            entity.Property(plan => plan.AllocatedAmountMinor).HasColumnName("allocated_amount_minor");
+            entity.Property(plan => plan.StartDate).HasColumnName("start_date").IsRequired();
+            entity.Property(plan => plan.EndDate).HasColumnName("end_date").IsRequired();
+            entity.Property(plan => plan.Status).HasColumnName("status").HasMaxLength(20).IsRequired();
+            entity.Property(plan => plan.Version).HasColumnName("version").IsConcurrencyToken().IsRequired();
+            entity.Property(plan => plan.CreatedAt).HasColumnName("created_at").IsRequired();
+            entity.Property(plan => plan.UpdatedAt).HasColumnName("updated_at").IsRequired();
+            entity.HasIndex(plan => new { plan.TenantId, plan.Status });
+        });
+        ConfigurePlannedLine(modelBuilder.Entity<PlannedExpense>(), "planned_expenses");
+        ConfigurePlannedLine(modelBuilder.Entity<PlannedRevenue>(), "planned_revenues");
 
         modelBuilder.Entity<IdempotencyRecord>(entity =>
         {
@@ -109,5 +132,23 @@ public sealed class BookkeepingDbContext(DbContextOptions<BookkeepingDbContext> 
         entity.Property(record => record.UpdatedAt).HasColumnName("updated_at").IsRequired();
         entity.HasIndex(record => new { record.TenantId, record.ProjectId, record.Date });
         entity.HasIndex(record => new { record.TenantId, record.ReconciledTransactionId }).IsUnique().HasFilter("reconciled_transaction_id IS NOT NULL");
+    }
+
+    private static void ConfigurePlannedLine<T>(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<T> entity, string table) where T : PlannedLine
+    {
+        entity.ToTable(table, "planning");
+        entity.HasKey(line => line.Id);
+        entity.Property(line => line.Id).HasColumnName("id");
+        entity.Property(line => line.TenantId).HasColumnName("tenant_id").IsRequired();
+        entity.Property(line => line.ProjectId).HasColumnName("project_id").IsRequired();
+        entity.Property(line => line.PlanId).HasColumnName("plan_id").IsRequired();
+        entity.Property(line => line.AmountMinor).HasColumnName("amount_minor").IsRequired();
+        entity.Property(line => line.Date).HasColumnName("date").IsRequired();
+        entity.Property(line => line.Category).HasColumnName("category").HasMaxLength(200).IsRequired();
+        entity.Property(line => line.Recurring).HasColumnName("recurring").IsRequired();
+        entity.Property(line => line.RecurringInterval).HasColumnName("recurring_interval").HasMaxLength(20);
+        entity.Property(line => line.CreatedAt).HasColumnName("created_at").IsRequired();
+        entity.Property(line => line.UpdatedAt).HasColumnName("updated_at").IsRequired();
+        entity.HasIndex(line => new { line.TenantId, line.PlanId, line.Date });
     }
 }

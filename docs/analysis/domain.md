@@ -259,7 +259,7 @@ A Plan represents a financial strategy or allocation associated with a tenant or
 - `description`: Description or details of the plan.
 - `allocated_amount`: Optional overall allocation/budget ceiling for the plan's period (absorbed from the former Budget entity).
 - `start_date`: Start date of the plan's period (absorbed from the former Budget entity).
-- `end_date`: End date of the plan's period (absorbed from the former Budget entity).
+- `end_date`: End date of the plan's period (absorbed from the former Budget entity). `start_date` is not after `end_date`; every Planned Revenue and Planned Expense date falls within this inclusive period.
 - `status`: `active` or `archived` — set by `ArchivePlan` (`docs/analysis/contracts.md`).
 - `created_at`: Timestamp when the plan was created.
 - `updated_at`: Timestamp when the plan was last updated.

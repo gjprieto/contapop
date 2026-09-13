@@ -78,6 +78,79 @@ public sealed class Revenue : FinancialRecord
     public static Revenue Import(Guid tenantId, Guid projectId, DocumentExtractionResult extracted, DateTimeOffset now) => Create<Revenue>(tenantId, projectId, extracted.AmountMinor ?? 0, extracted.Date ?? default, extracted.Category ?? string.Empty, false, null, "pdf_ocr", null, now);
 }
 
+public sealed class Plan
+{
+    public Guid Id { get; private set; }
+    public Guid TenantId { get; private set; }
+    public Guid ProjectId { get; private set; }
+    public string Title { get; private set; } = null!;
+    public string? Description { get; private set; }
+    public long? AllocatedAmountMinor { get; private set; }
+    public DateOnly StartDate { get; private set; }
+    public DateOnly EndDate { get; private set; }
+    public string Status { get; private set; } = null!;
+    public long Version { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset UpdatedAt { get; private set; }
+
+    public static Plan Create(Guid tenantId, Guid projectId, string title, string? description, long? allocatedAmountMinor, DateOnly startDate, DateOnly endDate, DateTimeOffset now) => new()
+    {
+        Id = Guid.NewGuid(), TenantId = tenantId, ProjectId = projectId, Title = title, Description = description,
+        AllocatedAmountMinor = allocatedAmountMinor, StartDate = startDate, EndDate = endDate, Status = "active", Version = 1, CreatedAt = now, UpdatedAt = now,
+    };
+
+    public bool TryUpdate(string? title, string? description, long? allocatedAmountMinor, DateOnly? startDate, DateOnly? endDate, int expectedVersion, bool hasOutOfPeriodLine, DateTimeOffset now)
+    {
+        if (Version != expectedVersion) return false;
+        var actualStart = startDate ?? StartDate;
+        var actualEnd = endDate ?? EndDate;
+        if (actualStart > actualEnd || hasOutOfPeriodLine) return false;
+        if (title is not null) Title = title;
+        if (description is not null) Description = description;
+        if (allocatedAmountMinor.HasValue) AllocatedAmountMinor = allocatedAmountMinor;
+        StartDate = actualStart; EndDate = actualEnd; Version++; UpdatedAt = now;
+        return true;
+    }
+
+    public bool TryArchive(int expectedVersion, DateTimeOffset now)
+    {
+        if (Status != "active" || Version != expectedVersion) return false;
+        Status = "archived"; Version++; UpdatedAt = now;
+        return true;
+    }
+}
+
+public abstract class PlannedLine
+{
+    public Guid Id { get; private set; }
+    public Guid TenantId { get; private set; }
+    public Guid ProjectId { get; private set; }
+    public Guid PlanId { get; private set; }
+    public long AmountMinor { get; private set; }
+    public DateOnly Date { get; private set; }
+    public string Category { get; private set; } = null!;
+    public bool Recurring { get; private set; }
+    public string? RecurringInterval { get; private set; }
+    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTimeOffset UpdatedAt { get; private set; }
+
+    protected static T Create<T>(Plan plan, long amountMinor, DateOnly date, string category, bool recurring, string? recurringInterval, DateTimeOffset now) where T : PlannedLine, new() => new()
+    {
+        Id = Guid.NewGuid(), TenantId = plan.TenantId, ProjectId = plan.ProjectId, PlanId = plan.Id, AmountMinor = amountMinor, Date = date,
+        Category = category, Recurring = recurring, RecurringInterval = recurringInterval, CreatedAt = now, UpdatedAt = now,
+    };
+}
+
+public sealed class PlannedExpense : PlannedLine
+{
+    public static PlannedExpense Create(Plan plan, long amountMinor, DateOnly date, string category, bool recurring, string? recurringInterval, DateTimeOffset now) => Create<PlannedExpense>(plan, amountMinor, date, category, recurring, recurringInterval, now);
+}
+
+public sealed class PlannedRevenue : PlannedLine
+{
+    public static PlannedRevenue Create(Plan plan, long amountMinor, DateOnly date, string category, bool recurring, string? recurringInterval, DateTimeOffset now) => Create<PlannedRevenue>(plan, amountMinor, date, category, recurring, recurringInterval, now);
+}
+
 public sealed class IdempotencyRecord
 {
     public Guid TenantId { get; private set; }

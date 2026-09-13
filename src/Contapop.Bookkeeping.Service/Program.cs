@@ -19,6 +19,7 @@ builder.Services.AddDbContext<BookkeepingDbContext>(options =>
 builder.Services.AddScoped<ProjectReplicationConsumer>();
 builder.Services.AddScoped<TransactionReplicationConsumer>();
 builder.Services.AddScoped<FinancialRecordCommandHandler>();
+builder.Services.AddScoped<PlanCommandHandler>();
 builder.Services.AddHttpClient<IDocumentExtractionAdapter, AzureDocumentExtractionAdapter>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<IReconciliationClaimValidator, LedgerReconciliationClaimValidator>(client =>
@@ -60,6 +61,7 @@ app.MapGet("/health", () => Results.Ok());
 app.MapSubscribeHandler();
 app.MapReplicationEndpoints();
 app.MapFinancialRecordEndpoints();
+app.MapPlanEndpoints();
 
 app.Run();
 
