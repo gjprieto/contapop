@@ -20,9 +20,5 @@
   "18": "HttpContext",
   "19": "IEndpointRouteBuilder",
   "20": "IResult",
-  "21": ".ExecuteAsync",
-  "22": "CancellationToken",
-  "23": "DateOnly",
-  "24": "ReadOnlyMemory",
-  "25": "Task"
+  "21": "IDocumentExtractionAdapter"
 }

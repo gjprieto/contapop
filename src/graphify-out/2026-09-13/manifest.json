@@ -480,9 +480,9 @@
     "semantic_hash": ""
   },
   "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs": {
-    "mtime": 1789297951.4106255,
-    "seen": 1789297980.808014,
-    "ast_hash": "b4b964fa88408835e7a5c37570903380",
+    "mtime": 1789295419.8623362,
+    "seen": 1789295520.8444588,
+    "ast_hash": "6e03e92c1eb8f1f397130f4dbc594c92",
     "semantic_hash": ""
   },
   "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingDbContext.cs": {

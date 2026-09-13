@@ -61,6 +61,25 @@
       "source_location": "L5"
     },
     {
+      "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext",
+      "label": "ReconciliationDbContext",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Reconciliation.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s38"
+        ]
+      },
+      "norm_label": "reconciliationdbcontext",
+      "source_file": "Contapop.Reconciliation.Service/Infrastructure/Persistence/ReconciliationDbContext.cs",
+      "source_location": "L5"
+    },
+    {
       "id": "contapop_reconciliation_service_program_program",
       "label": "Program",
       "_callable": true,
@@ -173,6 +192,25 @@
       "source_location": "L25"
     },
     {
+      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_contapop_reconciliation_service_reconciliationrecoveryworker",
+      "label": "ReconciliationRecoveryWorker",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Reconciliation.Service",
+        "scope_chain": [
+          "s104"
+        ]
+      },
+      "norm_label": "reconciliationrecoveryworker",
+      "source_file": "Contapop.Reconciliation.Service/ReconciliationRecoveryWorker.cs",
+      "source_location": "L5"
+    },
+    {
       "id": "frontend_src_features_plans_api_plans_api_plan",
       "label": "Plan",
       "_callable": true,
@@ -210,19 +248,6 @@
       "norm_label": "planvsactual",
       "source_file": "frontend/src/features/plans/api/plans-api.ts",
       "source_location": "L4"
-    },
-    {
-      "id": "frontend_src_shared_components_app_shell_navigationitem",
-      "label": "NavigationItem",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
-      "file_type": "code",
-      "norm_label": "navigationitem",
-      "source_file": "frontend/src/shared/components/app-shell.tsx",
-      "source_location": "L5"
     },
     {
       "id": "frontend_src_features_financial_records_api_resource",
@@ -340,6 +365,19 @@
       "norm_label": "transactionoption",
       "source_file": "frontend/src/features/financial-records/types.ts",
       "source_location": "L16"
+    },
+    {
+      "id": "frontend_src_shared_components_app_shell_navigationitem",
+      "label": "NavigationItem",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
+      "file_type": "code",
+      "norm_label": "navigationitem",
+      "source_file": "frontend/src/shared/components/app-shell.tsx",
+      "source_location": "L5"
     },
     {
       "id": "contapop_bookkeeping_service_application_commands_financialrecordfileimporter_contapop_bookkeeping_service_application_commands_financialrecordcolumnmapping",
@@ -716,25 +754,6 @@
       "source_location": "L83"
     },
     {
-      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_contapop_reconciliation_service_reconciliationrecoveryworker",
-      "label": "ReconciliationRecoveryWorker",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 21,
-      "community_name": ".ExecuteAsync",
-      "file_type": "code",
-      "metadata": {
-        "namespace": "Contapop.Reconciliation.Service",
-        "scope_chain": [
-          "s104"
-        ]
-      },
-      "norm_label": "reconciliationrecoveryworker",
-      "source_file": "Contapop.Reconciliation.Service/ReconciliationRecoveryWorker.cs",
-      "source_location": "L5"
-    },
-    {
       "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense",
       "label": "PlannedExpense",
       "_callable": true,
@@ -828,25 +847,6 @@
       "norm_label": "idempotencyrecord",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
       "source_location": "L156"
-    },
-    {
-      "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext",
-      "label": "ReconciliationDbContext",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "ReconciliationOperation",
-      "file_type": "code",
-      "metadata": {
-        "namespace": "Contapop.Reconciliation.Service.Infrastructure.Persistence",
-        "scope_chain": [
-          "s38"
-        ]
-      },
-      "norm_label": "reconciliationdbcontext",
-      "source_file": "Contapop.Reconciliation.Service/Infrastructure/Persistence/ReconciliationDbContext.cs",
-      "source_location": "L5"
     },
     {
       "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_contapop_reconciliation_service_infrastructure_persistence_reconciliationoperation",
@@ -1668,6 +1668,24 @@
       "source_location": "L66"
     },
     {
+      "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_onmodelcreating",
+      "label": ".OnModelCreating()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Reconciliation.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s38"
+        ]
+      },
+      "norm_label": ".onmodelcreating()",
+      "source_file": "Contapop.Reconciliation.Service/Infrastructure/Persistence/ReconciliationDbContext.cs",
+      "source_location": "L8"
+    },
+    {
       "id": "contapop_reconciliation_service_reconciliation_financialrecordreconciliationcoordinator_contapop_reconciliation_service_reconciliation_financialrecordreconciliationcoordinator_executeasync",
       "label": ".ExecuteAsync()",
       "_callable": true,
@@ -1776,28 +1794,22 @@
       "source_location": "L13"
     },
     {
-      "id": "frontend_src_app_app",
-      "label": "App()",
+      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_contapop_reconciliation_service_reconciliationrecoveryworker_executeasync",
+      "label": ".ExecuteAsync()",
       "_callable": true,
       "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
       "file_type": "code",
-      "norm_label": "app()",
-      "source_file": "frontend/src/App.tsx",
-      "source_location": "L18"
-    },
-    {
-      "id": "frontend_src_features_expenses_pages_expenses_page_expensespage",
-      "label": "ExpensesPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
-      "file_type": "code",
-      "norm_label": "expensespage()",
-      "source_file": "frontend/src/features/expenses/pages/expenses-page.tsx",
-      "source_location": "L2"
+      "metadata": {
+        "namespace": "Contapop.Reconciliation.Service",
+        "scope_chain": [
+          "s104"
+        ]
+      },
+      "norm_label": ".executeasync()",
+      "source_file": "Contapop.Reconciliation.Service/ReconciliationRecoveryWorker.cs",
+      "source_location": "L7"
     },
     {
       "id": "frontend_src_features_plans_api_plans_api_addplannedline",
@@ -1956,40 +1968,28 @@
       "source_location": "L7"
     },
     {
-      "id": "frontend_src_features_revenues_pages_revenues_page_revenuespage",
-      "label": "RevenuesPage()",
+      "id": "frontend_src_app_app",
+      "label": "App()",
       "_callable": true,
       "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
       "file_type": "code",
-      "norm_label": "revenuespage()",
-      "source_file": "frontend/src/features/revenues/pages/revenues-page.tsx",
+      "norm_label": "app()",
+      "source_file": "frontend/src/App.tsx",
+      "source_location": "L18"
+    },
+    {
+      "id": "frontend_src_features_expenses_pages_expenses_page_expensespage",
+      "label": "ExpensesPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
+      "file_type": "code",
+      "norm_label": "expensespage()",
+      "source_file": "frontend/src/features/expenses/pages/expenses-page.tsx",
       "source_location": "L2"
-    },
-    {
-      "id": "frontend_src_shared_components_app_shell_appshell",
-      "label": "AppShell()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
-      "file_type": "code",
-      "norm_label": "appshell()",
-      "source_file": "frontend/src/shared/components/app-shell.tsx",
-      "source_location": "L62"
-    },
-    {
-      "id": "frontend_src_shared_components_app_shell_icon",
-      "label": "Icon()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
-      "file_type": "code",
-      "norm_label": "icon()",
-      "source_file": "frontend/src/shared/components/app-shell.tsx",
-      "source_location": "L58"
     },
     {
       "id": "frontend_src_features_financial_records_api_confirmrecord",
@@ -2206,6 +2206,42 @@
       "norm_label": "usefinancialrecordtransactions()",
       "source_file": "frontend/src/features/financial-records/queries.ts",
       "source_location": "L5"
+    },
+    {
+      "id": "frontend_src_features_revenues_pages_revenues_page_revenuespage",
+      "label": "RevenuesPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
+      "file_type": "code",
+      "norm_label": "revenuespage()",
+      "source_file": "frontend/src/features/revenues/pages/revenues-page.tsx",
+      "source_location": "L2"
+    },
+    {
+      "id": "frontend_src_shared_components_app_shell_appshell",
+      "label": "AppShell()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
+      "file_type": "code",
+      "norm_label": "appshell()",
+      "source_file": "frontend/src/shared/components/app-shell.tsx",
+      "source_location": "L62"
+    },
+    {
+      "id": "frontend_src_shared_components_app_shell_icon",
+      "label": "Icon()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
+      "file_type": "code",
+      "norm_label": "icon()",
+      "source_file": "frontend/src/shared/components/app-shell.tsx",
+      "source_location": "L58"
     },
     {
       "id": "contapop_bookkeeping_service_application_commands_financialrecordfileimporter_contapop_bookkeeping_service_application_commands_financialrecordfileimporter_getvalue",
@@ -2469,7 +2505,7 @@
       },
       "norm_label": ".parseamount()",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L59"
+      "source_location": "L54"
     },
     {
       "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_parsecategory",
@@ -2487,7 +2523,7 @@
       },
       "norm_label": ".parsecategory()",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L61"
+      "source_location": "L56"
     },
     {
       "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_parseconfidence",
@@ -2505,7 +2541,7 @@
       },
       "norm_label": ".parseconfidence()",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L62"
+      "source_location": "L57"
     },
     {
       "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_parsedate",
@@ -2523,7 +2559,7 @@
       },
       "norm_label": ".parsedate()",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L60"
+      "source_location": "L55"
     },
     {
       "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_pollasync",
@@ -2541,7 +2577,7 @@
       },
       "norm_label": ".pollasync()",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L41"
+      "source_location": "L36"
     },
     {
       "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_tryfield",
@@ -2559,25 +2595,7 @@
       },
       "norm_label": ".tryfield()",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L63"
-    },
-    {
-      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_contapop_reconciliation_service_reconciliationrecoveryworker_executeasync",
-      "label": ".ExecuteAsync()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 21,
-      "community_name": ".ExecuteAsync",
-      "file_type": "code",
-      "metadata": {
-        "namespace": "Contapop.Reconciliation.Service",
-        "scope_chain": [
-          "s104"
-        ]
-      },
-      "norm_label": ".executeasync()",
-      "source_file": "Contapop.Reconciliation.Service/ReconciliationRecoveryWorker.cs",
-      "source_location": "L7"
+      "source_location": "L58"
     },
     {
       "id": "contapop_bookkeeping_service_infrastructure_persistence_bookkeepingentities_contapop_bookkeeping_service_infrastructure_persistence_plannedexpense_create",
@@ -2614,24 +2632,6 @@
       "norm_label": ".create()",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/Persistence/BookkeepingEntities.cs",
       "source_location": "L153"
-    },
-    {
-      "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_onmodelcreating",
-      "label": ".OnModelCreating()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "ReconciliationOperation",
-      "file_type": "code",
-      "metadata": {
-        "namespace": "Contapop.Reconciliation.Service.Infrastructure.Persistence",
-        "scope_chain": [
-          "s38"
-        ]
-      },
-      "norm_label": ".onmodelcreating()",
-      "source_file": "Contapop.Reconciliation.Service/Infrastructure/Persistence/ReconciliationDbContext.cs",
-      "source_location": "L8"
     },
     {
       "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_contapop_reconciliation_service_infrastructure_persistence_reconciliationoperation_complete",
@@ -4014,6 +4014,17 @@
       "source_location": "L18"
     },
     {
+      "id": "backgroundservice",
+      "label": "BackgroundService",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "backgroundservice",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
       "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext",
       "label": "ReconciliationDbContext.cs",
       "_origin": "ast",
@@ -4023,6 +4034,34 @@
       "norm_label": "reconciliationdbcontext.cs",
       "source_file": "Contapop.Reconciliation.Service/Infrastructure/Persistence/ReconciliationDbContext.cs",
       "source_location": "L1"
+    },
+    {
+      "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_operations",
+      "label": "Operations",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "metadata": {
+        "namespace": "Contapop.Reconciliation.Service.Infrastructure.Persistence",
+        "scope_chain": [
+          "s38"
+        ]
+      },
+      "norm_label": "operations",
+      "source_file": "Contapop.Reconciliation.Service/Infrastructure/Persistence/ReconciliationDbContext.cs",
+      "source_location": "L7"
+    },
+    {
+      "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_cs_dbset",
+      "label": "DbSet",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "dbset",
+      "source_file": "",
+      "source_location": ""
     },
     {
       "id": "contapop_reconciliation_service_program",
@@ -4223,6 +4262,50 @@
       "source_location": "L1"
     },
     {
+      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_cs_cancellationtoken",
+      "label": "CancellationToken",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "cancellationtoken",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_cs_financialrecordreconciliationcoordinator",
+      "label": "FinancialRecordReconciliationCoordinator",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "financialrecordreconciliationcoordinator",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_cs_ilogger",
+      "label": "ILogger",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "ilogger",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_cs_task",
+      "label": "Task",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "task",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
       "id": "csharp_namespace:8a18f738d100a96d",
       "label": "Contapop.Reconciliation.Service",
       "_origin": "ast",
@@ -4271,6 +4354,61 @@
       "type": "namespace"
     },
     {
+      "id": "dbcontext",
+      "label": "DbContext",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "dbcontext",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "dbcontextoptions",
+      "label": "DbContextOptions",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "dbcontextoptions",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "iservicescopefactory",
+      "label": "IServiceScopeFactory",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "iservicescopefactory",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "modelbuilder",
+      "label": "ModelBuilder",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "modelbuilder",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "paymentreconciliationcoordinator",
+      "label": "PaymentReconciliationCoordinator",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "FinancialRecordReconciliationCoordinator",
+      "file_type": "code",
+      "norm_label": "paymentreconciliationcoordinator",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
       "id": "reservationresponse",
       "label": "ReservationResponse",
       "_origin": "ast",
@@ -4280,28 +4418,6 @@
       "norm_label": "reservationresponse",
       "source_file": "",
       "source_location": ""
-    },
-    {
-      "id": "frontend_src_app",
-      "label": "App.tsx",
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
-      "file_type": "code",
-      "norm_label": "app.tsx",
-      "source_file": "frontend/src/App.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "frontend_src_features_expenses_pages_expenses_page",
-      "label": "expenses-page.tsx",
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
-      "file_type": "code",
-      "norm_label": "expenses-page.tsx",
-      "source_file": "frontend/src/features/expenses/pages/expenses-page.tsx",
-      "source_location": "L1"
     },
     {
       "id": "frontend_src_features_plans_api_plans_api",
@@ -4348,59 +4464,26 @@
       "source_location": "L1"
     },
     {
-      "id": "frontend_src_features_revenues_pages_revenues_page",
-      "label": "revenues-page.tsx",
+      "id": "frontend_src_app",
+      "label": "App.tsx",
       "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
       "file_type": "code",
-      "norm_label": "revenues-page.tsx",
-      "source_file": "frontend/src/features/revenues/pages/revenues-page.tsx",
+      "norm_label": "app.tsx",
+      "source_file": "frontend/src/App.tsx",
       "source_location": "L1"
     },
     {
-      "id": "frontend_src_shared_components_app_shell",
-      "label": "app-shell.tsx",
+      "id": "frontend_src_features_expenses_pages_expenses_page",
+      "label": "expenses-page.tsx",
       "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
       "file_type": "code",
-      "norm_label": "app-shell.tsx",
-      "source_file": "frontend/src/shared/components/app-shell.tsx",
+      "norm_label": "expenses-page.tsx",
+      "source_file": "frontend/src/features/expenses/pages/expenses-page.tsx",
       "source_location": "L1"
-    },
-    {
-      "id": "frontend_src_shared_components_app_shell_icons",
-      "label": "icons",
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
-      "file_type": "code",
-      "norm_label": "icons",
-      "source_file": "frontend/src/shared/components/app-shell.tsx",
-      "source_location": "L11"
-    },
-    {
-      "id": "frontend_src_shared_components_app_shell_navigation",
-      "label": "navigation",
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
-      "file_type": "code",
-      "norm_label": "navigation",
-      "source_file": "frontend/src/shared/components/app-shell.tsx",
-      "source_location": "L28"
-    },
-    {
-      "id": "frontend_src_shared_components_app_shell_pagetitles",
-      "label": "pageTitles",
-      "_origin": "ast",
-      "community": 11,
-      "community_name": "plans-api.ts",
-      "file_type": "code",
-      "norm_label": "pagetitles",
-      "source_file": "frontend/src/shared/components/app-shell.tsx",
-      "source_location": "L45"
     },
     {
       "id": "frontend_src_features_financial_records_api",
@@ -4467,6 +4550,61 @@
       "norm_label": "types.ts",
       "source_file": "frontend/src/features/financial-records/types.ts",
       "source_location": "L1"
+    },
+    {
+      "id": "frontend_src_features_revenues_pages_revenues_page",
+      "label": "revenues-page.tsx",
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
+      "file_type": "code",
+      "norm_label": "revenues-page.tsx",
+      "source_file": "frontend/src/features/revenues/pages/revenues-page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_src_shared_components_app_shell",
+      "label": "app-shell.tsx",
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
+      "file_type": "code",
+      "norm_label": "app-shell.tsx",
+      "source_file": "frontend/src/shared/components/app-shell.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "frontend_src_shared_components_app_shell_icons",
+      "label": "icons",
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
+      "file_type": "code",
+      "norm_label": "icons",
+      "source_file": "frontend/src/shared/components/app-shell.tsx",
+      "source_location": "L11"
+    },
+    {
+      "id": "frontend_src_shared_components_app_shell_navigation",
+      "label": "navigation",
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
+      "file_type": "code",
+      "norm_label": "navigation",
+      "source_file": "frontend/src/shared/components/app-shell.tsx",
+      "source_location": "L28"
+    },
+    {
+      "id": "frontend_src_shared_components_app_shell_pagetitles",
+      "label": "pageTitles",
+      "_origin": "ast",
+      "community": 12,
+      "community_name": "financial-records-page.tsx",
+      "file_type": "code",
+      "norm_label": "pagetitles",
+      "source_file": "frontend/src/shared/components/app-shell.tsx",
+      "source_location": "L45"
     },
     {
       "id": "amount",
@@ -4684,17 +4822,6 @@
       "source_location": ""
     },
     {
-      "id": "cancellationtoken",
-      "label": "CancellationToken",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": ".ExtractAsync",
-      "file_type": "code",
-      "norm_label": "cancellationtoken",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
       "id": "contapop_bookkeeping_service_application_abstractions_idocumentextractionadapter",
       "label": "IDocumentExtractionAdapter.cs",
       "_origin": "ast",
@@ -4759,6 +4886,50 @@
       "norm_label": "azuredocumentextractionadapter.cs",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
       "source_location": "L1"
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_cancellationtoken",
+      "label": "CancellationToken",
+      "_origin": "ast",
+      "community": 15,
+      "community_name": ".ExtractAsync",
+      "file_type": "code",
+      "norm_label": "cancellationtoken",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_dateonly",
+      "label": "DateOnly",
+      "_origin": "ast",
+      "community": 15,
+      "community_name": ".ExtractAsync",
+      "file_type": "code",
+      "norm_label": "dateonly",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_readonlymemory",
+      "label": "ReadOnlyMemory",
+      "_origin": "ast",
+      "community": 15,
+      "community_name": ".ExtractAsync",
+      "file_type": "code",
+      "norm_label": "readonlymemory",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_task",
+      "label": "Task",
+      "_origin": "ast",
+      "community": 15,
+      "community_name": ".ExtractAsync",
+      "file_type": "code",
+      "norm_label": "task",
+      "source_file": "",
+      "source_location": ""
     },
     {
       "id": "csharp_namespace:0b0a063b01ede544",
@@ -4826,17 +4997,6 @@
       "source_location": ""
     },
     {
-      "id": "idocumentextractionadapter",
-      "label": "IDocumentExtractionAdapter",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": ".ExtractAsync",
-      "file_type": "code",
-      "norm_label": "idocumentextractionadapter",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
       "id": "jsondocument",
       "label": "JsonDocument",
       "_origin": "ast",
@@ -4855,28 +5015,6 @@
       "community_name": ".ExtractAsync",
       "file_type": "code",
       "norm_label": "jsonelement",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "readonlymemory",
-      "label": "ReadOnlyMemory",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": ".ExtractAsync",
-      "file_type": "code",
-      "norm_label": "readonlymemory",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "task",
-      "label": "Task",
-      "_origin": "ast",
-      "community": 15,
-      "community_name": ".ExtractAsync",
-      "file_type": "code",
-      "norm_label": "task",
       "source_file": "",
       "source_location": ""
     },
@@ -5151,123 +5289,13 @@
       "source_location": ""
     },
     {
-      "id": "backgroundservice",
-      "label": "BackgroundService",
+      "id": "idocumentextractionadapter",
+      "label": "IDocumentExtractionAdapter",
       "_origin": "ast",
       "community": 21,
-      "community_name": ".ExecuteAsync",
+      "community_name": "IDocumentExtractionAdapter",
       "file_type": "code",
-      "norm_label": "backgroundservice",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_cs_cancellationtoken",
-      "label": "CancellationToken",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": ".ExecuteAsync",
-      "file_type": "code",
-      "norm_label": "cancellationtoken",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_cs_financialrecordreconciliationcoordinator",
-      "label": "FinancialRecordReconciliationCoordinator",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": ".ExecuteAsync",
-      "file_type": "code",
-      "norm_label": "financialrecordreconciliationcoordinator",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_cs_ilogger",
-      "label": "ILogger",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": ".ExecuteAsync",
-      "file_type": "code",
-      "norm_label": "ilogger",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "contapop_reconciliation_service_reconciliationrecoveryworker_cs_task",
-      "label": "Task",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": ".ExecuteAsync",
-      "file_type": "code",
-      "norm_label": "task",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "iservicescopefactory",
-      "label": "IServiceScopeFactory",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": ".ExecuteAsync",
-      "file_type": "code",
-      "norm_label": "iservicescopefactory",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "paymentreconciliationcoordinator",
-      "label": "PaymentReconciliationCoordinator",
-      "_origin": "ast",
-      "community": 21,
-      "community_name": ".ExecuteAsync",
-      "file_type": "code",
-      "norm_label": "paymentreconciliationcoordinator",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_cancellationtoken",
-      "label": "CancellationToken",
-      "_origin": "ast",
-      "community": 22,
-      "community_name": "CancellationToken",
-      "file_type": "code",
-      "norm_label": "cancellationtoken",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_dateonly",
-      "label": "DateOnly",
-      "_origin": "ast",
-      "community": 23,
-      "community_name": "DateOnly",
-      "file_type": "code",
-      "norm_label": "dateonly",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_readonlymemory",
-      "label": "ReadOnlyMemory",
-      "_origin": "ast",
-      "community": 24,
-      "community_name": "ReadOnlyMemory",
-      "file_type": "code",
-      "norm_label": "readonlymemory",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_task",
-      "label": "Task",
-      "_origin": "ast",
-      "community": 25,
-      "community_name": "Task",
-      "file_type": "code",
-      "norm_label": "task",
+      "norm_label": "idocumentextractionadapter",
       "source_file": "",
       "source_location": ""
     },
@@ -5857,23 +5885,6 @@
       "source_location": null
     },
     {
-      "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_operations",
-      "label": "Operations",
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "ReconciliationOperation",
-      "file_type": "code",
-      "metadata": {
-        "namespace": "Contapop.Reconciliation.Service.Infrastructure.Persistence",
-        "scope_chain": [
-          "s38"
-        ]
-      },
-      "norm_label": "operations",
-      "source_file": "Contapop.Reconciliation.Service/Infrastructure/Persistence/ReconciliationDbContext.cs",
-      "source_location": "L7"
-    },
-    {
       "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_contapop_reconciliation_service_infrastructure_persistence_reconciliationoperation_attempts",
       "label": "Attempts",
       "_origin": "ast",
@@ -6140,17 +6151,6 @@
       "source_location": ""
     },
     {
-      "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_cs_dbset",
-      "label": "DbSet",
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "ReconciliationOperation",
-      "file_type": "code",
-      "norm_label": "dbset",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
       "id": "contapop_reconciliation_service_infrastructure_persistence_reconciliationdbcontext_cs_guid",
       "label": "Guid",
       "_origin": "ast",
@@ -6323,28 +6323,6 @@
       "source_location": ""
     },
     {
-      "id": "dbcontext",
-      "label": "DbContext",
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "ReconciliationOperation",
-      "file_type": "code",
-      "norm_label": "dbcontext",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "dbcontextoptions",
-      "label": "DbContextOptions",
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "ReconciliationOperation",
-      "file_type": "code",
-      "norm_label": "dbcontextoptions",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
       "id": "dependentresult",
       "label": "DependentResult",
       "_origin": "ast",
@@ -6352,17 +6330,6 @@
       "community_name": "ReconciliationOperation",
       "file_type": "code",
       "norm_label": "dependentresult",
-      "source_file": "",
-      "source_location": ""
-    },
-    {
-      "id": "modelbuilder",
-      "label": "ModelBuilder",
-      "_origin": "ast",
-      "community": 7,
-      "community_name": "ReconciliationOperation",
-      "file_type": "code",
-      "norm_label": "modelbuilder",
       "source_file": "",
       "source_location": ""
     },
@@ -7810,19 +7777,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L30",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
       "source": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_extractasync",
-      "target": "documentextractionresult",
+      "target": "contapop_bookkeeping_service_application_abstractions_idocumentextractionadapter_contapop_bookkeeping_service_application_abstractions_documentextractionresult",
       "relation": "calls",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L36",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -7834,7 +7801,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L38",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -7846,7 +7813,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L38",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -7858,7 +7825,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L38",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -7870,7 +7837,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L38",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -7882,7 +7849,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L59",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -7894,7 +7861,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L61",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -7906,7 +7873,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L62",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -7918,7 +7885,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L60",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -11411,7 +11378,7 @@
         "ref_token": "JsonDocument"
       },
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L41",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -12076,6 +12043,23 @@
       },
       "source_file": "Contapop.Bookkeeping.Service/Application/Commands/FinancialRecordCommandHandler.cs",
       "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter",
+      "target": "csharp_namespace:eb6155730c23ca81",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "metadata": {
+        "using_kind": "namespace",
+        "target_fqn": "Contapop.Bookkeeping.Service.Application.Abstractions",
+        "scope_kind": "file"
+      },
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
+      "source_location": "L4",
       "weight": 1.0
     },
     {
@@ -13193,7 +13177,7 @@
     },
     {
       "source": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_extractasync",
-      "target": "cancellationtoken",
+      "target": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_cancellationtoken",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -13208,7 +13192,7 @@
     },
     {
       "source": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_pollasync",
-      "target": "cancellationtoken",
+      "target": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_cancellationtoken",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -13218,7 +13202,7 @@
         "ref_token": "CancellationToken"
       },
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L41",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -14838,7 +14822,7 @@
         "ref_token": "JsonElement"
       },
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L59",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -14853,7 +14837,7 @@
         "ref_token": "JsonElement"
       },
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L61",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -14868,7 +14852,7 @@
         "ref_token": "JsonElement"
       },
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L62",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -14883,7 +14867,7 @@
         "ref_token": "JsonElement"
       },
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L60",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -14898,7 +14882,7 @@
         "ref_token": "JsonElement"
       },
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L63",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -14978,7 +14962,7 @@
     },
     {
       "source": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_extractasync",
-      "target": "readonlymemory",
+      "target": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_readonlymemory",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15318,7 +15302,7 @@
         "ref_token": "Uri"
       },
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L41",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -15383,7 +15367,7 @@
     },
     {
       "source": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_parsedate",
-      "target": "dateonly",
+      "target": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_dateonly",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15393,7 +15377,7 @@
         "ref_token": "DateOnly"
       },
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L60",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -15938,7 +15922,7 @@
     },
     {
       "source": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_extractasync",
-      "target": "task",
+      "target": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_task",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15953,7 +15937,7 @@
     },
     {
       "source": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_pollasync",
-      "target": "task",
+      "target": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_cs_task",
       "relation": "references",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15963,7 +15947,7 @@
         "ref_token": "Task"
       },
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L41",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -16261,7 +16245,7 @@
     },
     {
       "source": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter",
-      "target": "idocumentextractionadapter",
+      "target": "contapop_bookkeeping_service_application_abstractions_idocumentextractionadapter_contapop_bookkeeping_service_application_abstractions_idocumentextractionadapter",
       "relation": "implements",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -18492,7 +18476,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L41",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -18503,7 +18487,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L59",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -18514,7 +18498,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L60",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -18525,7 +18509,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L61",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -18536,7 +18520,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L62",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -18547,7 +18531,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L63",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -19159,7 +19143,7 @@
       "confidence_score": 0.85,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L27",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -19171,7 +19155,7 @@
       "confidence_score": 0.85,
       "context": "call",
       "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
-      "source_location": "L49",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -19185,8 +19169,20 @@
       "source_file": "frontend/src/features/plans/pages/plans-page.tsx",
       "source_location": "L10",
       "weight": 1.0
+    },
+    {
+      "source": "contapop_bookkeeping_service_application_abstractions_idocumentextractionadapter_contapop_bookkeeping_service_application_abstractions_idocumentextractionadapter_extractasync",
+      "target": "contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_contapop_bookkeeping_service_infrastructure_documentextraction_azuredocumentextractionadapter_extractasync",
+      "relation": "dispatches_to",
+      "_origin": "ast",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "context": "call",
+      "source_file": "Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs",
+      "source_location": "L8",
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "87d539a0078694b447f28af9c6f36a00a2ce2197"
+  "built_at_commit": "88f73de567850e125e66fd7cb60c9180342ffaa5"
 }

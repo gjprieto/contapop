@@ -1,16 +1,16 @@
 # Graph Report - src  (2026-09-13)
 
 ## Corpus Check
-- 281 files · ~78,162 words
+- 281 files · ~78,137 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 455 nodes · 949 edges · 26 communities (17 shown, 8 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 11 edges (avg confidence: 0.82)
+- 452 nodes · 951 edges · 22 communities (16 shown, 5 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 12 edges (avg confidence: 0.83)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `87d539a0`
+- Built from commit: `88f73de5`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -35,11 +35,7 @@
 - HttpContext
 - IEndpointRouteBuilder
 - IResult
-- .ExecuteAsync
-- CancellationToken
-- DateOnly
-- ReadOnlyMemory
-- Task
+- IDocumentExtractionAdapter
 
 ## God Nodes (most connected - your core abstractions)
 1. `ReconciliationOperation` - 37 edges
@@ -54,21 +50,21 @@
 10. `OutboxMessage` - 15 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `FinancialRecordReconciliationCoordinator` --references--> `ReconciliationDbContext`  [EXTRACTED]
-  Contapop.Reconciliation.Service/Reconciliation/FinancialRecordReconciliationCoordinator.cs → Contapop.Reconciliation.Service/Infrastructure/Persistence/ReconciliationDbContext.cs
 - `FinancialRecordCommandHandler` --references--> `IDocumentExtractionAdapter`  [EXTRACTED]
   Contapop.Bookkeeping.Service/Application/Commands/FinancialRecordCommandHandler.cs → Contapop.Bookkeeping.Service/Application/Abstractions/IDocumentExtractionAdapter.cs
-- `PlansPage()` --indirect_call--> `archivePlan()`  [INFERRED]
-  frontend/src/features/plans/pages/plans-page.tsx → frontend/src/features/plans/api/plans-api.ts
 - `PaymentReconciliationCoordinator` --references--> `ReconciliationDbContext`  [EXTRACTED]
   Contapop.Reconciliation.Service/Reconciliation/PaymentReconciliationCoordinator.cs → Contapop.Reconciliation.Service/Infrastructure/Persistence/ReconciliationDbContext.cs
-- `PlansPage()` --calls--> `addPlannedLine()`  [EXTRACTED]
+- `PlansPage()` --indirect_call--> `archivePlan()`  [INFERRED]
   frontend/src/features/plans/pages/plans-page.tsx → frontend/src/features/plans/api/plans-api.ts
+- `AzureDocumentExtractionAdapter` --implements--> `IDocumentExtractionAdapter`  [EXTRACTED]
+  Contapop.Bookkeeping.Service/Infrastructure/DocumentExtraction/AzureDocumentExtractionAdapter.cs → Contapop.Bookkeeping.Service/Application/Abstractions/IDocumentExtractionAdapter.cs
+- `FinancialRecordReconciliationCoordinator` --references--> `ReconciliationDbContext`  [EXTRACTED]
+  Contapop.Reconciliation.Service/Reconciliation/FinancialRecordReconciliationCoordinator.cs → Contapop.Reconciliation.Service/Infrastructure/Persistence/ReconciliationDbContext.cs
 
 ## Import Cycles
 - None detected.
 
-## Communities (26 total, 8 thin omitted)
+## Communities (22 total, 5 thin omitted)
 
 ### Community 0 - "DateTimeOffset"
 Cohesion: 0.23
@@ -99,8 +95,8 @@ Cohesion: 0.22
 Nodes (8): net10.0, ClosedXML (0.105.0), Dapr.AspNetCore (1.15.4), Microsoft.AspNetCore.Authentication.JwtBearer (10.0.11), Microsoft.AspNetCore.OpenApi (10.0.11), Microsoft.EntityFrameworkCore.Design (9.0.0), Npgsql.EntityFrameworkCore.PostgreSQL (9.0.0), Microsoft.NET.Sdk.Web
 
 ### Community 7 - "ReconciliationOperation"
-Cohesion: 0.06
-Nodes (42): ReconciliationDbContext, Operations, ReconciliationOperation, Attempts, ClaimId, ClaimVersion, CreatedAt, DependentId (+34 more)
+Cohesion: 0.07
+Nodes (36): ReconciliationOperation, Attempts, ClaimId, ClaimVersion, CreatedAt, DependentId, DependentType, ExpectedDependentVersion (+28 more)
 
 ### Community 8 - "RecordResult"
 Cohesion: 0.12
@@ -111,16 +107,16 @@ Cohesion: 0.09
 Nodes (27): ConfirmImportedFinancialRecordRequest, CreateFinancialRecordRequest, FinancialRecordEndpoints, FinancialRecordListItem, FinancialRecordPagedResponse, ImportFinancialRecordsResponse, ImportedCount, ReconcileFinancialRecordRequest (+19 more)
 
 ### Community 10 - "FinancialRecordReconciliationCoordinator"
-Cohesion: 0.08
-Nodes (24): Program, FinancialRecordReconciliationCoordinator, ReservationResponse, StartFinancialRecordReconciliationRequest, CancellationToken, Guid, HttpMethod, HttpRequestMessage (+16 more)
+Cohesion: 0.05
+Nodes (38): BackgroundService, ReconciliationDbContext, Operations, DbSet, Program, FinancialRecordReconciliationCoordinator, ReservationResponse, StartFinancialRecordReconciliationRequest (+30 more)
 
 ### Community 11 - "plans-api.ts"
-Cohesion: 0.12
-Nodes (24): ExpensesPage(), addPlannedLine(), archivePlan(), createPlan(), getPlan(), getPlans(), getPlanVsActual(), Plan (+16 more)
+Cohesion: 0.24
+Nodes (17): addPlannedLine(), archivePlan(), createPlan(), getPlan(), getPlans(), getPlanVsActual(), Plan, PlannedLine (+9 more)
 
 ### Community 12 - "financial-records-page.tsx"
-Cohesion: 0.14
-Nodes (29): confirmRecord(), createRecord(), deleteRecord(), getRecords(), getTransactions(), importRecords(), key(), reconcileRecord() (+21 more)
+Cohesion: 0.09
+Nodes (36): ExpensesPage(), confirmRecord(), createRecord(), deleteRecord(), getRecords(), getTransactions(), importRecords(), key() (+28 more)
 
 ### Community 13 - ".ParseAsync"
 Cohesion: 0.15
@@ -132,31 +128,27 @@ Nodes (15): ClaimsPrincipal, AuthenticatedUserResponse, DateTimeOffset, Guid, IC
 
 ### Community 15 - ".ExtractAsync"
 Cohesion: 0.11
-Nodes (21): CancellationToken, DocumentExtractionConfigurationException, DocumentExtractionException, DocumentExtractionResult, IDocumentExtractionAdapter, CancellationToken, DateOnly, ReadOnlyMemory (+13 more)
-
-### Community 21 - ".ExecuteAsync"
-Cohesion: 0.22
-Nodes (8): BackgroundService, ReconciliationRecoveryWorker, CancellationToken, FinancialRecordReconciliationCoordinator, ILogger, Task, IServiceScopeFactory, PaymentReconciliationCoordinator
+Nodes (21): DocumentExtractionConfigurationException, DocumentExtractionException, DocumentExtractionResult, IDocumentExtractionAdapter, CancellationToken, DateOnly, ReadOnlyMemory, Task (+13 more)
 
 ## Knowledge Gaps
-- **103 isolated node(s):** `Contapop.Bookkeeping.Service.Infrastructure.DocumentExtraction`, `Program`, `Plan`, `PlanVsActual`, `Resource` (+98 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 173 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **8 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **103 isolated node(s):** `ImportedCount`, `Value`, `Error`, `Contapop.Bookkeeping.Service.Infrastructure.DocumentExtraction`, `Program` (+98 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 170 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **5 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
+- **Why does `FinancialRecordCommandHandler` connect `RecordResult` to `.Map`, `.ExtractAsync`?**
+  _High betweenness centrality (0.050) - this node is a cross-community bridge._
 - **Why does `FinancialRecord` connect `FinancialRecord` to `DateTimeOffset`, `PlannedLine`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
+  _High betweenness centrality (0.041) - this node is a cross-community bridge._
 - **Why does `RecordResult` connect `RecordResult` to `.Map`?**
   _High betweenness centrality (0.037) - this node is a cross-community bridge._
-- **Why does `FinancialRecordCommandHandler` connect `RecordResult` to `.Map`, `.ExtractAsync`?**
-  _High betweenness centrality (0.035) - this node is a cross-community bridge._
-- **What connects `Contapop.Bookkeeping.Service.Infrastructure.DocumentExtraction`, `Program`, `Plan` to the rest of the system?**
+- **What connects `ImportedCount`, `Value`, `Error` to the rest of the system?**
   _103 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `FinancialRecord` be split into smaller, more focused modules?**
   _Cohesion score 0.12418300653594772 - nodes in this community are weakly interconnected._
 - **Should `PlannedLine` be split into smaller, more focused modules?**
   _Cohesion score 0.12418300653594772 - nodes in this community are weakly interconnected._
 - **Should `ReconciliationOperation` be split into smaller, more focused modules?**
-  _Cohesion score 0.059322033898305086 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06966618287373004 - nodes in this community are weakly interconnected._
