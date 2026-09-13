@@ -957,7 +957,7 @@ Hard delete — Expense/Revenue aren't referenced cross-service the way Project/
 
 #### `ReconcileExpenseWithTransaction` / `ReconcileRevenueWithTransaction`
 
-Validates `transactionId` against this service's local `transaction_replica` and requires a matching Ledger Transaction Reconciliation Claim to enforce the global one-to-one rule.
+Only confirmed records can be reconciled: an OCR draft is not yet in the books and must be confirmed first. The command validates `transactionId` against this service's local `transaction_replica` and requires a matching Ledger Transaction Reconciliation Claim to enforce the global one-to-one rule.
 
 **Routes:** `POST /api/v1/expenses/{expenseId}/reconcile`, `POST /api/v1/revenues/{revenueId}/reconcile`
 
@@ -971,7 +971,7 @@ Validates `transactionId` against this service's local `transaction_replica` and
 { "expenseId": "guid" /* or revenueId */, "reconciledTransactionId": "guid", "updatedAt": "date-time", "version": "int" }
 ```
 
-**Errors:** `422 Unprocessable Entity` if `transactionId` isn't found/is archived in the local replica, or the claim does not match this Expense/Revenue and Transaction; `409 Conflict` if already reconciled against a different transaction. The Experience API coordinates claim reservation, dependent persistence, confirmation, and compensating release; its durable retry record handles any failed release.
+**Errors:** `422 Unprocessable Entity` if `transactionId` isn't found/is archived in the local replica, the record is still an unconfirmed OCR draft, or the claim does not match this Expense/Revenue and Transaction; `409 Conflict` if already reconciled against a different transaction. The Experience API coordinates claim reservation, dependent persistence, confirmation, and compensating release; its durable retry record handles any failed release.
 
 #### `ImportExpenseFromDocument` / `ImportRevenueFromDocument`
 

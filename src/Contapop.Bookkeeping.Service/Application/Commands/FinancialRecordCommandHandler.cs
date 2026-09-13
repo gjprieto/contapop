@@ -17,6 +17,8 @@ public sealed class FinancialRecordCommandHandler(BookkeepingDbContext database,
     public Task<RecordResult<FinancialRecordResponse>> ReconcileRevenueAsync(ReconcileFinancialRecordCommand command, CancellationToken ct) => ReconcileAsync<Revenue>(command, "reconcile-revenue", "revenue", ct);
     public Task<RecordResult<ImportedFinancialRecordResponse>> ImportExpenseAsync(ImportFinancialRecordCommand command, CancellationToken ct) => ImportAsync<Expense>(command, "import-expense", ct);
     public Task<RecordResult<ImportedFinancialRecordResponse>> ImportRevenueAsync(ImportFinancialRecordCommand command, CancellationToken ct) => ImportAsync<Revenue>(command, "import-revenue", ct);
+    public Task<RecordResult<ImportedFinancialRecordsResponse>> ImportExpensesFromFileAsync(ImportFinancialRecordsCommand command, CancellationToken ct) => ImportFromFileAsync<Expense>(command, "import-expenses-from-file", "bookkeeping.expense-recorded.v1", "Expense", "expense_id", ct);
+    public Task<RecordResult<ImportedFinancialRecordsResponse>> ImportRevenuesFromFileAsync(ImportFinancialRecordsCommand command, CancellationToken ct) => ImportFromFileAsync<Revenue>(command, "import-revenues-from-file", "bookkeeping.revenue-recorded.v1", "Revenue", "revenue_id", ct);
     public Task<RecordResult<FinancialRecordResponse>> ConfirmExpenseAsync(ConfirmImportedFinancialRecordCommand command, CancellationToken ct) => ConfirmAsync<Expense>(command, "confirm-expense", "bookkeeping.expense-recorded.v1", "Expense", "expense_id", ct);
     public Task<RecordResult<FinancialRecordResponse>> ConfirmRevenueAsync(ConfirmImportedFinancialRecordCommand command, CancellationToken ct) => ConfirmAsync<Revenue>(command, "confirm-revenue", "bookkeeping.revenue-recorded.v1", "Revenue", "revenue_id", ct);
 
@@ -65,6 +67,26 @@ public sealed class FinancialRecordCommandHandler(BookkeepingDbContext database,
         return RecordResult<ImportedFinancialRecordResponse>.Success(response);
     }
 
+    private async Task<RecordResult<ImportedFinancialRecordsResponse>> ImportFromFileAsync<T>(ImportFinancialRecordsCommand command, string operation, string eventName, string aggregateType, string idName, CancellationToken ct) where T : FinancialRecord
+    {
+        var replay = await ReplayAsync<ImportedFinancialRecordsResponse>(command.TenantId, operation, command.IdempotencyKey, ct);
+        if (replay is not null) return RecordResult<ImportedFinancialRecordsResponse>.Success(replay);
+        if (!await database.ProjectReplicas.AnyAsync(project => project.ProjectId == command.ProjectId && project.TenantId == command.TenantId && project.Status == "active", ct)) return RecordResult<ImportedFinancialRecordsResponse>.ProjectUnavailable();
+        var now = DateTimeOffset.UtcNow;
+        var records = command.Rows.Select(row => typeof(T) == typeof(Expense)
+            ? (FinancialRecord)Expense.ImportStructured(command.TenantId, command.ProjectId, row.AmountMinor, row.Date, row.Category, row.Recurring, row.RecurringInterval, now)
+            : Revenue.ImportStructured(command.TenantId, command.ProjectId, row.AmountMinor, row.Date, row.Category, row.Recurring, row.RecurringInterval, now)).ToArray();
+        var response = new ImportedFinancialRecordsResponse(records.Select(record => record.Id).ToArray());
+        database.AddRange(records);
+        foreach (var record in records)
+        {
+            database.OutboxMessages.Add(OutboxMessage.Create(eventName, aggregateType, record.Id, record.Version, record.TenantId, now, JsonSerializer.Serialize(new Dictionary<string, object?> { [idName] = record.Id, ["project_id"] = record.ProjectId, ["amount_minor"] = record.AmountMinor, ["date"] = record.Date, ["category"] = record.Category, ["recurring"] = record.Recurring, ["recurring_interval"] = record.RecurringInterval, ["recorded_at"] = now })));
+        }
+        database.IdempotencyRecords.Add(IdempotencyRecord.Create(command.TenantId, operation, command.IdempotencyKey, JsonSerializer.Serialize(response), now));
+        await database.SaveChangesAsync(ct);
+        return RecordResult<ImportedFinancialRecordsResponse>.Success(response);
+    }
+
     private async Task<RecordResult<FinancialRecordResponse>> ConfirmAsync<T>(ConfirmImportedFinancialRecordCommand command, string operation, string eventName, string aggregateType, string idName, CancellationToken ct) where T : FinancialRecord
     {
         var replay = await ReplayAsync<FinancialRecordResponse>(command.TenantId, operation, command.IdempotencyKey, ct);
@@ -100,6 +122,7 @@ public sealed class FinancialRecordCommandHandler(BookkeepingDbContext database,
         if (replay is not null) return RecordResult<FinancialRecordResponse>.Success(replay);
         var record = await database.Set<T>().SingleOrDefaultAsync(item => item.Id == command.RecordId && item.TenantId == command.TenantId, ct);
         if (record is null) return RecordResult<FinancialRecordResponse>.NotFound();
+        if (record.ConfirmedAt is null) return RecordResult<FinancialRecordResponse>.DraftUnavailable();
         if (!await database.TransactionReplicas.AnyAsync(item => item.TransactionId == command.TransactionId && item.TenantId == command.TenantId && item.Status == "active", ct)) return RecordResult<FinancialRecordResponse>.TransactionUnavailable();
         if (!await claimValidator.IsValidAsync(command.ReconciliationClaimId, command.TransactionId, dependentType, record.Id, ct)) return RecordResult<FinancialRecordResponse>.ClaimUnavailable();
         if (!record.TryReconcile(command.TransactionId, command.ExpectedVersion, DateTimeOffset.UtcNow)) return RecordResult<FinancialRecordResponse>.Conflict();
@@ -118,8 +141,10 @@ public sealed record UpdateFinancialRecordCommand(Guid TenantId, string Idempote
 public sealed record DeleteFinancialRecordCommand(Guid TenantId, string IdempotencyKey, Guid RecordId, int ExpectedVersion);
 public sealed record ReconcileFinancialRecordCommand(Guid TenantId, string IdempotencyKey, Guid RecordId, Guid TransactionId, Guid ReconciliationClaimId, int ExpectedVersion);
 public sealed record ImportFinancialRecordCommand(Guid TenantId, string IdempotencyKey, Guid ProjectId, byte[] Document);
+public sealed record ImportFinancialRecordsCommand(Guid TenantId, string IdempotencyKey, Guid ProjectId, IReadOnlyList<ImportFinancialRecordRow> Rows);
 public sealed record ConfirmImportedFinancialRecordCommand(Guid TenantId, string IdempotencyKey, Guid RecordId, int ExpectedVersion, long? AmountMinor, DateOnly? Date, string? Category, bool? Recurring, string? RecurringInterval, bool UpdateRecurringInterval);
 public sealed record FinancialRecordResponse(Guid Id, Guid ProjectId, long AmountMinor, DateOnly Date, string Category, bool Recurring, string? RecurringInterval, string ImportSource, DateTimeOffset? ConfirmedAt, Guid? ReconciledTransactionId, DateTimeOffset CreatedAt, DateTimeOffset UpdatedAt, int Version);
 public sealed record ImportedFinancialRecordResponse(Guid Id, string ImportSource, DateTimeOffset? ConfirmedAt, long? AmountMinor, DateOnly? Date, string? Category, decimal? Confidence, DateTimeOffset CreatedAt, int Version);
 public sealed record DeletedFinancialRecordResponse(Guid Id);
-public sealed class RecordResult<T> where T : class { public T? Value { get; private init; } public string? Error { get; private init; } public static RecordResult<T> Success(T value) => new() { Value = value }; public static RecordResult<T> NotFound() => new() { Error = "not-found" }; public static RecordResult<T> Conflict() => new() { Error = "conflict" }; public static RecordResult<T> ProjectUnavailable() => new() { Error = "project-unavailable" }; public static RecordResult<T> TransactionUnavailable() => new() { Error = "transaction-unavailable" }; public static RecordResult<T> ClaimUnavailable() => new() { Error = "claim-unavailable" }; public static RecordResult<T> ExtractionUnavailable() => new() { Error = "extraction-unavailable" }; }
+public sealed record ImportedFinancialRecordsResponse(IReadOnlyList<Guid> RecordIds);
+public sealed class RecordResult<T> where T : class { public T? Value { get; private init; } public string? Error { get; private init; } public static RecordResult<T> Success(T value) => new() { Value = value }; public static RecordResult<T> NotFound() => new() { Error = "not-found" }; public static RecordResult<T> Conflict() => new() { Error = "conflict" }; public static RecordResult<T> ProjectUnavailable() => new() { Error = "project-unavailable" }; public static RecordResult<T> TransactionUnavailable() => new() { Error = "transaction-unavailable" }; public static RecordResult<T> ClaimUnavailable() => new() { Error = "claim-unavailable" }; public static RecordResult<T> DraftUnavailable() => new() { Error = "draft-unavailable" }; public static RecordResult<T> ExtractionUnavailable() => new() { Error = "extraction-unavailable" }; }

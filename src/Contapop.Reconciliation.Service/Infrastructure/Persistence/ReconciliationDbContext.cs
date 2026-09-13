@@ -28,9 +28,9 @@ public sealed class ReconciliationOperation
     public string Status { get; private set; } = null!; public string IdempotencyKey { get; private set; } = null!; public int Attempts { get; private set; }
     public string? LastError { get; private set; } public DateTimeOffset? NextAttemptAt { get; private set; } public DateTimeOffset CreatedAt { get; private set; } public DateTimeOffset UpdatedAt { get; private set; }
 
-    public static ReconciliationOperation Create(Guid tenantId, Guid transactionId, Guid dependentId, int expectedDependentVersion, string idempotencyKey, DateTimeOffset now) => new()
+    public static ReconciliationOperation Create(Guid tenantId, Guid transactionId, string dependentType, Guid dependentId, int expectedDependentVersion, string idempotencyKey, DateTimeOffset now) => new()
     {
-        Id = Guid.NewGuid(), TenantId = tenantId, TransactionId = transactionId, DependentType = "payment", DependentId = dependentId,
+        Id = Guid.NewGuid(), TenantId = tenantId, TransactionId = transactionId, DependentType = dependentType, DependentId = dependentId,
         ExpectedDependentVersion = expectedDependentVersion, IdempotencyKey = idempotencyKey, Status = "pending-reserve", CreatedAt = now, UpdatedAt = now, NextAttemptAt = now,
     };
 

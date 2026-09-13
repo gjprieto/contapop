@@ -1,0 +1,12 @@
+import { apiRequest } from '../../../shared/api/client';
+export type Plan = { planId: string; projectId: string; title: string; description?: string; allocatedAmountMinor?: number; startDate: string; endDate: string; status: string; version: number; plannedExpenses?: PlannedLine[]; plannedRevenues?: PlannedLine[] };
+export type PlannedLine = { id?: string; amountMinor: number; date: string; category: string; recurring: boolean; recurringInterval?: string };
+export type PlanVsActual = { expenses: { plannedMinor: number; actualMinor: number; varianceMinor: number }; revenues: { plannedMinor: number; actualMinor: number; varianceMinor: number }; byCategory: Array<{ type: string; category: string; plannedMinor: number; actualMinor: number }> };
+const request = <T>(path: string, method = 'GET', body?: object, version?: number) => apiRequest<T>(path, { method, headers: method === 'GET' ? undefined : { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID(), ...(version ? { 'If-Match': `"${version}"` } : {}) }, body: body ? JSON.stringify(body) : undefined });
+export const getPlans = (signal?: AbortSignal) => apiRequest<{ items: Plan[] }>('/experience/v1/plans?page=1&pageSize=100', { signal });
+export const getPlan = (id: string, signal?: AbortSignal) => apiRequest<Plan>(`/experience/v1/plans/${id}`, { signal });
+export const getPlanVsActual = (id: string, signal?: AbortSignal) => apiRequest<PlanVsActual>(`/experience/v1/plans/${id}/plan-vs-actual`, { signal });
+export const createPlan = (input: Omit<Plan, 'planId' | 'status' | 'version' | 'plannedExpenses' | 'plannedRevenues'>) => request<Plan>('/experience/v1/plans', 'POST', input);
+export const updatePlan = (plan: Plan, input: Partial<Plan>) => request<Plan>(`/experience/v1/plans/${plan.planId}`, 'PATCH', input, plan.version);
+export const archivePlan = (plan: Plan) => request(`/experience/v1/plans/${plan.planId}/archive`, 'POST', undefined, plan.version);
+export const addPlannedLine = (planId: string, type: 'expenses' | 'revenues', input: PlannedLine) => request(`/experience/v1/plans/${planId}/planned-${type}`, 'POST', input);

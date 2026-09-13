@@ -21,7 +21,7 @@ public sealed class PaymentReconciliationCoordinator(
         var existing = await database.Operations.SingleOrDefaultAsync(operation => operation.TenantId == tenantId && operation.IdempotencyKey == idempotencyKey, cancellationToken);
         if (existing is not null) return existing;
 
-        var operation = ReconciliationOperation.Create(tenantId, request.TransactionId, request.PaymentId, request.PaymentVersion, idempotencyKey, DateTimeOffset.UtcNow);
+        var operation = ReconciliationOperation.Create(tenantId, request.TransactionId, "payment", request.PaymentId, request.PaymentVersion, idempotencyKey, DateTimeOffset.UtcNow);
         database.Operations.Add(operation);
         await database.SaveChangesAsync(cancellationToken);
         return operation;

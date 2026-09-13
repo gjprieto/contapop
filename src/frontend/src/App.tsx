@@ -3,10 +3,13 @@ import { LoginPage } from './features/auth/pages/login-page';
 import { ProtectedRoute } from './features/auth/components/protected-route';
 import { HomePage } from './features/home/pages/home-page';
 import { FinancialOverviewPage } from './features/accounts/pages/financial-overview-page';
+import { ExpensesPage } from './features/expenses/pages/expenses-page';
 import { InvoicesPage } from './features/invoices/pages/invoices-page';
 import { InvoiceDetailPage } from './features/invoices/pages/invoice-detail-page';
 import { EditInvoicePage } from './features/invoices/pages/edit-invoice-page';
 import { PaymentsPage } from './features/payments/pages/payments-page';
+import { PlansPage } from './features/plans/pages/plans-page';
+import { RevenuesPage } from './features/revenues/pages/revenues-page';
 import { SettingsPage } from './features/settings/pages/settings-page';
 import { TransactionsPage } from './features/transactions/pages/transactions-page';
 import { UserPage } from './features/user/pages/user-page';
@@ -20,10 +23,13 @@ export function App() {
         <Route element={<AppShell />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/financial-overview" element={<FinancialOverviewPage />} />
+          <Route path="/expenses" element={<ExpensesPage />} />
+          <Route path="/revenues" element={<RevenuesPage />} />
           <Route path="/invoices" element={<InvoicesPage />} />
             <Route path="/invoices/:invoiceId" element={<InvoiceDetailPage />} />
             <Route path="/invoices/:invoiceId/edit" element={<EditInvoicePage />} />
           <Route path="/payments" element={<PaymentsPage />} />
+          <Route path="/plans" element={<PlansPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/user" element={<UserPage />} />
           <Route path="/settings" element={<SettingsPage />} />

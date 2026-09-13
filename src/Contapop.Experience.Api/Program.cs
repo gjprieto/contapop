@@ -32,6 +32,8 @@ builder.Services.AddHttpClient("ledger-service", client => client.BaseAddress = 
     builder.Configuration["LedgerService:BaseUrl"] ?? "https+http://ledger-service"));
 builder.Services.AddHttpClient("billing-service", client => client.BaseAddress = new Uri(
     builder.Configuration["BillingService:BaseUrl"] ?? "https+http://billing-service"));
+builder.Services.AddHttpClient("bookkeeping-service", client => client.BaseAddress = new Uri(
+    builder.Configuration["BookkeepingService:BaseUrl"] ?? "https+http://bookkeeping-service"));
 builder.Services.AddHttpClient("reconciliation-service", client => client.BaseAddress = new Uri(
     builder.Configuration["ReconciliationService:BaseUrl"] ?? "https+http://reconciliation-service"));
 builder.Services.AddSingleton<InternalJwtIssuer>();
@@ -224,6 +226,19 @@ payments.MapPost("", (JsonElement body, HttpContext context, IHttpClientFactory 
 payments.MapGet("/unreconciled-transactions", (HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ListPaymentUnreconciledTransactionsAsync(context, clients, jwt, ct));
 payments.MapPost("/{paymentId:guid}/reconcile", (Guid paymentId, ReconcilePaymentExperienceRequest body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => StartPaymentReconciliationAsync(paymentId, body, context, clients, jwt, ct));
 
+MapFinancialRecordExperienceEndpoints(app, "expenses");
+MapFinancialRecordExperienceEndpoints(app, "revenues");
+
+var plans = app.MapGroup("/experience/v1/plans").RequireAuthorization("account-owner");
+plans.MapGet("", (HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Get, "/api/v1/plans" + context.Request.QueryString, null, context, clients, jwt, ct));
+plans.MapPost("", (JsonElement body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Post, "/api/v1/plans", body, context, clients, jwt, ct, true));
+plans.MapGet("/{planId:guid}", (Guid planId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Get, $"/api/v1/plans/{planId}", null, context, clients, jwt, ct));
+plans.MapPatch("/{planId:guid}", (Guid planId, JsonElement body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Patch, $"/api/v1/plans/{planId}", body, context, clients, jwt, ct, true, true));
+plans.MapPost("/{planId:guid}/archive", (Guid planId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Post, $"/api/v1/plans/{planId}/archive", null, context, clients, jwt, ct, true, true));
+plans.MapPost("/{planId:guid}/planned-expenses", (Guid planId, JsonElement body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Post, $"/api/v1/plans/{planId}/planned-expenses", body, context, clients, jwt, ct, true));
+plans.MapPost("/{planId:guid}/planned-revenues", (Guid planId, JsonElement body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Post, $"/api/v1/plans/{planId}/planned-revenues", body, context, clients, jwt, ct, true));
+plans.MapGet("/{planId:guid}/plan-vs-actual", (Guid planId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Get, $"/api/v1/plans/{planId}/plan-vs-actual", null, context, clients, jwt, ct));
+
 app.MapGet("/health", () => Results.Ok());
 app.Run();
 
@@ -315,6 +330,9 @@ static async Task<IResult> ForwardLedgerAsync(
 
 static Task<IResult> ForwardBillingAsync(HttpMethod method, string path, object? body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwtIssuer, CancellationToken ct, bool requiresIdempotencyKey = false, bool requiresVersion = false) =>
     ForwardServiceAsync("billing-service", method, path, body, context, clients, jwtIssuer, ct, requiresIdempotencyKey, requiresVersion);
+
+static Task<IResult> ForwardBookkeepingAsync(HttpMethod method, string path, object? body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwtIssuer, CancellationToken ct, bool requiresIdempotencyKey = false, bool requiresVersion = false) =>
+    ForwardServiceAsync("bookkeeping-service", method, path, body, context, clients, jwtIssuer, ct, requiresIdempotencyKey, requiresVersion);
 
 static async Task<IResult> ForwardServiceAsync(string service, HttpMethod method, string path, object? body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwtIssuer, CancellationToken ct, bool requiresIdempotencyKey, bool requiresVersion)
 {
@@ -411,6 +429,66 @@ static async Task<IResult> StartPaymentReconciliationAsync(Guid paymentId, Recon
     return response.IsSuccessStatusCode ? Results.Content(content, response.Content.Headers.ContentType?.MediaType ?? "application/json", statusCode: (int)response.StatusCode) : Results.Content(content, response.Content.Headers.ContentType?.MediaType ?? "application/problem+json", statusCode: (int)response.StatusCode);
 }
 
+static void MapFinancialRecordExperienceEndpoints(WebApplication app, string resource)
+{
+    var records = app.MapGroup($"/experience/v1/{resource}").RequireAuthorization("account-owner");
+    records.MapGet("", (HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Get, $"/api/v1/{resource}" + context.Request.QueryString, null, context, clients, jwt, ct));
+    records.MapPost("", (JsonElement body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Post, $"/api/v1/{resource}", body, context, clients, jwt, ct, true));
+    records.MapPatch("/{recordId:guid}", (Guid recordId, JsonElement body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Patch, $"/api/v1/{resource}/{recordId}", body, context, clients, jwt, ct, true, true));
+    records.MapDelete("/{recordId:guid}", (Guid recordId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Delete, $"/api/v1/{resource}/{recordId}", null, context, clients, jwt, ct, true, true));
+    records.MapPost("/import-document", ([FromForm] IFormFile? file, [FromForm] Guid projectId, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardFinancialRecordImportAsync(resource, "import-document", file, projectId, null, context, clients, jwt, ct)).Accepts<IFormFile>("multipart/form-data").DisableAntiforgery();
+    records.MapPost("/import-file", ([FromForm] IFormFile? file, [FromForm] Guid projectId, [FromForm] string? columnMapping, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardFinancialRecordImportAsync(resource, "import-file", file, projectId, columnMapping, context, clients, jwt, ct)).Accepts<IFormFile>("multipart/form-data").DisableAntiforgery();
+    records.MapPost("/{recordId:guid}/confirm", (Guid recordId, JsonElement body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ForwardBookkeepingAsync(HttpMethod.Post, $"/api/v1/{resource}/{recordId}/confirm", body, context, clients, jwt, ct, true, true));
+    records.MapGet("/unreconciled-transactions", (HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => ListFinancialRecordUnreconciledTransactionsAsync(resource, context, clients, jwt, ct));
+    records.MapPost("/{recordId:guid}/reconcile", (Guid recordId, ReconcileFinancialRecordExperienceRequest body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwt, CancellationToken ct) => StartFinancialRecordReconciliationAsync(resource.TrimEnd('s'), recordId, body, context, clients, jwt, ct));
+}
+
+static async Task<IResult> ForwardFinancialRecordImportAsync(string resource, string action, IFormFile? file, Guid projectId, string? columnMapping, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwtIssuer, CancellationToken ct)
+{
+    if (file is null || file.Length == 0 || projectId == Guid.Empty || (action == "import-file" && string.IsNullOrWhiteSpace(columnMapping))) return Results.ValidationProblem(new Dictionary<string, string[]> { ["request"] = ["A non-empty file, project ID, and column mapping for structured imports are required."] });
+    var key = context.Request.Headers["Idempotency-Key"].ToString();
+    if (!Guid.TryParse(key, out _)) return Results.ValidationProblem(new Dictionary<string, string[]> { ["Idempotency-Key"] = ["A GUID idempotency key is required."] });
+    using var content = new MultipartFormDataContent();
+    content.Add(new StringContent(projectId.ToString()), "projectId");
+    if (columnMapping is not null) content.Add(new StringContent(columnMapping), "columnMapping");
+    await using var source = file.OpenReadStream(); using var fileContent = new StreamContent(source);
+    fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType);
+    content.Add(fileContent, "file", file.FileName);
+    using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/v1/{resource}/{action}") { Content = content };
+    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtIssuer.Create(context.User)); request.Headers.TryAddWithoutValidation("Idempotency-Key", key);
+    using var response = await clients.CreateClient("bookkeeping-service").SendAsync(request, ct);
+    return Results.Content(await response.Content.ReadAsStringAsync(ct), response.Content.Headers.ContentType?.MediaType ?? "application/json", statusCode: (int)response.StatusCode);
+}
+
+static async Task<IResult> ListFinancialRecordUnreconciledTransactionsAsync(string resource, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwtIssuer, CancellationToken ct)
+{
+    var reconciled = new HashSet<string?>(); var page = 1;
+    while (true)
+    {
+        using var recordsRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/{resource}?page={page}&pageSize=100"); recordsRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtIssuer.Create(context.User));
+        using var recordsResponse = await clients.CreateClient("bookkeeping-service").SendAsync(recordsRequest, ct);
+        if (!recordsResponse.IsSuccessStatusCode) return Results.Problem(statusCode: StatusCodes.Status502BadGateway, title: "Bookkeeping service unavailable");
+        var recordPage = await recordsResponse.Content.ReadFromJsonAsync<JsonElement>(ct);
+        foreach (var record in recordPage.GetProperty("items").EnumerateArray()) if (record.TryGetProperty("reconciledTransactionId", out var id) && id.ValueKind == JsonValueKind.String) reconciled.Add(id.GetString());
+        if (page * recordPage.GetProperty("pageSize").GetInt32() >= recordPage.GetProperty("totalCount").GetInt32()) break; page++;
+    }
+    using var ledgerRequest = new HttpRequestMessage(HttpMethod.Get, "/api/v1/transactions/unreconciled" + context.Request.QueryString); ledgerRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtIssuer.Create(context.User));
+    using var ledgerResponse = await clients.CreateClient("ledger-service").SendAsync(ledgerRequest, ct);
+    if (!ledgerResponse.IsSuccessStatusCode) return Results.Problem(statusCode: StatusCodes.Status502BadGateway, title: "Ledger service unavailable");
+    var transactions = await ledgerResponse.Content.ReadFromJsonAsync<JsonElement>(ct); var items = transactions.GetProperty("items").EnumerateArray().Where(transaction => !reconciled.Contains(transaction.GetProperty("transactionId").GetString())).ToArray();
+    return Results.Json(new { items, page = transactions.GetProperty("page").GetInt32(), pageSize = transactions.GetProperty("pageSize").GetInt32(), totalCount = items.Length });
+}
+
+static async Task<IResult> StartFinancialRecordReconciliationAsync(string type, Guid recordId, ReconcileFinancialRecordExperienceRequest body, HttpContext context, IHttpClientFactory clients, InternalJwtIssuer jwtIssuer, CancellationToken ct)
+{
+    if (!Guid.TryParse(context.Request.Headers["Idempotency-Key"], out _)) return Results.ValidationProblem(new Dictionary<string, string[]> { ["Idempotency-Key"] = ["A GUID idempotency key is required."] });
+    if (body.TransactionId == Guid.Empty || body.RecordVersion <= 0) return Results.ValidationProblem(new Dictionary<string, string[]> { ["request"] = ["Transaction ID and record version are required."] });
+    using var request = new HttpRequestMessage(HttpMethod.Post, "/internal/v1/financial-record-reconciliations") { Content = JsonContent.Create(new { transactionId = body.TransactionId, recordId, recordVersion = body.RecordVersion, recordType = type }) };
+    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtIssuer.Create(context.User)); request.Headers.TryAddWithoutValidation("Idempotency-Key", context.Request.Headers["Idempotency-Key"].ToString());
+    using var response = await clients.CreateClient("reconciliation-service").SendAsync(request, ct);
+    return Results.Content(await response.Content.ReadAsStringAsync(ct), response.Content.Headers.ContentType?.MediaType ?? "application/problem+json", statusCode: (int)response.StatusCode);
+}
+
 static async Task<IResult> ForwardLedgerImportAsync(IFormFile? file, Guid bankAccountId, string? columnMapping, HttpContext httpContext, IHttpClientFactory clientFactory, InternalJwtIssuer jwtIssuer, CancellationToken cancellationToken)
 {
     if (!httpContext.Request.Headers.TryGetValue("Idempotency-Key", out var idempotencyKey))
@@ -458,6 +536,7 @@ public sealed record UpdateUserProfileResponse(Guid UserId, string Name, DateTim
 public sealed record UpdateUserPreferencesRequest(string? Theme, string? Language, bool? NotificationsEnabled);
 public sealed record UpdateUserPreferencesResponse(Guid UserId, string Theme, string Language, bool NotificationsEnabled, DateTimeOffset UpdatedAt, int Version);
 public sealed record ReconcilePaymentExperienceRequest(Guid TransactionId, int PaymentVersion);
+public sealed record ReconcileFinancialRecordExperienceRequest(Guid TransactionId, int RecordVersion);
 
 public sealed class InternalJwtIssuer(IConfiguration configuration)
 {

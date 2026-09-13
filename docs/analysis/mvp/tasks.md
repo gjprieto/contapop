@@ -469,9 +469,9 @@ Every service task uses the folder layout in `backend-api-code-guidelines.md`'s 
 
 **Depends on:** 4.3, 4.4, 4.5, 1.8.
 
-**Implement:** Experience API endpoints for the Expenses, Revenues, and Plans screens, per `screens-and-features.md`. Frontend slices in `features/expenses/`, `features/revenues/`, `features/plans/`, including the CSV/Excel column-mapping import UI with skipped-row feedback, the PDF upload UI, and the draft-review/confirm step.
+**Implement:** Complete the missing supporting backend slices before the Experience/API UI work: Bookkeeping's documented UTF-8 CSV and `.xlsx` structured imports with caller-supplied mapping, immediately confirmed valid rows, per-row skip feedback, idempotency, and recorded outbox events; and durable Reconciliation Process API coordination for Expense and Revenue (reserve -> Bookkeeping reconcile -> confirm/release) so claim IDs are never exposed to the browser. Then add Experience API endpoints for the Expenses, Revenues, and Plans screens, per `screens-and-features.md`. Frontend slices in `features/expenses/`, `features/revenues/`, `features/plans/`, including the CSV/Excel column-mapping import UI with skipped-row feedback, the PDF upload UI, and the draft-review/confirm step. Normalize the Bookkeeping external response shape to the resource-specific `expenseId`/`revenueId` names defined in `contracts.md`.
 
-**Automated tests:** component tests for CRUD forms, CSV/Excel mapping and skipped-row feedback, the reconciliation picker, and the draft-confirmation review UI; Experience API integration tests per endpoint.
+**Automated tests:** Bookkeeping integration tests for structured imports and reconciliation eligibility; Reconciliation Process API tests for Expense/Revenue reserve -> dependent write -> confirm/release; component tests for CRUD forms, CSV/Excel mapping and skipped-row feedback, the reconciliation picker, and the draft-confirmation review UI; Experience API integration tests per endpoint.
 
 **What you can test:** in the browser, record an expense and reconcile it against a transaction; import a CSV/Excel file and confirm valid rows appear while invalid rows are reported; upload a sample receipt PDF, review and confirm the resulting draft; create a plan with a planned expense line and see it reflected in plan-vs-actual on the Plans screen.
 

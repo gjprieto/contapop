@@ -19,6 +19,7 @@ builder.Services.AddDbContext<BookkeepingDbContext>(options =>
 builder.Services.AddScoped<ProjectReplicationConsumer>();
 builder.Services.AddScoped<TransactionReplicationConsumer>();
 builder.Services.AddScoped<FinancialRecordCommandHandler>();
+builder.Services.AddScoped<FinancialRecordFileImporter>();
 builder.Services.AddScoped<PlanCommandHandler>();
 builder.Services.AddHttpClient<IDocumentExtractionAdapter, AzureDocumentExtractionAdapter>();
 builder.Services.AddHttpContextAccessor();
