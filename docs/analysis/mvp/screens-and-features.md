@@ -35,8 +35,8 @@ The Expenses Screen allows users to view, manage, and track their expenses. It p
 - Create, edit, and delete expenses
 - Notifications and reminders for upcoming or overdue expenses
 - Navigation to related sections such as Financial Overview, Invoices, and Payments
-- Import expenses from external sources such as CSV or Excel files
-- Import invoices from PDF or other supported formats
+- Import expenses from UTF-8 CSV or `.xlsx` files with column mapping; valid rows are confirmed immediately and invalid rows are reported and skipped
+- Import receipts or invoices from PDF through OCR; review and explicitly confirm the resulting draft before it enters the books
 
 ## Revenues Screen
 
@@ -49,8 +49,8 @@ The Revenues Screen allows users to view, manage, and track their revenues. It p
 - Create, edit, and delete revenues
 - Notifications and reminders for upcoming or overdue revenues
 - Navigation to related sections such as Financial Overview, Invoices, and Payments
-- Import revenues from external sources such as CSV or Excel files
-- Import invoices from PDF or other supported formats
+- Import revenues from UTF-8 CSV or `.xlsx` files with column mapping; valid rows are confirmed immediately and invalid rows are reported and skipped
+- Import receipts or invoices from PDF through OCR; review and explicitly confirm the resulting draft before it enters the books
 
 ## Invoices Screen
 

@@ -70,12 +70,14 @@ public sealed class Expense : FinancialRecord
 {
     public static Expense Create(Guid tenantId, Guid projectId, long amountMinor, DateOnly date, string category, bool recurring, string? recurringInterval, DateTimeOffset now) => Create<Expense>(tenantId, projectId, amountMinor, date, category, recurring, recurringInterval, "manual", now, now);
     public static Expense Import(Guid tenantId, Guid projectId, DocumentExtractionResult extracted, DateTimeOffset now) => Create<Expense>(tenantId, projectId, extracted.AmountMinor ?? 0, extracted.Date ?? default, extracted.Category ?? string.Empty, false, null, "pdf_ocr", null, now);
+    public static Expense ImportStructured(Guid tenantId, Guid projectId, long amountMinor, DateOnly date, string category, bool recurring, string? recurringInterval, DateTimeOffset now) => Create<Expense>(tenantId, projectId, amountMinor, date, category, recurring, recurringInterval, "csv_excel", now, now);
 }
 
 public sealed class Revenue : FinancialRecord
 {
     public static Revenue Create(Guid tenantId, Guid projectId, long amountMinor, DateOnly date, string category, bool recurring, string? recurringInterval, DateTimeOffset now) => Create<Revenue>(tenantId, projectId, amountMinor, date, category, recurring, recurringInterval, "manual", now, now);
     public static Revenue Import(Guid tenantId, Guid projectId, DocumentExtractionResult extracted, DateTimeOffset now) => Create<Revenue>(tenantId, projectId, extracted.AmountMinor ?? 0, extracted.Date ?? default, extracted.Category ?? string.Empty, false, null, "pdf_ocr", null, now);
+    public static Revenue ImportStructured(Guid tenantId, Guid projectId, long amountMinor, DateOnly date, string category, bool recurring, string? recurringInterval, DateTimeOffset now) => Create<Revenue>(tenantId, projectId, amountMinor, date, category, recurring, recurringInterval, "csv_excel", now, now);
 }
 
 public sealed class Plan

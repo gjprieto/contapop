@@ -60,7 +60,7 @@ Per `docs/analysis/mvp/scope-decisions.md`'s test-rigor decision, only the money
 **Depends on:** Phase 1 (Project) and Phase 2 (Transaction, for reconciliation).
 
 **Delivers:**
-- Expense and Revenue CRUD with reconciliation (`ReconcileExpenseWithTransaction`, `ReconcileRevenueWithTransaction`), the PDF-OCR import adapter and its draft/confirm flow (`ImportExpenseFromDocument`/`ImportRevenueFromDocument` + `ConfirmImportedExpense`/`ConfirmImportedRevenue`), Plan CRUD with `AddPlannedExpenseLine`/`AddPlannedRevenueLine`, `GetPlanVsActual`.
+- Expense and Revenue CRUD with reconciliation (`ReconcileExpenseWithTransaction`, `ReconcileRevenueWithTransaction`), structured CSV/Excel import with immediately confirmed valid rows and reported skipped rows, the PDF-OCR import adapter and its draft/confirm flow (`ImportExpenseFromDocument`/`ImportRevenueFromDocument` + `ConfirmImportedExpense`/`ConfirmImportedRevenue`), Plan CRUD with `AddPlannedExpenseLine`/`AddPlannedRevenueLine`, `GetPlanVsActual`.
 - Publishing `bookkeeping.expense-recorded.v1`, `bookkeeping.revenue-recorded.v1`, `bookkeeping.plan-created.v1`, `bookkeeping.planned-expense-added.v1`, `bookkeeping.planned-revenue-added.v1` for Phase 5.
 - Frontend: Expenses screen, Revenues screen, Plans screen.
 

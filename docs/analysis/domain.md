@@ -211,7 +211,7 @@ A Report represents a saved set of criteria for a financial analysis, not a froz
 
 ### Expense
 
-An Expense represents a financial outflow associated with a tenant or project. It records details such as the amount, date, category, and associated entities within the system. It can be recurring or one-time, providing a way to track and manage expenditures effectively. **Decision (2026-09-06): can be reconciled against a Financial Accounts & Ledger Transaction** — optional, one-to-one for MVP; a cross-service reference validated the same way as a Project reference. **Decision (2026-09-06): can also be imported from a PDF via OCR** — see `import_source` below and `docs/analysis/contracts.md`. **Decision (2026-09-06): added `confirmed_at`** — makes the "draft until confirmed" rule from `contracts.md` concrete: null while a `pdf_ocr` import is awaiting `ConfirmImportedExpense`, set immediately for a `manual` record, set by confirmation for an OCR one. Any report-facing query filters on `confirmed_at IS NOT NULL`.
+An Expense represents a financial outflow associated with a tenant or project. It records details such as the amount, date, category, and associated entities within the system. It can be recurring or one-time, providing a way to track and manage expenditures effectively. **Decision (2026-09-06): can be reconciled against a Financial Accounts & Ledger Transaction** — optional, one-to-one for MVP; a cross-service reference validated the same way as a Project reference. **Decision (2026-09-13): can also be imported from a PDF via OCR or a structured CSV/Excel file** — see `import_source` below and `docs/analysis/contracts.md`. **Decision (2026-09-06): added `confirmed_at`** — makes the "draft until confirmed" rule from `contracts.md` concrete: null while a `pdf_ocr` import is awaiting `ConfirmImportedExpense`, set immediately for `manual` and valid `csv_excel` imports, set by confirmation for an OCR one. Any report-facing query filters on `confirmed_at IS NOT NULL`.
 
 **Attributes:**
 - `id`: Unique identifier for the expense.
@@ -223,14 +223,14 @@ An Expense represents a financial outflow associated with a tenant or project. I
 - `category`: Category of the expense (e.g., utilities, salaries).
 - `recurring`: Indicates if the expense is recurring.
 - `recurring_interval`: Specifies the interval at which the expense recurs (e.g., monthly, yearly).
-- `import_source`: How the record was created — `manual` or `pdf_ocr`. An OCR-imported expense is created as a draft pending user confirmation before it counts toward reports (see `contracts.md`).
-- `confirmed_at`: Null while an OCR-imported draft awaits confirmation; set (immediately for manual, on confirmation for OCR) once the record counts toward reports.
+- `import_source`: How the record was created — `manual`, `csv_excel`, or `pdf_ocr`. A valid structured-import row is confirmed immediately; an OCR-imported expense is created as a draft pending user confirmation before it counts toward reports (see `contracts.md`).
+- `confirmed_at`: Null while an OCR-imported draft awaits confirmation; set immediately for manual and valid structured imports, or on OCR confirmation, once the record counts toward reports.
 - `created_at`: Timestamp when the expense was created.
 - `updated_at`: Timestamp when the expense was last updated.
 
 ### Revenue
  
-A Revenue represents a financial inflow associated with a tenant or project. It records details such as the amount, date, category, and associated entities within the system. It can be recurring or one-time, providing a way to track and manage income effectively. **Decision (2026-09-06): can be reconciled against a Financial Accounts & Ledger Transaction** — optional, one-to-one for MVP; a cross-service reference validated the same way as a Project reference. **Decision (2026-09-06): can also be imported from a PDF via OCR** — see `import_source` below and `docs/analysis/contracts.md`. **Decision (2026-09-06): added `confirmed_at`** — same purpose as Expense's field, above.
+A Revenue represents a financial inflow associated with a tenant or project. It records details such as the amount, date, category, and associated entities within the system. It can be recurring or one-time, providing a way to track and manage income effectively. **Decision (2026-09-13): can also be imported from a PDF via OCR or a structured CSV/Excel file** — see `import_source` below and `docs/analysis/contracts.md`. **Decision (2026-09-06): added `confirmed_at`** — same purpose as Expense's field, above.
 
 **Attributes:**
 - `id`: Unique identifier for the revenue.
@@ -242,8 +242,8 @@ A Revenue represents a financial inflow associated with a tenant or project. It 
 - `category`: Category of the revenue (e.g., sales, investments).
 - `recurring`: Indicates if the revenue is recurring.
 - `recurring_interval`: Specifies the interval at which the revenue recurs (e.g., monthly, yearly).
-- `import_source`: How the record was created — `manual` or `pdf_ocr`. An OCR-imported revenue is created as a draft pending user confirmation before it counts toward reports (see `contracts.md`).
-- `confirmed_at`: Null while an OCR-imported draft awaits confirmation; set (immediately for manual, on confirmation for OCR) once the record counts toward reports.
+- `import_source`: How the record was created — `manual`, `csv_excel`, or `pdf_ocr`. A valid structured-import row is confirmed immediately; an OCR-imported revenue is created as a draft pending user confirmation before it counts toward reports (see `contracts.md`).
+- `confirmed_at`: Null while an OCR-imported draft awaits confirmation; set immediately for manual and valid structured imports, or on OCR confirmation, once the record counts toward reports.
 - `created_at`: Timestamp when the revenue was created.
 - `updated_at`: Timestamp when the revenue was last updated.
 

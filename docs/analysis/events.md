@@ -285,7 +285,7 @@ These aren't domain synchronization events — nothing replicates them into a lo
 
 ### `bookkeeping.expense-recorded.v1`
 
-**Producer:** Bookkeeping & Planning, when a manual Expense is recorded or an OCR-imported Expense is confirmed.
+**Producer:** Bookkeeping & Planning, when a manual Expense is recorded, a valid CSV/Excel row is imported, or an OCR-imported Expense is confirmed.
 **Consumers:** Reporting.
 
 | Payload field | Notes |
@@ -301,7 +301,7 @@ These aren't domain synchronization events — nothing replicates them into a lo
 
 ### `bookkeeping.revenue-recorded.v1`
 
-**Producer:** Bookkeeping & Planning, when a manual Revenue is recorded or an OCR-imported Revenue is confirmed.
+**Producer:** Bookkeeping & Planning, when a manual Revenue is recorded, a valid CSV/Excel row is imported, or an OCR-imported Revenue is confirmed.
 **Consumers:** Reporting.
 
 | Payload field | Notes |
@@ -357,4 +357,4 @@ Examples: `InvoiceIssued`, `InvoiceMarkedPaid`, `ExpenseRecorded`, `BankAccountL
 
 1. If Bookkeeping & Planning ever references Counterparty directly (e.g. a supplier-tagged Expense), that would introduce a new cross-service candidate and a matching set of `billing.counterparty-*` synchronization events — not needed under the current domain model.
 2. Reconciliation (`reconciled_transaction_id`) is modeled as optional and globally one-to-one for MVP — a Transaction reconciles to at most one Expense, Revenue, or Payment, and vice versa. Ledger-owned Transaction Reconciliation Claims enforce the cross-service side of this invariant; see `services.md`. Split transactions or many-to-one reconciliation are not supported by this shape; revisit if that turns out to be needed.
-3. `Expense`/`Revenue`'s `import_source` (`manual` vs `pdf_ocr`) and draft-confirmation step do not raise a distinct event: a confirmed OCR record is an ordinary `bookkeeping.expense-recorded.v1` or `bookkeeping.revenue-recorded.v1` fact. Revisit only if Reporting or another consumer needs OCR provenance.
+3. `Expense`/`Revenue`'s `import_source` (`manual`, `csv_excel`, or `pdf_ocr`) does not raise a distinct event: valid structured imports and confirmed OCR records are ordinary `bookkeeping.expense-recorded.v1` or `bookkeeping.revenue-recorded.v1` facts. Revisit only if Reporting or another consumer needs import provenance.

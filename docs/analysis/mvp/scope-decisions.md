@@ -70,7 +70,15 @@ This document records scope cut-lines for the MVP — decisions about how much o
 
 **Why:** `screens-and-features.md` already listed this as a key feature of the Expenses and Revenues screens; bringing the underlying integration forward avoids shipping a screen feature the backend doesn't support.
 
-**Consequence:** `Expense` and `Revenue` gained an `import_source` field (`manual` or `pdf_ocr`). An OCR-imported record is created as a draft that a user must explicitly confirm (`ConfirmImportedExpense`/`ConfirmImportedRevenue` in `docs/analysis/contracts.md`) before it counts toward any report — OCR accuracy isn't assumed to be perfect, so nothing silently enters the books unreviewed. The adapter returns optional extracted amount, date, category, confidence, and diagnostics; an absent amount creates an empty, reviewable draft with `201 Created`, not an error. `422 Unprocessable Entity` is reserved for an invalid PDF upload or an extraction request the provider cannot process. Azure endpoint and credential configuration are secrets: local development uses .NET user secrets and deployed environments use the hosting platform's secret store. Automated tests use a deterministic fake adapter, never Azure.
+**Consequence:** `Expense` and `Revenue` have an `import_source` field (`manual`, `csv_excel`, or `pdf_ocr`). An OCR-imported record is created as a draft that a user must explicitly confirm (`ConfirmImportedExpense`/`ConfirmImportedRevenue` in `docs/analysis/contracts.md`) before it counts toward any report — OCR accuracy isn't assumed to be perfect, so nothing silently enters the books unreviewed. The adapter returns optional extracted amount, date, category, confidence, and diagnostics; an absent amount creates an empty, reviewable draft with `201 Created`, not an error. `422 Unprocessable Entity` is reserved for an invalid PDF upload or an extraction request the provider cannot process. Azure endpoint and credential configuration are secrets: local development uses .NET user secrets and deployed environments use the hosting platform's secret store. Automated tests use a deterministic fake adapter, never Azure.
+
+## Expense And Revenue Structured Import
+
+**Decision (2026-09-13):** Expenses and Revenues support UTF-8 CSV and `.xlsx` import in the MVP, using a caller-supplied column mapping for amount, date, category, optional recurring, and optional recurring interval. Valid rows create immediately confirmed records with `import_source = csv_excel`; invalid rows are skipped and returned with their row number and reason.
+
+**Why:** structured files contain user-controlled values rather than probabilistic extraction, so forcing a separate review step would add friction without increasing correctness. The row-level result allows a user to correct malformed source data without losing valid entries.
+
+**Consequence:** CSV/Excel imports publish the ordinary `bookkeeping.expense-recorded.v1` or `bookkeeping.revenue-recorded.v1` event for each created record. They never create OCR-style drafts. Legacy `.xls` is excluded from MVP.
 
 ## MVP Audience & Onboarding
 

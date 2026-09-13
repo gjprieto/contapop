@@ -889,12 +889,14 @@ Screens: Expenses, Revenues, Plans.
 | `DeleteExpense` | `DELETE /api/v1/expenses/{expenseId}` | Expenses |
 | `ReconcileExpenseWithTransaction` | `POST /api/v1/expenses/{expenseId}/reconcile` | Expenses |
 | `ImportExpenseFromDocument` | `POST /api/v1/expenses/import-document` | Expenses |
+| `ImportExpensesFromFile` | `POST /api/v1/expenses/import-file` | Expenses |
 | `ConfirmImportedExpense` | `POST /api/v1/expenses/{expenseId}/confirm` | Expenses |
 | `RecordRevenue` | `POST /api/v1/revenues` | Revenues |
 | `UpdateRevenue` | `PATCH /api/v1/revenues/{revenueId}` | Revenues |
 | `DeleteRevenue` | `DELETE /api/v1/revenues/{revenueId}` | Revenues |
 | `ReconcileRevenueWithTransaction` | `POST /api/v1/revenues/{revenueId}/reconcile` | Revenues |
 | `ImportRevenueFromDocument` | `POST /api/v1/revenues/import-document` | Revenues |
+| `ImportRevenuesFromFile` | `POST /api/v1/revenues/import-file` | Revenues |
 | `ConfirmImportedRevenue` | `POST /api/v1/revenues/{revenueId}/confirm` | Revenues |
 | `CreatePlan` | `POST /api/v1/plans` | Plans |
 | `UpdatePlan` | `PATCH /api/v1/plans/{planId}` | Plans |
@@ -1005,6 +1007,40 @@ projectId: guid
 **Errors:** `422 Unprocessable Entity` for an invalid or unsupported PDF upload, or when the Document Extraction provider cannot process the request. An extraction that succeeds but omits one or more fields is not an error.
 
 **Note:** no event fires here — only `ConfirmImportedExpense`/`ConfirmImportedRevenue` does.
+
+#### `ImportExpensesFromFile` / `ImportRevenuesFromFile`
+
+Imports user-controlled structured entries, so every valid row becomes a confirmed record immediately with `importSource = "csv_excel"`; it does not enter the OCR draft workflow. The service accepts UTF-8 CSV and `.xlsx` files, not legacy `.xls`, with a required caller-supplied column mapping.
+
+**Routes:** `POST /api/v1/expenses/import-file`, `POST /api/v1/revenues/import-file` (`multipart/form-data`)
+
+**Request:**
+```
+file: binary — UTF-8 CSV or .xlsx
+projectId: guid
+columnMapping: {
+  "amountColumn": "string — source column header",
+  "dateColumn": "string — source column header",
+  "categoryColumn": "string — source column header",
+  "recurringColumn": "string optional — accepts true/false, yes/no, or 1/0",
+  "recurringIntervalColumn": "string optional — weekly | monthly | yearly"
+}
+```
+
+Dates accept `yyyy-MM-dd` or Spanish `dd/MM/yyyy`; amounts accept invariant or Spanish decimal notation (for example, `1234.56` or `1.234,56`) and are converted to EUR minor units. A row is skipped when an amount is not positive, a date/category is absent or invalid, a recurring value is invalid, or its recurring interval does not match the recurring flag.
+
+**Response:** `200 OK`
+```
+{
+  "importedCount": "int",
+  "recordIds": ["guid"],
+  "skippedRows": [ { "rowNumber": "int", "reason": "string" } ]
+}
+```
+
+**Errors:** `422 Unprocessable Entity` with a `skippedRows`-shaped problem extension if the file cannot be parsed at all (wrong format, no header row, or a required mapped column absent). A successful import with skipped individual rows remains `200 OK`.
+
+**Events:** one `bookkeeping.expense-recorded.v1` or `bookkeeping.revenue-recorded.v1` for every imported valid row.
 
 #### `ConfirmImportedExpense` / `ConfirmImportedRevenue`
 
